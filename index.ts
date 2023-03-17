@@ -15,11 +15,170 @@ import {
   sr25519PairFromSeed,
 } from "@polkadot/util-crypto";
 import express from "express";
+import * as dotenv from "dotenv";
+dotenv.config();
+
+const { MNEMONIC } = process.env;
+
+export async function schemaCreate(
+  req: express.Request,
+  res: express.Response
+) {
+  const mnemonic: any = MNEMONIC;
+  const authorIdentity = Crypto.makeKeypairFromUri("//Bob", "sr25519");
+
+  console.log(`\n❄️  Schema Creation `);
+
+  createDid(mnemonic).then(async ({ issuerKeys, uri }) => {
+    const schema = await ensureStoredSchema(
+      authorIdentity,
+      uri,
+      async ({ data }) => ({
+        signature: issuerKeys.assertionMethod?.sign(data),
+        keyType: issuerKeys.assertionMethod.type,
+      })
+    );
+    console.dir(schema, {
+      depth: null,
+      colors: true,
+    });
+    console.log("✅ Schema created!");
+  });
+}
+
+
+
+export async function registryCreate(
+  req: express.Request,
+  res: express.Response
+) {
+  const mnemonic: any = MNEMONIC;
+
+  const authorIdentity = Crypto.makeKeypairFromUri("//Bob", "sr25519");
+  createDid(mnemonic)
+    .then(async ({ issuerKeys, uri }) => {
+      const schema = await ensureStoredSchema(
+        authorIdentity,
+        uri,
+        async ({ data }) => ({
+          signature: issuerKeys.assertionMethod?.sign(data),
+          keyType: issuerKeys.assertionMethod.type,
+        })
+      );
+
+      console.log(`\n❄️  Registry Creation `);
+
+      const registry = await ensureStoredRegistry(
+        authorIdentity,
+        uri,
+        schema["$id"],
+        async ({ data }) => ({
+          signature: issuerKeys.assertionMethod.sign(data),
+          keyType: issuerKeys.assertionMethod.type,
+        })
+      );
+      console.dir(registry, {
+        depth: null,
+        colors: true,
+      });
+      console.log("✅ Registry created!");
+    })
+    .catch((err) => {
+      console.log(err.message);
+    });
+}
+
+
 
 export async function credentialCreate(
   req: express.Request,
   res: express.Response
 ) {
+  const mnemonic: any = MNEMONIC;
+  const authorIdentity = Crypto.makeKeypairFromUri("//Bob", "sr25519");
+
+  createDid(mnemonic).then(async ({ issuerKeys, uri }) => {
+    const holderDid: any = {
+      uri: "did:cord:3wpcRRjLSq75mozuBgaezq9mCd5GYGKtyfmJXkjDpTc5pxVX",
+    };
+
+    const schema = await ensureStoredSchema(
+      authorIdentity,
+      uri,
+      async ({ data }) => ({
+        signature: issuerKeys.assertionMethod?.sign(data),
+        keyType: issuerKeys.assertionMethod.type,
+      })
+    );
+
+    console.log(`\n❄️  Credential Creation `);
+    const credential = requestCredential(holderDid.uri, uri, schema);
+    console.dir(credential, {
+      depth: null,
+      colors: true,
+    });
+    await createStream(
+      uri,
+      authorIdentity,
+      async ({ data }) => ({
+        signature: issuerKeys.assertionMethod.sign(data),
+        keyType: issuerKeys.assertionMethod.type,
+      }),
+      credential
+    );
+    console.log("✅ Credential created!");
+  });
+}
+
+
+
+export async function presentationCreate(
+  req: express.Request,
+  res: express.Response
+) {
+  const mnemonic: any = MNEMONIC;
+  const authorIdentity = Crypto.makeKeypairFromUri("//Bob", "sr25519");
+
+  function getChallenge(): string {
+    return Cord.Utils.UUID.generate();
+  }
+
+  createDid(mnemonic).then(async ({ issuerKeys, uri }) => {
+    const holderDid: any = {
+      uri: "did:cord:3wpcRRjLSq75mozuBgaezq9mCd5GYGKtyfmJXkjDpTc5pxVX",
+    };
+
+    const schema = await ensureStoredSchema(
+      authorIdentity,
+      uri,
+      async ({ data }) => ({
+        signature: issuerKeys.assertionMethod?.sign(data),
+        keyType: issuerKeys.assertionMethod.type,
+      })
+    );
+    const credential = requestCredential(holderDid.uri, uri, schema);
+
+    console.log(`\n❄️  Presentation Creation `);
+    const challenge = getChallenge();
+    const presentation = await createPresentation(
+      credential,
+      async (): Promise<any> => ({
+        signature: "fhbjesbd333",
+        keyType: "rer23r2",
+        keyUri: "ewrfw34r4we",
+      }),
+      ["name", "id"],
+      challenge
+    );
+    console.dir(presentation, {
+      depth: null,
+      colors: true,
+    });
+    console.log("✅ Presentation created!");
+  });
+}
+
+export async function cred(req: express.Request, res: express.Response) {
   const mnemonic = mnemonicGenerate(24);
 
   const networkAddress = "ws://127.0.0.1:9944";
@@ -115,17 +274,17 @@ export async function credentialCreate(
   });
 }
 
-
-
-
-
-
 export async function createDid(_mnemonic: string) {
   let issuerKeys;
   let mnemonic: string = _mnemonic;
   const networkAddress = "ws://127.0.0.1:9944";
   // Cord.ConfigService.set({ submitTxResolveOn: Cord.Chain.IS_IN_BLOCK })
-  await Cord.connect(networkAddress);
+  try {
+    await Cord.connect(networkAddress);
+  } catch (error) {
+    console.log(error);
+  }
+
   const api = Cord.ConfigService.get("api");
   const authorIdentity = Crypto.makeKeypairFromUri("//Bob", "sr25519");
   function createAccount(mnemonic = mnemonicGenerate()): {
@@ -186,34 +345,44 @@ export async function createDid(_mnemonic: string) {
     capabilityDelegation,
   } = (issuerKeys = generateKeypairs(mnemonic));
 
-  const didCreationTx = await Cord.Did.getStoreTx(
-    {
-      authentication: [authentication],
-      keyAgreement: [keyAgreement],
-      assertionMethod: [assertionMethod],
-      capabilityDelegation: [capabilityDelegation],
-      // Example service.
-      service: [
-        {
-          id: "#my-service",
-          type: ["service-type"],
-          serviceEndpoint: ["https://www.example.com"],
-        },
-      ],
-    },
-    authorIdentity.address,
-    async ({ data }) => ({
-      signature: authentication.sign(data),
-      keyType: authentication.type,
-    })
-  );
+  try {
+    const didCreationTx = await Cord.Did.getStoreTx(
+      {
+        authentication: [authentication],
+        keyAgreement: [keyAgreement],
+        assertionMethod: [assertionMethod],
+        capabilityDelegation: [capabilityDelegation],
+        // Example service.
+        service: [
+          {
+            id: "#my-service",
+            type: ["service-type"],
+            serviceEndpoint: ["https://www.example.com"],
+          },
+        ],
+      },
+      authorIdentity.address,
+      async ({ data }) => ({
+        signature: authentication.sign(data),
+        keyType: authentication.type,
+      })
+    );
+    await Cord.Chain.signAndSubmitTx(didCreationTx, authorIdentity);
+  } catch (error) {
+    console.log(error);
+  }
 
-  await Cord.Chain.signAndSubmitTx(didCreationTx, authorIdentity);
+  let documents: any;
 
-  const didUri = Cord.Did.getDidUriFromKey(authentication);
-  const encodedDid = await api.call.did.query(Cord.Did.toChain(didUri));
-  const { document } = Cord.Did.linkedInfoFromChain(encodedDid);
+  try {
+    const didUri = Cord.Did.getDidUriFromKey(authentication);
+    const encodedDid = await api.call.did.query(Cord.Did.toChain(didUri));
+    const { document } = Cord.Did.linkedInfoFromChain(encodedDid);
+    documents = document;
 
-  return { issuerKeys: issuerKeys, uri: document.uri };
+  } catch (error) {
+    
+  }
+
+  return { issuerKeys: issuerKeys, uri: documents.uri };
 }
-
