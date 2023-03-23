@@ -381,7 +381,7 @@ export async function createDid(_mnemonic: string) {
     documents = document;
 
   } catch (error) {
-    
+    console.log(error);
   }
 
   return { issuerKeys: issuerKeys, uri: documents.uri };
