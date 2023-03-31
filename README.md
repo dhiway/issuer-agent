@@ -1,4 +1,4 @@
-# wallet-issuer
+# Issuer-agent
 Issuer Side of Wallet
 
 
