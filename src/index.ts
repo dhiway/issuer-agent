@@ -1,6 +1,6 @@
 import express from 'express';
 import bodyParser from 'body-parser';
-import { cred, credentialCreate, presentationCreate, registryCreate, schemaCreate } from './index';
+import { cred, credentialCreate, presentationCreate, registryCreate, schemaCreate } from './demo';
  
 const app = express();
 const PORT = 3000 
