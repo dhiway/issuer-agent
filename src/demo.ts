@@ -1,10 +1,10 @@
 import * as Cord from "@cord.network/sdk";
 import { Crypto } from "@cord.network/utils";
-import { ensureStoredSchema } from "./utils/generateSchema";
-import { ensureStoredRegistry } from "./utils/generateRegistry";
-import { requestCredential } from "./utils/requestCredential";
-import { createPresentation } from "./utils/createPresentation";
-import { createStream } from "./utils/createStream";
+import { ensureStoredSchema } from "../utils/generateSchema";
+import { ensureStoredRegistry } from "../utils/generateRegistry";
+import { requestCredential } from "../utils/requestCredential";
+import { createPresentation } from "../utils/createPresentation";
+import { createStream } from "../utils/createStream";
 import { cryptoWaitReady } from "@polkadot/util-crypto";
 import {
   blake2AsU8a,
