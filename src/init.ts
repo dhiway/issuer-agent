@@ -1,6 +1,9 @@
 import * as Cord from "@cord.network/sdk";
 import { Crypto } from "@cord.network/utils";
-import express from "express";
+import express from 'express'; 
+import { getConnection } from 'typeorm';
+import { Schema } from "./entity/Schema";
+
 
 import {
   blake2AsU8a,
@@ -10,18 +13,16 @@ import {
   mnemonicToMiniSecret,
   sr25519PairFromSeed,
 } from "@polkadot/util-crypto";
+import { Regisrty } from "./entity/Registry";
 
 const { CORD_WSS_URL, MNEMONIC, AUTHOR_URI, AGENT_DID_NAME } = process.env;
 
-import { ensureStoredSchema } from "./schema_controller";
-import { ensureStoredRegistry } from "./registry_controller";
 
 export let authorIdentity: any = undefined;
 export let issuerDid: any = undefined;
 export let issuerKeys: any = undefined;
-export let registryAuthId: any = undefined;
-export let registry: any = undefined;
-export let emailSchema: any = undefined;
+
+// export let emailSchema: any = undefined;
 
 function generateKeyAgreement(mnemonic: string) {
   const secretKeyPair = sr25519PairFromSeed(mnemonicToMiniSecret(mnemonic));
@@ -199,7 +200,7 @@ export async function setupDidAndIdentities() {
   return null;
 }
 
-async function addRegistryAdminDelegate(
+export async function addRegistryAdminDelegate(
   authorAccount: Cord.CordKeyringPair,
   creator: Cord.DidUri,
   registryUri: Cord.IRegistry["identifier"],
@@ -238,48 +239,70 @@ async function addRegistryAdminDelegate(
   }
 }
 
-export async function setupRegistry(
-  req: express.Request,
-  res: express.Response
-) {
-  /* Checking if the issuerDid is null. If it is, it will call the setupDidAndIdentities() function. */
-  if (!issuerDid) {
-    await setupDidAndIdentities();
-    return null;
+
+export async function createStream(
+  issuer: Cord.DidUri,
+  authorAccount: Cord.CordKeyringPair,
+  signCallback: Cord.SignExtrinsicCallback,
+  document: Cord.IDocument,
+  authorizationId: Cord.AuthorizationId
+): Promise<void> {
+  const api = Cord.ConfigService.get('api');
+
+  // Create a stream object
+  const { streamHash } = await Cord.Stream.fromDocument(document);
+  const authorization = Cord.Registry.uriToIdentifier(authorizationId);
+  const schemaId = Cord.Registry.uriToIdentifier(document?.content?.schemaId);
+  const streamTx = api.tx.stream.create(streamHash, authorization, schemaId);
+  const authorizedStreamTx = await Cord.Did.authorizeTx(
+      issuer,
+      streamTx,
+      signCallback,
+      authorAccount.address
+  );
+  await Cord.Chain.signAndSubmitTx(authorizedStreamTx, authorAccount);
+}
+
+
+export async function getSchema(res: express.Response, schemaId: string) {
+  if (schemaId === undefined) {
+    return undefined;
   }
-  if (registry) return registry;
-  emailSchema = await ensureStoredSchema(
-    authorIdentity,
-    issuerDid.uri,
-    async ({ data }) => ({
-      signature: issuerKeys.assertionMethod.sign(data),
-      keyType: issuerKeys.assertionMethod.type,
-    }),
-    req,
-    res
-  );
 
-  registry = await ensureStoredRegistry(
-    authorIdentity,
-    issuerDid.uri,
-    emailSchema["$id"],
-    async ({ data }) => ({
-      signature: issuerKeys.assertionMethod.sign(data),
-      keyType: issuerKeys.assertionMethod.type,
-    })
-  );
+  let schema = await getConnection().getRepository(Schema).findOne(schemaId);
 
-  registryAuthId = await addRegistryAdminDelegate(
-    authorIdentity,
-    issuerDid.uri,
-    registry["identifier"],
-    issuerDid.uri,
-    async ({ data }) => ({
-      signature: issuerKeys.capabilityDelegation.sign(data),
-      keyType: issuerKeys.capabilityDelegation.type,
-    })
-  );
+  if (!schema) {
+    schema = await getConnection()
+      .getRepository(Schema)
+      .createQueryBuilder("schema")
+      .where("schema.publicId = :id", { id: schemaId })
+      .getOne();
+    if (!schema) {
+      return null;
+    }
+  }
 
-  console.log("Registry AuthId", registryAuthId);
+  return schema;
+}
+
+
+export async function getRegistry(res: express.Response, registryId: string) {
+  if (registryId === undefined) {
+    return undefined;
+  }
+
+  let registry = await getConnection().getRepository(Regisrty).findOne(registryId);
+
+  if (!registry) {
+    registry = await getConnection()
+      .getRepository(Regisrty)
+      .createQueryBuilder("registry")
+      .where("registry.publicId = :id", { id: registryId })
+      .getOne();
+    if (!registry) {
+      return null;
+    }
+  }
+
   return registry;
 }

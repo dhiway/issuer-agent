@@ -2,10 +2,9 @@
     "name": "issuer-cord",
     "version": "1.0.0",
     "description": "",
-    "main": "server.ts",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "start": "nodemon server.ts"
+        "start": "nodemon src/index.ts"
     },
     "author": "",
     "license": "ISC",

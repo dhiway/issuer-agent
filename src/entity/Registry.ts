@@ -3,25 +3,20 @@ import "reflect-metadata";
 import { v4 as uuidv4 } from "uuid";
 
 @Entity()
-export class Schema {
+export class Regisrty {
   @BeforeInsert()
   generateId() {
     if (!this.id) {
-      this.id = "s" + uuidv4();
+      this.id = "r" + uuidv4();
     }
   }
   @PrimaryColumn()
   id?: string;
 
-  @Column({ default: false })
-  registry?: boolean;
+  @Column()
+  registry?: any;
 
   @Column()
-  title?: string;
+  authId?: string;
 
-  @Column()
-  schema?: any;
-
-  @Column({ default: null, nullable: true })
-  properties?: string;
 }
