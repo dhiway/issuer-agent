@@ -20,6 +20,9 @@ export class Schema {
   title?: string;
 
   @Column()
+  description?: string;
+
+  @Column()
   schema?: any;
 
   @Column({ default: null, nullable: true })

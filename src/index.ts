@@ -5,7 +5,7 @@ import bodyParser from 'body-parser';
 import { getMessage, getAllMessageForDid, receiveMessage} from './controller/message_controller';
 import { issueCred } from './controller/credential_controller';
 import { createSchema } from './controller/schema_controller';
-import { setupRegistry } from './controller/registry_controller';
+import { createRegistry } from './controller/registry_controller';
 
 import * as dotenv from "dotenv";
 dotenv.config();
@@ -63,7 +63,7 @@ schemaRouter.post('/', async (req, res) => {
 })
 
 registryRouter.get('/', async (req, res) => {
-    return await setupRegistry(req, res);
+    return await createRegistry(req, res);
 })
 
 

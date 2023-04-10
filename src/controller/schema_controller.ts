@@ -1,11 +1,12 @@
-import * as Cord from "@cord.network/sdk";
+// import * as Cord from "@cord.network/sdk";
 import express from "express";
 import { getConnection } from "typeorm";
 
 import { Schema } from "../entity/Schema";
-import { authorIdentity, issuerDid, issuerKeys, setupDidAndIdentities } from "../init";
+import { authorIdentity, issuerDid, issuerKeys, setupDidAndIdentities, ensureStoredSchema } from "../init";
 
 export let schemaDetails: any = undefined;
+
 
 export async function createSchema(
   req: express.Request,
@@ -20,7 +21,7 @@ export async function createSchema(
 
   if (!data.properties) {
     return res.status(400).json({
-      error: "'schemaProperties' is a required field, with title and description",
+      error: "'properties' is a required field in the form of key-value pair, with title and description",
     });
   }
 
@@ -39,9 +40,10 @@ export async function createSchema(
 
   const schemaData = new Schema();
   schemaData.title = data.title ? data.title : "";
+  schemaData.description = data.description ? data.description : "";
   schemaData.properties = data.properties ? data.properties : "";
   schemaData.registry = data.registry ? true : false;
-  schemaData.schema = schemaDetails;
+  schemaData.schema = JSON.stringify(schemaDetails);
 
   try {
     await getConnection().manager.save(schemaData);
@@ -52,42 +54,4 @@ export async function createSchema(
 }
 
 
-export async function ensureStoredSchema(
-  authorAccount: Cord.CordKeyringPair,
-  creator: Cord.DidUri,
-  signCallback: Cord.SignExtrinsicCallback,
-  req: express.Request,
-  res: express.Response
-): Promise<Cord.ISchema> {
-  const data = req.body;
 
-  const api = Cord.ConfigService.get("api");
-
-  const schema = Cord.Schema.fromProperties(
-    data.title,
-    data.properties,
-    creator
-  );
-
-  try {
-    await Cord.Schema.verifyStored(schema);
-    console.log("Schema already stored. Skipping creation");
-    return schema;
-  } catch {
-    console.log("Schema not present. Creating it now...");
-    // Authorize the tx.
-    const encodedSchema = Cord.Schema.toChain(schema);
-    const tx = api.tx.schema.create(encodedSchema);
-    const extrinsic = await Cord.Did.authorizeTx(
-      creator,
-      tx,
-      signCallback,
-      authorAccount.address
-    );
-    // Write to chain then return the Schema.
-    await Cord.Chain.signAndSubmitTx(extrinsic, authorAccount);
-
-    console.log("schemaaaa", schema);
-    return schema;
-  }
-}

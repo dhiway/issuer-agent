@@ -12,11 +12,10 @@ import {
   getRegistry,
 } from "../init";
 
-import { PORT} from "..";
+import { PORT } from "..";
 
 let schemaProp: any = undefined;
 let registryProp: any = undefined;
-
 
 export async function issueCred(req: express.Request, res: express.Response) {
   try {
@@ -42,24 +41,22 @@ export async function issueVC(
 
   if (data.schemaId) {
     const schemaId = data.schemaId ? data.schemaId : "";
-    schemaProp = await getSchema(res, schemaId);
-    if (schemaProp) {
-      console.log("schemaPropppppp: ", schemaProp);
-      return res.status(200).json({ result: "SUCCESS" });
+    const schemaProp = await getSchema(res, schemaId);
+    if (!schemaProp) {
+      return res.status(400).json({ result: "No Schema" });
     }
-    return res.status(400).json({ result: "Not Found" });
   }
 
   if (data.registryId) {
     const registryId = data.registryId ? data.registryId : "";
     registryProp = await getRegistry(res, registryId);
-    if (registryProp) {
+    if (!registryProp) {
       console.log("registryPropppp: ", registryProp);
-      return res.status(200).json({ result: "SUCCESS" });
+      return res.status(400).json({ result: "Not Found" });
     }
-    return res.status(400).json({ result: "Not Found" });
   }
 
+  let documents: any;
 
   try {
     const content = Cord.Content.fromSchemaAndContent(
@@ -86,6 +83,8 @@ export async function issueVC(
     });
     console.log("documenttttt: ", document);
 
+    documents = document;
+
     await createStream(
       issuerDid.uri,
       authorIdentity,
@@ -93,7 +92,7 @@ export async function issueVC(
         signature: issuerKeys.assertionMethod.sign(data),
         keyType: issuerKeys.assertionMethod.type,
       }),
-      document,
+      documents,
       authorization
     );
   } catch (err: any) {
@@ -101,22 +100,23 @@ export async function issueVC(
   }
   // return document;
 
-  const url = `http://localhost:${PORT}/api/v1/message/:did`
-  const mess = await fetch(url, {
-  body: JSON.stringify({
-    type: "document",
-    fromdid: data.fromdid,
-    did: req.params.did,
-    unread: true,
-    details: document
-  }),
-  method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
+  const url = `http://localhost:${PORT}/api/v1/message/:did`;
+  await fetch(url, {
+    body: JSON.stringify({
+      id: data.id,
+      type: data.type,
+      fromdid: data.fromdid,
+      did: req.params.did,
+      unread: true,
+      details: documents,
+    }),
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
   })
-  .then(res => res.json())
-  .catch(error => {
-    console.error(error);
-  });
+    .then((res) => res.json())
+    .catch((error) => {
+      console.error(error);
+    });
 }

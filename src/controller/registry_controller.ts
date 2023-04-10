@@ -1,7 +1,7 @@
 import express from "express";
 import { getConnection } from "typeorm";
 
-import * as Cord from "@cord.network/sdk";
+// import * as Cord from "@cord.network/sdk";
 
 import {
   setupDidAndIdentities,
@@ -10,6 +10,7 @@ import {
   issuerDid,
   issuerKeys,
   getSchema,
+  ensureStoredRegistry
 } from "../init";
 
 import { Schema } from "../entity/Schema";
@@ -18,7 +19,7 @@ import { Regisrty } from "../entity/Registry";
 export let registryAuthId: any = undefined;
 export let registry: any = undefined;
 
-export async function setupRegistry(
+export async function createRegistry(
   req: express.Request,
   res: express.Response
 ) {
@@ -33,10 +34,9 @@ export async function setupRegistry(
   if (data.schemaId) {
     const schemaId = data.schemaId ? data.schemaId : "";
     const schemaProp = await getSchema(res, schemaId);
-    if (schemaProp) {
-      return res.status(200).json({ result: "SUCCESS" });
+    if (!schemaProp) {
+      return res.status(400).json({ result: "No Schema" });
     }
-    return res.status(400).json({ result: "Not Found" });
   }
 
   const schemaValue = await getConnection()
@@ -67,8 +67,8 @@ export async function setupRegistry(
   );
 
   const registryData = new Regisrty();
-  registryData.registry = registry;
-  registryData.authId = registryAuthId;
+  registryData.registry = JSON.stringify(registry);
+  registryData.authId = JSON.stringify(registryAuthId);
 
   console.log("Registry AuthId: ", registryAuthId);
   console.log("registryyyyyy: ", registry);
@@ -84,46 +84,4 @@ export async function setupRegistry(
 }
 
 
-export async function ensureStoredRegistry(
-  authorAccount: Cord.CordKeyringPair,
-  creator: Cord.DidUri,
-  schemaUri: Cord.ISchema["$id"],
-  signCallback: Cord.SignExtrinsicCallback
-): Promise<Cord.IRegistry> {
-  const api = Cord.ConfigService.get("api");
 
-  const registryDetails: Cord.IContents = {
-    title: "Wallet Registry",
-    description: "Registry for Credentials",
-  };
-
-  const registryType: Cord.IRegistryType = {
-    details: registryDetails,
-    schema: schemaUri,
-    creator: creator,
-  };
-
-  const txRegistry: Cord.IRegistry =
-    Cord.Registry.fromRegistryProperties(registryType);
-
-  try {
-    await Cord.Registry.verifyStored(txRegistry);
-    console.log("Registry already stored. Skipping creation");
-    return txRegistry;
-  } catch {
-    console.log("Regisrty not present. Creating it now...");
-    // Authorize the tx.
-    const schemaId = Cord.Schema.idToChain(schemaUri);
-    const tx = api.tx.registry.create(txRegistry.details, schemaId);
-    const extrinsic = await Cord.Did.authorizeTx(
-      creator,
-      tx,
-      signCallback,
-      authorAccount.address
-    );
-    // Write to chain then return the Schema.
-    await Cord.Chain.signAndSubmitTx(extrinsic, authorAccount);
-
-    return txRegistry;
-  }
-}
