@@ -23,8 +23,8 @@ export class Schema {
   description?: string;
 
   @Column()
-  schema?: any;
+  Ischema?: string;
 
   @Column({ default: null, nullable: true })
-  properties?: string;
+  schemaProperties?: string;
 }

@@ -14,8 +14,6 @@ import {
 
 import { PORT } from "..";
 
-let schemaProp: any = undefined;
-let registryProp: any = undefined;
 
 export async function issueCred(req: express.Request, res: express.Response) {
   try {
@@ -30,19 +28,22 @@ export async function issueVC(
   authorization: Cord.AuthorizationId,
   req: express.Request,
   res: express.Response
-) {
-  const data = req.body;
-  const holderDidUri = data.holderDid;
+  ) {
+    const data = req.body;
+    const holderDidUri = data.holderDid;
+    
+    if (!issuerDid) {
+      await setupDidAndIdentities();
+      return null;
+    }
 
-  if (!issuerDid) {
-    await setupDidAndIdentities();
-    return null;
-  }
-
-  if (data.schemaId) {
-    const schemaId = data.schemaId ? data.schemaId : "";
-    const schemaProp = await getSchema(res, schemaId);
-    if (!schemaProp) {
+    let schemaProp: any = undefined;
+    let registryProp: any = undefined;
+    
+    if (data.schemaId) {
+      const schemaId = data.schemaId ? data.schemaId : "";
+      schemaProp = await getSchema(res, schemaId);
+      if (!schemaProp) {
       return res.status(400).json({ result: "No Schema" });
     }
   }
@@ -60,8 +61,8 @@ export async function issueVC(
 
   try {
     const content = Cord.Content.fromSchemaAndContent(
-      schemaProp.schema,
-      schemaProp.properties,
+      schemaProp.Ischema,
+      schemaProp.schemaProperties,
       holderDidUri as Cord.DidUri,
       issuerDid?.uri
     );

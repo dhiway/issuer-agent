@@ -14,7 +14,7 @@ export class Regisrty {
   id?: string;
 
   @Column()
-  registry?: any;
+  registry?: string;
 
   @Column()
   authId?: string;

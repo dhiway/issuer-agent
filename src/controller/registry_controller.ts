@@ -31,24 +31,20 @@ export async function createRegistry(
     return null;
   }
 
+  let schemaProp : any;
+
   if (data.schemaId) {
     const schemaId = data.schemaId ? data.schemaId : "";
-    const schemaProp = await getSchema(res, schemaId);
+    schemaProp = await getSchema(res, schemaId);
     if (!schemaProp) {
       return res.status(400).json({ result: "No Schema" });
     }
   }
 
-  const schemaValue = await getConnection()
-    .getRepository(Schema)
-    .createQueryBuilder("schema")
-    .where("schema.id = :id", { id: data.schemaId })
-    .getOne();
-
   registry = await ensureStoredRegistry(
     authorIdentity,
     issuerDid.uri,
-    schemaValue?.schema["$id"],
+    schemaProp.Ischema["$id"],
     async ({ data }) => ({
       signature: issuerKeys.assertionMethod.sign(data),
       keyType: issuerKeys.assertionMethod.type,

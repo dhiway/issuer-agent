@@ -319,8 +319,8 @@ export async function ensureStoredSchema(
   const api = Cord.ConfigService.get("api");
 
   const schema = Cord.Schema.fromProperties(
-    data.title,
-    data.properties,
+    data.schema.title,
+    data.schema,
     creator
   );
 
