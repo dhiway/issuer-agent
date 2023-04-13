@@ -17,7 +17,7 @@ app.use(bodyParser.json({ limit: '5mb' }));
 
 app.use(express.json());
 
-const demoRouter = express.Router({ mergeParams: true });
+// const demoRouter = express.Router({ mergeParams: true });
 const messageRouter = express.Router({ mergeParams: true });
 const credentialRouter = express.Router({ mergeParams: true });
 const schemaRouter = express.Router({ mergeParams: true });
@@ -68,7 +68,7 @@ registryRouter.get('/', async (req, res) => {
 
 
 
-app.use('/api/v1/demo', demoRouter)
+// app.use('/api/v1/demo', demoRouter)
 app.use('/api/v1/message', messageRouter);
 app.use('/api/v1/cred', credentialRouter);
 app.use('/api/v1/schema', schemaRouter);

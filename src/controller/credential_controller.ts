@@ -28,22 +28,22 @@ export async function issueVC(
   authorization: Cord.AuthorizationId,
   req: express.Request,
   res: express.Response
-  ) {
-    const data = req.body;
-    const holderDidUri = data.holderDid;
-    
-    if (!issuerDid) {
-      await setupDidAndIdentities();
-      return null;
-    }
+) {
+  const data = req.body;
+  const holderDidUri = data.holderDid;
 
-    let schemaProp: any = undefined;
-    let registryProp: any = undefined;
-    
-    if (data.schemaId) {
-      const schemaId = data.schemaId ? data.schemaId : "";
-      schemaProp = await getSchema(res, schemaId);
-      if (!schemaProp) {
+  if (!issuerDid) {
+    await setupDidAndIdentities();
+    return null;
+  }
+
+  let schemaProp: any = undefined;
+  let registryProp: any = undefined;
+
+  if (data.schemaId) {
+    const schemaId = data.schemaId ? data.schemaId : "";
+    schemaProp = await getSchema(res, schemaId);
+    if (!schemaProp) {
       return res.status(400).json({ result: "No Schema" });
     }
   }
@@ -53,7 +53,7 @@ export async function issueVC(
     registryProp = await getRegistry(res, registryId);
     if (!registryProp) {
       console.log("registryPropppp: ", registryProp);
-      return res.status(400).json({ result: "Not Found" });
+      return res.status(400).json({ result: "No Registry" });
     }
   }
 

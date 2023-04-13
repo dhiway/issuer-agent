@@ -1,8 +1,6 @@
 import express from "express";
 import { getConnection } from "typeorm";
 
-// import * as Cord from "@cord.network/sdk";
-
 import {
   setupDidAndIdentities,
   addRegistryAdminDelegate,
@@ -10,14 +8,12 @@ import {
   issuerDid,
   issuerKeys,
   getSchema,
-  ensureStoredRegistry
+  ensureStoredRegistry,
 } from "../init";
 
-import { Schema } from "../entity/Schema";
+// import { Schema } from "../entity/Schema";
 import { Regisrty } from "../entity/Registry";
 
-export let registryAuthId: any = undefined;
-export let registry: any = undefined;
 
 export async function createRegistry(
   req: express.Request,
@@ -31,7 +27,9 @@ export async function createRegistry(
     return null;
   }
 
-  let schemaProp : any;
+  let registryAuthId: any = undefined;
+  let registry: any = undefined;
+  let schemaProp: any = undefined;
 
   if (data.schemaId) {
     const schemaId = data.schemaId ? data.schemaId : "";
@@ -78,6 +76,3 @@ export async function createRegistry(
     return res.status(400).json({ result: "RegistryData not saved in db" });
   }
 }
-
-
-
