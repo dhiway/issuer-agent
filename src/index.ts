@@ -11,7 +11,7 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 const app = express();
-export const PORT = 4000 
+export const PORT = 5106 
  
 app.use(bodyParser.json({ limit: '5mb' }));
 
@@ -62,7 +62,7 @@ schemaRouter.post('/', async (req, res) => {
     return await createSchema(req, res);
 })
 
-registryRouter.get('/', async (req, res) => {
+registryRouter.post('/', async (req, res) => {
     return await createRegistry(req, res);
 })
 

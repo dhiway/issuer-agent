@@ -27,7 +27,7 @@ export async function createSchema(
   if (!data.schema || !data.schema.title) {
     return res.status(400).json({
       error:
-        "'properties' is a required field in the form of key-value pair, with title and description",
+        "'schema' is a required field in the form of key-value pair, with title and description",
     });
   }
 
@@ -49,15 +49,16 @@ export async function createSchema(
     schemaData.title = data.schema.title ? data.schema.title : "";
     schemaData.description = data.schema.description
       ? data.schema.description : "";
-    schemaData.schemaProperties = JSON.stringify(data.schema);
-    schemaData.registry = data.registry ? true : false;
+    schemaData.schemaProperties = JSON.stringify(data.schema.properties);
     schemaData.Ischema = JSON.stringify(schemaDetails);
+
     try {
       await getConnection().manager.save(schemaData);
       return res
         .status(200)
         .json({ result: "SUCCESS", schemaId: schemaData.id });
     } catch (error) {
+      console.log("Error: ", error);
       return res.status(400).json({ result: "SchemaData not saved in db" });
     }
   } else {

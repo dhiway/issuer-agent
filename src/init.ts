@@ -193,6 +193,7 @@ export async function setupDidAndIdentities() {
     } else {
       console.log("Failed to Create issuer DID");
     }
+    console.log("Donnnne");
     return didDoc?.document?.uri;
   } catch (error) {
     console.log("errorcheck", error);
@@ -320,7 +321,7 @@ export async function ensureStoredSchema(
 
   const schema = Cord.Schema.fromProperties(
     data.schema.title,
-    data.schema,
+    data.schema.properties,
     creator
   );
 
@@ -342,7 +343,6 @@ export async function ensureStoredSchema(
     // Write to chain then return the Schema.
     await Cord.Chain.signAndSubmitTx(extrinsic, authorAccount);
 
-    console.log("schemaaaa", schema);
     return schema;
   }
 }
