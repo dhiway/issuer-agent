@@ -24,7 +24,7 @@ export async function createSchema(
     return null;
   }
 
-  if (!data.schema || !data.schema.title) {
+  if (!data.schema || !data.schema.properties) {
     return res.status(400).json({
       error:
         "'schema' is a required field in the form of key-value pair, with title and description",
@@ -42,15 +42,13 @@ export async function createSchema(
     res
   );
 
-  console.log("schemadetailssss", schemaDetails);
-
   if (schemaDetails) {
     const schemaData = new Schema();
     schemaData.title = data.schema.title ? data.schema.title : "";
     schemaData.description = data.schema.description
       ? data.schema.description : "";
     schemaData.schemaProperties = JSON.stringify(data.schema.properties);
-    schemaData.Ischema = JSON.stringify(schemaDetails);
+    schemaData.cordSchema = JSON.stringify(schemaDetails);
 
     try {
       await getConnection().manager.save(schemaData);

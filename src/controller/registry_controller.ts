@@ -11,9 +11,7 @@ import {
   ensureStoredRegistry,
 } from "../init";
 
-// import { Schema } from "../entity/Schema";
 import { Regisrty } from "../entity/Registry";
-
 
 export async function createRegistry(
   req: express.Request,
@@ -39,39 +37,48 @@ export async function createRegistry(
     }
   }
 
-  registry = await ensureStoredRegistry(
-    authorIdentity,
-    issuerDid.uri,
-    schemaProp.Ischema["$id"],
-    async ({ data }) => ({
-      signature: issuerKeys.assertionMethod.sign(data),
-      keyType: issuerKeys.assertionMethod.type,
-    })
-  );
+  const schemaParsed = JSON.parse(schemaProp.cordSchema);
 
-  registryAuthId = await addRegistryAdminDelegate(
-    authorIdentity,
-    issuerDid.uri,
-    registry["identifier"],
-    issuerDid.uri,
-    async ({ data }) => ({
-      signature: issuerKeys.capabilityDelegation.sign(data),
-      keyType: issuerKeys.capabilityDelegation.type,
-    })
-  );
+  try {
+    registry = await ensureStoredRegistry(
+      data.title,
+      data.description,
+      authorIdentity,
+      issuerDid.uri,
+      schemaParsed["$id"],
+      async ({ data }) => ({
+        signature: issuerKeys.assertionMethod.sign(data),
+        keyType: issuerKeys.assertionMethod.type,
+      })
+    );
+  } catch (error) {
+    console.log("err: ", error);
+  }
+
+  try {
+    registryAuthId = await addRegistryAdminDelegate(
+      authorIdentity,
+      issuerDid.uri,
+      registry["identifier"],
+      issuerDid.uri,
+      async ({ data }) => ({
+        signature: issuerKeys.capabilityDelegation.sign(data),
+        keyType: issuerKeys.capabilityDelegation.type,
+      })
+    );
+  } catch (error) {
+    console.log("err: ", error);
+  }
 
   const registryData = new Regisrty();
   registryData.registry = JSON.stringify(registry);
   registryData.authId = JSON.stringify(registryAuthId);
 
-  console.log("Registry AuthId: ", registryAuthId);
-  console.log("registryyyyyy: ", registry);
-
   try {
     await getConnection().manager.save(registryData);
     return res
       .status(200)
-      .json({ result: "SUCCESS", recordId: registryData.id });
+      .json({ result: "SUCCESS", registryID: registryData.id });
   } catch (error) {
     return res.status(400).json({ result: "RegistryData not saved in db" });
   }

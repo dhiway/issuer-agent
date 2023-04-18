@@ -23,7 +23,7 @@ export class Schema {
   description?: string;
 
   @Column()
-  Ischema?: string;
+  cordSchema?: string;
 
   @Column({ default: null, nullable: true })
   schemaProperties?: string;

@@ -17,6 +17,6 @@ export class Regisrty {
   registry?: string;
 
   @Column()
-  authId?: string;
+  authId?: any;
 
 }

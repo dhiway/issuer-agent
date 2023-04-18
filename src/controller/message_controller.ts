@@ -68,7 +68,7 @@ export async function receiveMessage(req: express.Request, res: express.Response
     if (data.type === 'document') {
         /* insert the message into 'cred' */
         const cred = new Cred();
-        const document = data.message.document;
+        const document = data.message;
         cred.identifier = document.identifier;
         cred.active = true;
         cred.userId = data.toDid;

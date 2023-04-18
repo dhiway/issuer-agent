@@ -12,17 +12,28 @@ import {
   getRegistry,
 } from "../init";
 
-import { PORT } from "..";
-
+import { createConnection, getConnection } from "typeorm";
+import { Regisrty } from "../entity/Registry";
 
 export async function issueCred(req: express.Request, res: express.Response) {
+  const data = req.body;
+
+  const regId = await getConnection()
+    .getRepository(Regisrty)
+    .createQueryBuilder("registry")
+    .where("registry.id = :id", { id: data.registryId })
+    .getOne();
+
+  if (!regId) {
+    return res.status(400).json({ error: "No regId" });
+  }
+
   try {
-    await issueVC(authorIdentity, req, res);
+    await issueVC(regId.authId, req, res);
   } catch (err) {
     console.log("error: ", err);
   }
 }
-
 
 export async function issueVC(
   authorization: Cord.AuthorizationId,
@@ -52,29 +63,30 @@ export async function issueVC(
     const registryId = data.registryId ? data.registryId : "";
     registryProp = await getRegistry(res, registryId);
     if (!registryProp) {
-      console.log("registryPropppp: ", registryProp);
       return res.status(400).json({ result: "No Registry" });
     }
   }
 
   let documents: any;
 
+  const cordSchema = JSON.parse(schemaProp.cordSchema);
+
   try {
     const content = Cord.Content.fromSchemaAndContent(
-      schemaProp.Ischema,
-      schemaProp.schemaProperties,
+      cordSchema,
+      data.property,
       holderDidUri as Cord.DidUri,
       issuerDid?.uri
     );
     const keyUri =
       `${issuerDid.uri}${issuerDid.authentication[0].id}` as Cord.DidResourceUri;
-    console.log("AuthorizationID", authorization);
-    console.log("contentttt", content);
+
+    const regist = JSON.parse(registryProp.registry);
 
     const document: any = await Cord.Document.fromContent({
       content,
       authorization,
-      registry: registryProp.registry.identifier,
+      registry: regist.identifier,
       signCallback: async ({ data }) => ({
         signature: issuerKeys.assertionMethod.sign(data),
         keyType: issuerKeys.assertionMethod.type,
@@ -82,42 +94,46 @@ export async function issueVC(
       }),
       options: {},
     });
-    console.log("documenttttt: ", document);
 
     documents = document;
 
-    await createStream(
-      issuerDid.uri,
-      authorIdentity,
-      async ({ data }) => ({
-        signature: issuerKeys.assertionMethod.sign(data),
-        keyType: issuerKeys.assertionMethod.type,
-      }),
-      documents,
-      authorization
-    );
+    try {
+      await createStream(
+        issuerDid.uri,
+        authorIdentity,
+        async ({ data }) => ({
+          signature: issuerKeys.assertionMethod.sign(data),
+          keyType: issuerKeys.assertionMethod.type,
+        }),
+        documents,
+        authorization
+      );
+    } catch (error) {
+      console.log("err: ", error);
+    }
   } catch (err: any) {
     console.log("Error: ", err);
   }
   // return document;
 
-  const url = `http://localhost:${PORT}/api/v1/message/:did`;
+  const url = `http://wallet:5001/api/v1/message/${holderDidUri}`;
   await fetch(url, {
     body: JSON.stringify({
       id: data.id,
       type: data.type,
-      fromdid: data.fromdid,
-      did: req.params.did,
-      unread: true,
-      details: documents,
+      fromDid: issuerDid.uri,
+      toDid: holderDidUri,
+      message: documents,
     }),
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
   })
-    .then((res) => res.json())
+    .then((resp) => resp.json())
+    .then((data) => res.json({}))
     .catch((error) => {
       console.error(error);
+      res.json({});
     });
 }

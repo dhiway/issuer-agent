@@ -184,7 +184,6 @@ export async function setupDidAndIdentities() {
     "sr25519"
   );
   try {
-    console.log("MNEMONIC: ", MNEMONIC);
     const didDoc = await createDid(MNEMONIC, AGENT_DID_NAME);
     if (didDoc) {
       const { document: did, identity: keys } = didDoc;
@@ -193,7 +192,6 @@ export async function setupDidAndIdentities() {
     } else {
       console.log("Failed to Create issuer DID");
     }
-    console.log("Donnnne");
     return didDoc?.document?.uri;
   } catch (error) {
     console.log("errorcheck", error);
@@ -349,6 +347,8 @@ export async function ensureStoredSchema(
 
 
 export async function ensureStoredRegistry(
+  title: any,
+  description: any,
   authorAccount: Cord.CordKeyringPair,
   creator: Cord.DidUri,
   schemaUri: Cord.ISchema["$id"],
@@ -357,8 +357,8 @@ export async function ensureStoredRegistry(
   const api = Cord.ConfigService.get("api");
 
   const registryDetails: Cord.IContents = {
-    title: "Wallet Registry",
-    description: "Registry for Credentials",
+    title: title,
+    description: description,
   };
 
   const registryType: Cord.IRegistryType = {

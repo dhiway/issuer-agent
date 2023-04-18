@@ -1,19 +1,25 @@
-import express from 'express';
-import bodyParser from 'body-parser';
+import express from "express";
+import bodyParser from "body-parser";
 // import { cred, credentialCreate, presentationCreate, registryCreate, schemaCreate } from './demo';
 
-import { getMessage, getAllMessageForDid, receiveMessage} from './controller/message_controller';
-import { issueCred } from './controller/credential_controller';
-import { createSchema } from './controller/schema_controller';
-import { createRegistry } from './controller/registry_controller';
+import {
+  getMessage,
+  getAllMessageForDid,
+  receiveMessage,
+} from "./controller/message_controller";
+import { issueCred } from "./controller/credential_controller";
+import { createSchema } from "./controller/schema_controller";
+import { createRegistry } from "./controller/registry_controller";
+import { createConnection } from "typeorm";
+import { dbConfig } from "./dbconfig";
 
-import * as dotenv from "dotenv";
-dotenv.config();
+// import * as dotenv from "dotenv";
+// dotenv.config();
 
 const app = express();
-export const PORT = 5106 
- 
-app.use(bodyParser.json({ limit: '5mb' }));
+export const { PORT } = process.env;
+
+app.use(bodyParser.json({ limit: "5mb" }));
 
 app.use(express.json());
 
@@ -21,8 +27,7 @@ app.use(express.json());
 const messageRouter = express.Router({ mergeParams: true });
 const credentialRouter = express.Router({ mergeParams: true });
 const schemaRouter = express.Router({ mergeParams: true });
-const registryRouter = express.Router({mergeParams: true})
-
+const registryRouter = express.Router({ mergeParams: true });
 
 // demoRouter.post('/', async (req, res) => {
 //     return await cred(req, res);
@@ -44,37 +49,45 @@ const registryRouter = express.Router({mergeParams: true})
 //     return await presentationCreate(req, res);
 // });
 
-messageRouter.post('/:did', async (req, res) => {
-    return await receiveMessage(req, res);
-})
-messageRouter.get('/:did', async (req, res) => {
-    return await getAllMessageForDid(req, res);
-})
-messageRouter.get('/:did/:id', async (req, res) => {
-    return await getMessage(req, res);
-})
+messageRouter.post("/:did", async (req, res) => {
+  return await receiveMessage(req, res);
+});
+messageRouter.get("/:did", async (req, res) => {
+  return await getAllMessageForDid(req, res);
+});
+messageRouter.get("/:did/:id", async (req, res) => {
+  return await getMessage(req, res);
+});
 
-credentialRouter.post('/', async (req, res) => {
-    return await issueCred(req, res);
-})
+credentialRouter.post("/", async (req, res) => {
+  return await issueCred(req, res);
+});
 
-schemaRouter.post('/', async (req, res) => {
-    return await createSchema(req, res);
-})
+schemaRouter.post("/", async (req, res) => {
+  return await createSchema(req, res);
+});
 
-registryRouter.post('/', async (req, res) => {
-    return await createRegistry(req, res);
-})
-
-
+registryRouter.post("/", async (req, res) => {
+  return await createRegistry(req, res);
+});
 
 // app.use('/api/v1/demo', demoRouter)
-app.use('/api/v1/message', messageRouter);
-app.use('/api/v1/cred', credentialRouter);
-app.use('/api/v1/schema', schemaRouter);
-app.use('/api/v1/registry', registryRouter);
+app.use("/api/v1/message", messageRouter);
+app.use("/api/v1/cred", credentialRouter);
+app.use("/api/v1/schema", schemaRouter);
+app.use("/api/v1/registry", registryRouter);
 
 
-app.listen(PORT,  () => {
+async function main() {
+  try {
+    await createConnection(dbConfig);
+  } catch (error) {
+    console.log("error: ", error);
+  }
+
+  app.listen(PORT, () => {
     console.log(`Dhiway gateway is running at http://localhost:${PORT}`);
-})
+  });
+}
+
+main().catch((e) => console.log(e));

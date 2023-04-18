@@ -10,7 +10,6 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 
 @Entity()
-@Unique(['identifier', 'hash'])
 export class Message {
     @BeforeInsert()
     generateId() {
