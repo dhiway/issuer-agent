@@ -16,7 +16,7 @@ export class Regisrty {
   @Column()
   registry?: string;
 
-  @Column()
-  authId?: any;
+  @Column({default: null, nullable: true})
+  authId?: string;
 
 }
