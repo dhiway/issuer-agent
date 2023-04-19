@@ -1,6 +1,7 @@
 // import * as Cord from "@cord.network/sdk";
 import express from "express";
 import { getConnection } from "typeorm";
+import "reflect-metadata";
 
 import { Schema } from "../entity/Schema";
 import {
@@ -11,17 +12,15 @@ import {
   ensureStoredSchema,
 } from "../init";
 
-export let schemaDetails: any = undefined;
-
 export async function createSchema(
   req: express.Request,
   res: express.Response
 ) {
   const data = req.body;
+  let schemaDetails: any = undefined;
 
   if (!issuerDid) {
     await setupDidAndIdentities();
-    return null;
   }
 
   if (!data.schema || !data.schema.properties) {

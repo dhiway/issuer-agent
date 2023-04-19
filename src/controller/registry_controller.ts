@@ -22,7 +22,6 @@ export async function createRegistry(
   /* Checking if the issuerDid is null. If it is, it will call the setupDidAndIdentities() function. */
   if (!issuerDid) {
     await setupDidAndIdentities();
-    return null;
   }
 
   let registryAuthId: any = undefined;
@@ -72,7 +71,7 @@ export async function createRegistry(
 
   const registryData = new Regisrty();
   registryData.registry = JSON.stringify(registry);
-  registryData.authId = JSON.stringify(registryAuthId);
+  registryData.authId = registryAuthId;
 
   try {
     await getConnection().manager.save(registryData);

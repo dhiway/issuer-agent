@@ -14,22 +14,24 @@ import {
 
 import { createConnection, getConnection } from "typeorm";
 import { Regisrty } from "../entity/Registry";
+const {WALLET_URL} = process.env
+
 
 export async function issueCred(req: express.Request, res: express.Response) {
   const data = req.body;
 
-  const regId = await getConnection()
+  const reg = await getConnection()
     .getRepository(Regisrty)
     .createQueryBuilder("registry")
     .where("registry.id = :id", { id: data.registryId })
     .getOne();
 
-  if (!regId) {
-    return res.status(400).json({ error: "No regId" });
+  if (!reg) {
+    return res.status(400).json({ error: "No registry" });
   }
 
   try {
-    await issueVC(regId.authId, req, res);
+    await issueVC(reg.authId as string, req, res);
   } catch (err) {
     console.log("error: ", err);
   }
@@ -45,7 +47,6 @@ export async function issueVC(
 
   if (!issuerDid) {
     await setupDidAndIdentities();
-    return null;
   }
 
   let schemaProp: any = undefined;
@@ -81,12 +82,12 @@ export async function issueVC(
     const keyUri =
       `${issuerDid.uri}${issuerDid.authentication[0].id}` as Cord.DidResourceUri;
 
-    const regist = JSON.parse(registryProp.registry);
+    const registryParsed = JSON.parse(registryProp.registry);
 
     const document: any = await Cord.Document.fromContent({
       content,
       authorization,
-      registry: regist.identifier,
+      registry: registryParsed.identifier,
       signCallback: async ({ data }) => ({
         signature: issuerKeys.assertionMethod.sign(data),
         keyType: issuerKeys.assertionMethod.type,
@@ -114,10 +115,10 @@ export async function issueVC(
   } catch (err: any) {
     console.log("Error: ", err);
   }
-  // return document;
 
-  const url = `http://wallet:5001/api/v1/message/${holderDidUri}`;
-  await fetch(url, {
+  const url : any= WALLET_URL
+  
+  await fetch(`${url}/message/${holderDidUri}`, {
     body: JSON.stringify({
       id: data.id,
       type: data.type,
