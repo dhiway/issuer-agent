@@ -89,8 +89,8 @@ export async function issueVC(
       authorization,
       registry: registryParsed.identifier,
       signCallback: async ({ data }) => ({
-        signature: issuerKeys.assertionMethod.sign(data),
-        keyType: issuerKeys.assertionMethod.type,
+        signature: issuerKeys.authentication.sign(data),
+        keyType: issuerKeys.authentication.type,
         keyUri,
       }),
       options: {},
