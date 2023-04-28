@@ -135,6 +135,6 @@ export async function issueVC(
     .then((data) => res.json({}))
     .catch((error) => {
       console.error(error);
-      res.json({});
+      res.json({result: "VC not issued"});
     });
 }
