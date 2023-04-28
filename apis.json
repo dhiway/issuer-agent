@@ -1,0 +1,360 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "version": "1.4.1",
+    "title": "Issuer Agent",
+    "description": "API for wallet agent",
+    "termsOfService": "http://studio.dhiway.com/page/terms-and-conditions",
+    "contact": {
+      "name": "Dhiway Networks",
+      "email": "info@dhiway.com",
+      "url": "https://dhiway.com"
+    },
+    "license": {
+      "name": "Apache v2.0",
+      "url": "https://www.apache.org/licenses/LICENSE-2.0"
+    }
+  },
+  "servers": [
+    {
+      "url": "",
+      "description": "Demo server"
+    },
+    {
+      "url": "http://localhost:5106/",
+      "description": "Local server"
+    }
+  ],
+
+  "paths": {
+    "/api/v1/schema": {
+      "post": {
+        "tags": ["Schema"],
+        "description": "Create a schema",
+        "operationId": "createSchema",
+        "requestBody": {
+          "description": "Create a schema of choice",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SchemaRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "New schema created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SchemaRes"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SchemaError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+
+    "/api/v1/registry": {
+      "post": {
+        "tags": ["Registry"],
+        "description": "Create a registry",
+        "operationId": "createRegistry",
+        "requestBody": {
+          "description": "Add the schema created in the registry",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SpaceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "New registry created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegistryRes"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters",
+            "content": {
+              "application/json": {
+                "example": {
+                  "result": "RegistryData not saved in db"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+
+    "/api/v1/cred": {
+      "post": {
+        "tags": ["Credential"],
+        "description": "Create a credential",
+        "operationId": "issueCred",
+        "requestBody": {
+          "description": "Add a VC to the given holderDID",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "New vc issued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CredRes"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters",
+            "content": {
+              "application/json": {
+                "example": {
+                  "result": "VC not issued"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    }
+  },
+
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+
+    "schemas": {
+      "SchemaError": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string",
+            "description": "Error message",
+            "example": "SchemaData not saved in db"
+          }
+        }
+      },
+
+      "SchemaId": {
+        "type": "string",
+        "description": "Schema Id",
+        "example": "s1f1b9b3d-c07d-4c8e-901f-6445aa6aef8e"
+      },
+      "SpaceName": {
+        "type": "string",
+        "description": "Schema name",
+        "example": "Event XYZ Participation"
+      },
+      "SpaceDescription": {
+        "type": "string",
+        "description": "Schema Description",
+        "example": "Description of the title"
+      },
+
+      "SchemaRequest": {
+        "type": "object",
+        "properties": {
+          "schema": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "$ref": "#/components/schemas/SpaceName"
+              },
+              "description": {
+                "$ref": "#/components/schemas/SpaceDescription"
+              },
+              "properties": {
+                "$ref": "#/components/schemas/Schema"
+              }
+            }
+          }
+        }
+      },
+
+      "Schema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "properties": {
+              "type": {
+                "type": "string",
+                "example": "string"
+              }
+            }
+          },
+          "email": {
+            "properties": {
+              "type": {
+                "type": "string",
+                "example": "string"
+              }
+            }
+          },
+          "age": {
+            "properties": {
+              "type": {
+                "type": "string",
+                "example": "number"
+              }
+            }
+          }
+        }
+      },
+
+      "SchemaRes": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string",
+            "description": "Result status",
+            "example": "SUCCESS"
+          },
+          "schemaId": {
+            "type": "string",
+            "description": "SchemaID of the generated schema",
+            "example": "s2cdb6537-dddf-44c5-859f-9083cca756c9"
+          }
+        }
+      },
+
+      "RegistryRes": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string",
+            "description": "Result status",
+            "example": "SUCCESS"
+          },
+          "registryID": {
+            "type": "string",
+            "description": "SchemaID of the generated schema",
+            "example": "r2cdb6537-dddf-44c5-859f-9083cca756c9"
+          }
+        }
+      },
+
+      "SpaceRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "$ref": "#/components/schemas/SpaceName"
+          },
+          "description": {
+            "$ref": "#/components/schemas/SpaceDescription"
+          },
+          "schemaId": {
+            "type": "number",
+            "description": "The schemaId generated at createSchema",
+            "example": "s2cdb6537-dddf-44c5-859f-9083cca756c9"
+          }
+        }
+      },
+
+      "RecordContent": {
+        "type": "object",
+        "description": "Record Content",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Enter name",
+            "example": "Jack"
+          },
+          "email": {
+            "type": "string",
+            "description": "Enter email",
+            "example": "jack@dhiway.com"
+          },
+          "age": {
+            "type": "number",
+            "description": "Enter age",
+            "example": 23
+          }
+        }
+      },
+
+      "CredRes": {
+        "type": "object",
+        "properties": {}
+      },
+
+      "RecordRequest": {
+        "type": "object",
+        "properties": {
+          "schemaId": {
+            "type": "string",
+            "description": "The schemaId generated at createSchema",
+            "example": "s2cdb6537-dddf-44c5-859f-9083cca756c9"
+          },
+          "registryId": {
+            "type": "string",
+            "description": "The registryId generated at registryCreate",
+            "example": "r2cdb6537-dddf-44c5-859f-9083cca756c9"
+          },
+          "type": {
+            "example": "document"
+          },
+          "property": {
+            "$ref": "#/components/schemas/RecordContent"
+          },
+          "holderDid": {
+            "type": "string",
+            "description": "The holder DID to which VC is issued",
+            "example": "did:cord:3wCdDiKx3GdRM8p79QYL5EE7NbhdewhjsL7T2C46QMhfbwifw"
+          }
+        }
+      }
+    }
+  }
+}

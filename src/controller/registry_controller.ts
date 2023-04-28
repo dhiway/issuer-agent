@@ -77,7 +77,7 @@ export async function createRegistry(
     await getConnection().manager.save(registryData);
     return res
       .status(200)
-      .json({ result: "SUCCESS", registryID: registryData.id });
+      .json({ result: "SUCCESS", registryId: registryData.id });
   } catch (error) {
     return res.status(400).json({ result: "RegistryData not saved in db" });
   }
