@@ -15,8 +15,8 @@ export class Cred {
     @BeforeInsert()
     generateId() {
         if (!this.id) {
-            // Add "u" prefix to identify this ID as a User ID
-            this.id = 'u' + uuidv4();
+            // Add "c" prefix to identify this ID as a credential ID
+            this.id = 'c' + uuidv4();
         }
     }
     @PrimaryColumn()
@@ -32,13 +32,13 @@ export class Cred {
     hash?: string;
 
     @Column()
-    userId?: string;
+    did?: string;
 
     @Column()
     credential?: string;
 
     @Column('simple-json', { nullable: true, default: null })
-    details?: {};
+    details?: any;
 
     @CreateDateColumn({ name: 'created_at' })
     createdAt?: Date;
