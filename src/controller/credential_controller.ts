@@ -14,8 +14,8 @@ import {
 
 import { createConnection, getConnection } from "typeorm";
 import { Regisrty } from "../entity/Registry";
-const {WALLET_URL} = process.env
-
+import { Cred } from "../entity/Cred";
+const { WALLET_URL } = process.env;
 
 export async function issueCred(req: express.Request, res: express.Response) {
   const data = req.body;
@@ -54,7 +54,7 @@ export async function issueVC(
 
   if (data.schemaId) {
     const schemaId = data.schemaId ? data.schemaId : "";
-    schemaProp = await getSchema(res, schemaId);
+    schemaProp = await getSchema(schemaId);
     if (!schemaProp) {
       return res.status(400).json({ result: "No Schema" });
     }
@@ -62,7 +62,7 @@ export async function issueVC(
 
   if (data.registryId) {
     const registryId = data.registryId ? data.registryId : "";
-    registryProp = await getRegistry(res, registryId);
+    registryProp = await getRegistry(registryId);
     if (!registryProp) {
       return res.status(400).json({ result: "No Registry" });
     }
@@ -116,8 +116,24 @@ export async function issueVC(
     console.log("Error: ", err);
   }
 
-  const url : any= WALLET_URL
-  
+  const cred = new Cred();
+  cred.identifier = documents.identifier;
+  cred.active = true;
+  cred.did = holderDidUri;
+  cred.credential = JSON.stringify(documents);
+  cred.hash = documents.documentHash;
+  cred.details = {
+    meta: "endpoint-received",
+  };
+
+  try {
+    await getConnection().manager.save(cred);
+  } catch (err) {
+    console.log("Error: ", err);
+  }
+
+  const url: any = WALLET_URL;
+
   await fetch(`${url}/message/${holderDidUri}`, {
     body: JSON.stringify({
       id: data.id,
@@ -132,9 +148,26 @@ export async function issueVC(
     },
   })
     .then((resp) => resp.json())
-    .then((data) => res.json({}))
+    .then(() => console.log("Saved to db"))
     .catch((error) => {
       console.error(error);
-      res.json({result: "VC not issued"});
+      return res.json({ result: "VC not issued" });
     });
+
+    return res.status(200).json({id: cred.id})
+}
+
+export async function getCredById(req: express.Request, res: express.Response) {
+  try {
+    const cred = await getConnection()
+      .getRepository(Cred)
+      .createQueryBuilder("cred")
+      .where("cred.id = :id", { id: req.params.id })
+      .getOne();
+
+    return res.status(200).json({ credential: cred });
+  } catch (error) {
+    console.log("Error: ", error);
+    return res.status(400).json({ status: "Credential not found" });
+  }
 }

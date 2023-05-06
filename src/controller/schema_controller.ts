@@ -10,6 +10,7 @@ import {
   issuerKeys,
   setupDidAndIdentities,
   ensureStoredSchema,
+  getSchema,
 } from "../init";
 
 export async function createSchema(
@@ -45,7 +46,8 @@ export async function createSchema(
     const schemaData = new Schema();
     schemaData.title = data.schema.title ? data.schema.title : "";
     schemaData.description = data.schema.description
-      ? data.schema.description : "";
+      ? data.schema.description
+      : "";
     schemaData.schemaProperties = JSON.stringify(data.schema.properties);
     schemaData.cordSchema = JSON.stringify(schemaDetails);
 
@@ -60,5 +62,23 @@ export async function createSchema(
     }
   } else {
     res.status(400).json({ error: "SchemaDetails not created" });
+  }
+}
+
+export async function getSchemaById(
+  req: express.Request,
+  res: express.Response
+) {
+  try {
+    const schema = await getConnection()
+      .getRepository(Schema)
+      .createQueryBuilder("schema")
+      .where("schema.id = :id", { id: req.params.id })
+      .getOne();
+
+    return res.status(200).json({ schema: schema });
+  } catch (error) {
+    console.log("err: ", error);
+    return res.status(400).json({ status: "Schema not found" });
   }
 }

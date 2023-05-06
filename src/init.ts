@@ -1,9 +1,8 @@
 import * as Cord from "@cord.network/sdk";
 import { Crypto } from "@cord.network/utils";
-import express from 'express'; 
-import { getConnection } from 'typeorm';
+import express from "express";
+import { getConnection } from "typeorm";
 import { Schema } from "./entity/Schema";
-
 
 import {
   blake2AsU8a,
@@ -16,7 +15,6 @@ import {
 import { Regisrty } from "./entity/Registry";
 
 const { CORD_WSS_URL, MNEMONIC, AUTHOR_URI, AGENT_DID_NAME } = process.env;
-
 
 export let authorIdentity: any = undefined;
 export let issuerDid: any = undefined;
@@ -238,7 +236,6 @@ export async function addRegistryAdminDelegate(
   }
 }
 
-
 export async function createStream(
   issuer: Cord.DidUri,
   authorAccount: Cord.CordKeyringPair,
@@ -246,7 +243,7 @@ export async function createStream(
   document: Cord.IDocument,
   authorizationId: Cord.AuthorizationId
 ): Promise<void> {
-  const api = Cord.ConfigService.get('api');
+  const api = Cord.ConfigService.get("api");
 
   // Create a stream object
   const { streamHash } = await Cord.Stream.fromDocument(document);
@@ -254,53 +251,47 @@ export async function createStream(
   const schemaId = Cord.Registry.uriToIdentifier(document?.content?.schemaId);
   const streamTx = api.tx.stream.create(streamHash, authorization, schemaId);
   const authorizedStreamTx = await Cord.Did.authorizeTx(
-      issuer,
-      streamTx,
-      signCallback,
-      authorAccount.address
+    issuer,
+    streamTx,
+    signCallback,
+    authorAccount.address
   );
   await Cord.Chain.signAndSubmitTx(authorizedStreamTx, authorAccount);
 }
 
-
-export async function getSchema(res: express.Response, schemaId: string) {
+export async function getSchema(schemaId: string) {
   if (schemaId === undefined) {
     return undefined;
   }
 
-  let schema = await getConnection().getRepository(Schema).findOne(schemaId);
-
-  if (!schema) {
+  let schema: any;
+  try {
     schema = await getConnection()
       .getRepository(Schema)
       .createQueryBuilder("schema")
-      .where("schema.publicId = :id", { id: schemaId })
+      .where("schema.id = :id", { id: schemaId })
       .getOne();
-    if (!schema) {
-      return null;
-    }
+  } catch (error) {
+    console.log("err: ", error);
   }
 
   return schema;
 }
 
-
-export async function getRegistry(res: express.Response, registryId: string) {
+export async function getRegistry(registryId: string) {
   if (registryId === undefined) {
     return undefined;
   }
 
-  let registry = await getConnection().getRepository(Regisrty).findOne(registryId);
-
-  if (!registry) {
+  let registry: any;
+  try {
     registry = await getConnection()
       .getRepository(Regisrty)
       .createQueryBuilder("registry")
-      .where("registry.publicId = :id", { id: registryId })
+      .where("registry.id = :id", { id: registryId })
       .getOne();
-    if (!registry) {
-      return null;
-    }
+  } catch (error) {
+    console.log("err: ", error);
   }
 
   return registry;
@@ -344,7 +335,6 @@ export async function ensureStoredSchema(
     return schema;
   }
 }
-
 
 export async function ensureStoredRegistry(
   title: any,

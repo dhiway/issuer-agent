@@ -9,6 +9,7 @@ import {
   issuerKeys,
   getSchema,
   ensureStoredRegistry,
+  getRegistry,
 } from "../init";
 
 import { Regisrty } from "../entity/Registry";
@@ -30,7 +31,7 @@ export async function createRegistry(
 
   if (data.schemaId) {
     const schemaId = data.schemaId ? data.schemaId : "";
-    schemaProp = await getSchema(res, schemaId);
+    schemaProp = await getSchema(schemaId);
     if (!schemaProp) {
       return res.status(400).json({ result: "No Schema" });
     }
@@ -80,5 +81,23 @@ export async function createRegistry(
       .json({ result: "SUCCESS", registryId: registryData.id });
   } catch (error) {
     return res.status(400).json({ result: "RegistryData not saved in db" });
+  }
+}
+
+export async function getRegistryById(
+  req: express.Request,
+  res: express.Response
+) {
+  try {
+    const registry = await getConnection()
+      .getRepository(Regisrty)
+      .createQueryBuilder("registry")
+      .where("registry.id = :id", { id: req.params.id })
+      .getOne();
+
+    return res.status(200).json({ registry: registry });
+  } catch (error) {
+    console.log("err: ", error);
+    return res.status(400).json({ status: "Registry not found" });
   }
 }
