@@ -3,7 +3,7 @@ import bodyParser from "body-parser";
 import fs from 'fs';
 import swaggerUi from 'swagger-ui-express';
 
-import { getCredById, issueCred } from "./controller/credential_controller";
+import { getCredById, issueCred, revokeCred } from "./controller/credential_controller";
 import { createSchema, getSchemaById } from "./controller/schema_controller";
 import { createRegistry, getRegistryById } from "./controller/registry_controller";
 import { createConnection } from "typeorm";
@@ -24,6 +24,9 @@ credentialRouter.post("/", async (req, res) => {
 });
 credentialRouter.get("/:id", async (req, res) => {
   return await getCredById(req, res);
+});
+credentialRouter.post("/revoke", async (req, res) => {
+  return await revokeCred(req, res);
 });
 
 schemaRouter.post("/", async (req, res) => {
