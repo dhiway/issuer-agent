@@ -177,6 +177,12 @@ export async function getCredById(req: express.Request, res: express.Response) {
 export async function revokeCred(req: express.Request, res: express.Response) {
   const data = req.body;
 
+  if (!data.identifier || typeof data.identifier !== "string") {
+    return res.status(400).json({
+      error: "identifier is a required field and should be a string",
+    });
+  }
+
   if (!issuerDid) {
     await setupDidAndIdentities();
   }
