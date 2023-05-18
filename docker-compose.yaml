@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+    dhiagent:
+        image: dhiway/agent:latest
+        container_name: dhiagent
+        environment:
+            - PORT=${AGENT_PORT}
+            - TYPEORM_HOST=${STUDIO_TYPEORM_HOST}
+            - TYPEORM_PORT=${TYPEORM_PORT}
+            - TYPEORM_USERNAME=${STUDIO_TYPEORM_USERNAME}
+            - TYPEORM_PASSWORD=${STUDIO_TYPEORM_PASSWORD}
+            - TYPEORM_DATABASE=${STUDIO_TYPEORM_DATABASE}
+            - TYPEORM_AUTO_SCHEMA_SYNC=${STUDIO_TYPEORM_AUTO_SCHEMA_SYNC}
+            - TYPEORM_ENTITIES=${STUDIO_TYPEORM_ENTITIES}
+            - TYPEORM_SUBSCRIBERS=${STUDIO_TYPEORM_SUBSCRIBERS}
+            - TYPEORM_MIGRATIONS=${STUDIO_TYPEORM_MIGRATIONS}
+            - TYPEORM_ENTITIES_DIR=${STUDIO_TYPEORM_ENTITIES_DIR}
+            - TYPEORM_MIGRATIONS_DIR=${STUDIO_TYPEORM_MIGRATIONS_DIR}
+            - TYPEORM_SUBSCRIBERS_DIR=${STUDIO_TYPEORM_SUBSCRIBERS_DIR}
+            - TYPEORM_LOGGING=${STUDIO_TYPEORM_LOGGING}
+            - CORD_WSS_URL=${CORD_WSS_URL}
+            - AUTHOR_URI=${AUTHOR_URI}
+            - MNEMONIC=${MNEMONIC}
+            - WALLET_URL=${WALLET_URL}
+            - AGENT_DID_NAME=${AGENT_DID_NAME}
+        ports:
+            - ${AGENT_PORT}:${AGENT_PORT}
+        depends_on:
+            - postgres2
+        networks:
+            - local
+        command: node dist/index.js
+
+    postgres2:
+        image: postgres:14.5-alpine
+        container_name: postgres2
+        environment:
+            POSTGRES_USER: ${STUDIO_TYPEORM_USERNAME}
+            POSTGRES_PASSWORD: ${STUDIO_TYPEORM_PASSWORD}
+            POSTGRES_DB: ${STUDIO_TYPEORM_DATABASE}
+            PGDATA: /var/lib/postgresql/data/pgdata
+        ports:
+            - ${STUDIO_TYPEORM_PORT}:${TYPEORM_PORT}
+        restart: always
+        volumes:
+            - postgres-data2:/var/lib/postgresql/data
+        networks:
+            - local
+
+volumes:
+    postgres-data2:
+        name: postgres-data2
+
+networks:
+    local:
+        name: local
