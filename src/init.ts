@@ -381,3 +381,29 @@ export async function ensureStoredRegistry(
     return txRegistry;
   }
 }
+
+export async function revokeCredential(
+  issuer: Cord.DidUri,
+  authorAccount: Cord.CordKeyringPair,
+  signCallback: Cord.SignExtrinsicCallback,
+  document: Cord.IDocument,
+  shouldRemove = false
+): Promise<void> {
+  const api = Cord.ConfigService.get('api')
+  const chainIdentifier = Cord.Stream.idToChain(document.identifier)
+  const authorization = Cord.Registry.uriToIdentifier(document.authorization)
+
+  const tx = shouldRemove
+    ? api.tx.stream.remove(chainIdentifier, authorization)
+    : api.tx.stream.revoke(chainIdentifier, authorization)
+
+  const authorizedTx = await Cord.Did.authorizeTx(
+    issuer,
+    tx,
+    signCallback,
+    authorAccount.address
+  )
+
+  // Submit the tx.
+  await Cord.Chain.signAndSubmitTx(authorizedTx, authorAccount)
+}

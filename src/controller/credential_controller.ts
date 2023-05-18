@@ -1,6 +1,7 @@
 import express from "express";
 
 import * as Cord from "@cord.network/sdk";
+import { IDocument } from "@cord.network/sdk";
 
 import {
   issuerDid,
@@ -10,6 +11,7 @@ import {
   setupDidAndIdentities,
   getSchema,
   getRegistry,
+  revokeCredential,
 } from "../init";
 
 import { createConnection, getConnection } from "typeorm";
@@ -154,7 +156,7 @@ export async function issueVC(
       return res.json({ result: "VC not issued" });
     });
 
-    return res.status(200).json({id: cred.id})
+  return res.status(200).json({ id: cred.id, identifier: cred.identifier });
 }
 
 export async function getCredById(req: express.Request, res: express.Response) {
@@ -169,5 +171,51 @@ export async function getCredById(req: express.Request, res: express.Response) {
   } catch (error) {
     console.log("Error: ", error);
     return res.status(400).json({ status: "Credential not found" });
+  }
+}
+
+export async function revokeCred(req: express.Request, res: express.Response) {
+  const data = req.body;
+
+  if (!data.identifier || typeof data.identifier !== "string") {
+    return res.status(400).json({
+      error: "identifier is a required field and should be a string",
+    });
+  }
+
+  if (!issuerDid) {
+    await setupDidAndIdentities();
+  }
+
+  const cred = await getConnection()
+    .getRepository(Cred)
+    .createQueryBuilder("cred")
+    .where("cred.identifier = :identifier", { identifier: data.identifier })
+    .getOne();
+
+  if (!cred) {
+    return res.status(400).json({ error: "Invalid identifier" });
+  }
+
+  try {
+    const document = JSON.parse(cred.credential!) as IDocument;
+
+    await revokeCredential(
+      issuerDid.uri,
+      authorIdentity,
+      async ({ data }) => ({
+        signature: issuerKeys.assertionMethod.sign(data),
+        keyType: issuerKeys.assertionMethod.type,
+      }),
+      document,
+      false
+    );
+
+    console.log(`✅ Credential revoked!`);
+
+    return res.status(200).json({ status: "SUCCESS" });
+  } catch (error) {
+    console.log("err: ", error);
+    return res.status(400).json({ err: error });
   }
 }
