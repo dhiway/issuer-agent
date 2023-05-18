@@ -44,13 +44,13 @@ services:
             - ${STUDIO_TYPEORM_PORT}:${TYPEORM_PORT}
         restart: always
         volumes:
-            - postgres-data2:/var/lib/postgresql/data
+            - postgres-data3:/var/lib/postgresql/data
         networks:
             - local
 
 volumes:
-    postgres-data2:
-        name: postgres-data2
+    postgres-data3:
+        name: postgres-data3
 
 networks:
     local:

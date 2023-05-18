@@ -136,25 +136,27 @@ export async function issueVC(
 
   const url: any = WALLET_URL;
 
-  await fetch(`${url}/message/${holderDidUri}`, {
-    body: JSON.stringify({
-      id: data.id,
-      type: data.type,
-      fromDid: issuerDid.uri,
-      toDid: holderDidUri,
-      message: documents,
-    }),
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  })
-    .then((resp) => resp.json())
-    .then(() => console.log("Saved to db"))
-    .catch((error) => {
-      console.error(error);
-      return res.json({ result: "VC not issued" });
-    });
+  if (url) {
+    await fetch(`${url}/message/${holderDidUri}`, {
+      body: JSON.stringify({
+        id: data.id,
+        type: data.type,
+        fromDid: issuerDid.uri,
+        toDid: holderDidUri,
+        message: documents,
+      }),
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((resp) => resp.json())
+      .then(() => console.log("Saved to db"))
+      .catch((error) => {
+        console.error(error);
+        return res.json({ result: "VC not issued" });
+      });
+  }
 
   return res.status(200).json({ id: cred.id, identifier: cred.identifier });
 }
