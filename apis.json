@@ -214,7 +214,7 @@
     "/api/v1/cred": {
       "post": {
         "tags": ["Credential"],
-        "description": "Create a credential",
+        "description": "Issue a credential",
         "operationId": "issueCred",
         "requestBody": {
           "description": "Add a VC to the given holderDID",
@@ -290,6 +290,52 @@
               "application/json": {
                 "example": {
                   "status": "Credential not found"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+
+    "/api/v1/cred/revoke": {
+      "post": {
+        "tags": ["Credential"],
+        "description": "Revoke a credential",
+        "operationId": "revokeCred",
+        "requestBody": {
+          "description": "Revoke a VC of the given identifier",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CredRevoke"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "New vc issued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CredRevokeRes"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Stream idenfier marked inactive"
                 }
               }
             }
@@ -448,6 +494,15 @@
                 "$ref": "#/components/schemas/AuthId"
               }
             }
+          }
+        }
+      },
+
+      "CredRevokeRes": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "example": "SUCCESS"
           }
         }
       },
@@ -742,9 +797,27 @@
         }
       },
 
+      "CredRevoke": {
+        "type": "object",
+        "properties": {
+          "identifier": {
+            "type": "string",
+            "description": "Identifier of VC",
+            "example": "stream:cord:s3caubjdFkCg7mK8Uw2XhddcfWtwBESrnWWpVAuBc18wViCY7"
+          }
+        }
+      },
+
       "CredRes": {
         "type": "object",
-        "properties": {}
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/CredId"
+          },
+          "identifier": {
+            "example": "stream:cord:s3hB4khxYv6rKf4T47zXzeqBT4dQoaowSeiTfHYA1B8ucVKE3"
+          }
+        }
       },
 
       "RecordRequest": {
