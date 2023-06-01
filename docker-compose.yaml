@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
     dhiagent:
-        image: dhiway/agent:latest
+        image: dhiway/issuer-agent:latest
         container_name: dhiagent
         environment:
             - PORT=${AGENT_PORT}
@@ -27,14 +27,14 @@ services:
         ports:
             - ${AGENT_PORT}:${AGENT_PORT}
         depends_on:
-            - postgres2
+            - postgres30
         networks:
             - local
         command: node dist/index.js
 
-    postgres2:
+    postgres30:
         image: postgres:14.5-alpine
-        container_name: postgres2
+        container_name: postgres30
         environment:
             POSTGRES_USER: ${STUDIO_TYPEORM_USERNAME}
             POSTGRES_PASSWORD: ${STUDIO_TYPEORM_PASSWORD}
@@ -44,13 +44,13 @@ services:
             - ${STUDIO_TYPEORM_PORT}:${TYPEORM_PORT}
         restart: always
         volumes:
-            - postgres-data3:/var/lib/postgresql/data
+            - postgres-data30:/var/lib/postgresql/data
         networks:
             - local
 
 volumes:
-    postgres-data3:
-        name: postgres-data3
+    postgres-data30:
+        name: postgres-data30
 
 networks:
     local:

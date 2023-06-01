@@ -181,6 +181,7 @@ export async function setupDidAndIdentities() {
     AUTHOR_URI ?? "//Alice",
     "sr25519"
   );
+  console.log("Author: ", authorIdentity.address);
   try {
     const didDoc = await createDid(MNEMONIC, AGENT_DID_NAME);
     if (didDoc) {

@@ -8,6 +8,7 @@ import { createSchema, getSchemaById } from "./controller/schema_controller";
 import { createRegistry, getRegistryById } from "./controller/registry_controller";
 import { createConnection } from "typeorm";
 import { dbConfig } from "./dbconfig";
+import { issuerDid, setupDidAndIdentities } from "./init";
 
 const app = express();
 export const { PORT } = process.env;
@@ -63,6 +64,9 @@ async function main() {
   app.listen(PORT, () => {
     console.log(`Dhiway gateway is running at http://localhost:${PORT}`);
   });
+  if (!issuerDid) {
+    await setupDidAndIdentities();
+  }
 }
 
 main().catch((e) => console.log(e));
