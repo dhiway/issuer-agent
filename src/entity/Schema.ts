@@ -13,6 +13,9 @@ export class Schema {
   @PrimaryColumn()
   id?: string;
 
+  @Column({ nullable: true })
+  identifier?: string;
+
   @Column({ default: false })
   registry?: boolean;
 
