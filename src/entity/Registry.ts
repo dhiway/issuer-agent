@@ -13,10 +13,12 @@ export class Regisrty {
   @PrimaryColumn()
   id?: string;
 
+  @Column({ nullable: true })
+  identifier?: string;
+
   @Column()
   registry?: string;
 
-  @Column({default: null, nullable: true})
+  @Column({ default: null, nullable: true })
   authId?: string;
-
 }

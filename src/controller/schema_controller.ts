@@ -50,12 +50,15 @@ export async function createSchema(
       : "";
     schemaData.schemaProperties = JSON.stringify(data.schema.properties);
     schemaData.cordSchema = JSON.stringify(schemaDetails);
+    schemaData.identifier = schemaDetails.$id;
 
     try {
       await getConnection().manager.save(schemaData);
-      return res
-        .status(200)
-        .json({ result: "SUCCESS", schemaId: schemaData.id });
+      return res.status(200).json({
+        result: "SUCCESS",
+        schemaId: schemaData.id,
+        identifier: schemaData.identifier,
+      });
     } catch (error) {
       console.log("Error: ", error);
       return res.status(400).json({ result: "SchemaData not saved in db" });

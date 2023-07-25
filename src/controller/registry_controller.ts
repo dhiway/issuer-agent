@@ -73,12 +73,15 @@ export async function createRegistry(
   const registryData = new Regisrty();
   registryData.registry = JSON.stringify(registry);
   registryData.authId = registryAuthId;
+  registryData.identifier = registry.identifier;
 
   try {
     await getConnection().manager.save(registryData);
-    return res
-      .status(200)
-      .json({ result: "SUCCESS", registryId: registryData.id });
+    return res.status(200).json({
+      result: "SUCCESS",
+      registryId: registryData.id,
+      identifier: registryData.identifier,
+    });
   } catch (error) {
     return res.status(400).json({ result: "RegistryData not saved in db" });
   }
