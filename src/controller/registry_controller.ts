@@ -71,7 +71,7 @@ export async function createRegistry(
   }
 
   const registryData = new Regisrty();
-  registryData.registry = JSON.stringify(registry);
+  registryData.registryData = JSON.stringify(registry);
   registryData.authId = registryAuthId;
   registryData.identifier = registry.identifier;
 
