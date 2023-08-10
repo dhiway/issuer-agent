@@ -1,4 +1,3 @@
-# This is a basic workflow to help you get started with Actions
 
 name: On PR Submit
 
@@ -27,13 +26,8 @@ jobs:
       # Check-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      # Build and tag the image
+      # Build the docker image
       - run: |
           docker build \
             --no-cache \
-            --file Dockerfile.for-ci \
-            --tag issuer-agent:latest \
-            --build-arg NPM_TOKEN=${{ env.NPM_TOKEN }} \
-            .
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+            --file Dockerfile.for-ci .
