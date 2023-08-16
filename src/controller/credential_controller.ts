@@ -33,7 +33,7 @@ export async function issueCred(req: express.Request, res: express.Response) {
   }
 
   try {
-    await issueVC(reg.authId as string, req, res);
+    await issueVC(reg.authId!, req, res);
   } catch (err) {
     console.log("error: ", err);
   }
@@ -84,7 +84,7 @@ export async function issueVC(
     const keyUri =
       `${issuerDid.uri}${issuerDid.authentication[0].id}` as Cord.DidResourceUri;
 
-    const registryParsed = JSON.parse(registryProp.registry);
+    const registryParsed = JSON.parse(registryProp.registryData);
 
     const document: any = await Cord.Document.fromContent({
       content,

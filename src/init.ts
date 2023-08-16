@@ -390,21 +390,21 @@ export async function revokeCredential(
   document: Cord.IDocument,
   shouldRemove = false
 ): Promise<void> {
-  const api = Cord.ConfigService.get('api')
-  const chainIdentifier = Cord.Stream.idToChain(document.identifier)
-  const authorization = Cord.Registry.uriToIdentifier(document.authorization)
+  const api = Cord.ConfigService.get("api");
+  const chainIdentifier = Cord.Stream.idToChain(document.identifier);
+  const authorization = Cord.Registry.uriToIdentifier(document.authorization);
 
   const tx = shouldRemove
     ? api.tx.stream.remove(chainIdentifier, authorization)
-    : api.tx.stream.revoke(chainIdentifier, authorization)
+    : api.tx.stream.revoke(chainIdentifier, authorization);
 
   const authorizedTx = await Cord.Did.authorizeTx(
     issuer,
     tx,
     signCallback,
     authorAccount.address
-  )
+  );
 
   // Submit the tx.
-  await Cord.Chain.signAndSubmitTx(authorizedTx, authorAccount)
+  await Cord.Chain.signAndSubmitTx(authorizedTx, authorAccount);
 }
