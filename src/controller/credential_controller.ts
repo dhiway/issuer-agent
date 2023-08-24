@@ -232,6 +232,8 @@ export async function updateCred(req: express.Request, res: express.Response) {
     let schemaProp: any = undefined;
     let credProp: any = undefined;
 
+    const updatedContent = data.property;
+
     if (data.schemaId) {
       const schemaId = data.schemaId ? data.schemaId : "";
       schemaProp = await getSchema(schemaId);
@@ -247,13 +249,12 @@ export async function updateCred(req: express.Request, res: express.Response) {
         return res.status(400).json({ result: "No Cred found" });
       }
     }
-    const keyUri =
-      `${issuerDid.uri}${issuerDid.authentication[0].id}` as Cord.DidResourceUri;
 
+    const schema = JSON.parse(schemaProp.cordSchema);
     const document = JSON.parse(credProp.credential);
 
-    const updatedContent = data.property;
-    const schema = JSON.parse(schemaProp.cordSchema);
+    const keyUri =
+      `${issuerDid.uri}${issuerDid.authentication[0].id}` as Cord.DidResourceUri;
 
     const updatedDocument: any = await updateStream(
       document,
@@ -280,12 +281,10 @@ export async function updateCred(req: express.Request, res: express.Response) {
 
     await getConnection().manager.save(credProp);
 
-    return res
-      .status(200)
-      .json({
-        result: "Updated successufully",
-        identifier: credProp.identifier,
-      });
+    return res.status(200).json({
+      result: "Updated successufully",
+      identifier: credProp.identifier,
+    });
   } catch (error) {
     console.log("error: ", error);
     return res.status(400).json({ err: error });
