@@ -13,6 +13,7 @@ import {
   sr25519PairFromSeed,
 } from "@polkadot/util-crypto";
 import { Regisrty } from "./entity/Registry";
+import { Cred } from "./entity/Cred";
 
 const { CORD_WSS_URL, MNEMONIC, AUTHOR_URI, AGENT_DID_NAME } = process.env;
 
@@ -298,6 +299,25 @@ export async function getRegistry(registryId: string) {
   return registry;
 }
 
+export async function getCredential(credId: string) {
+  if (credId === undefined) {
+    return undefined;
+  }
+
+  let cred: any;
+  try {
+    cred = await getConnection()
+      .getRepository(Cred)
+      .createQueryBuilder("cred")
+      .where("cred.id = :id", { id: credId })
+      .getOne();
+  } catch (error) {
+    console.log("err: ", error);
+  }
+
+  return cred;
+}
+
 export async function ensureStoredSchema(
   authorAccount: Cord.CordKeyringPair,
   creator: Cord.DidUri,
@@ -407,4 +427,51 @@ export async function revokeCredential(
 
   // Submit the tx.
   await Cord.Chain.signAndSubmitTx(authorizedTx, authorAccount);
+}
+
+export async function updateStream(
+  document: Cord.IDocument,
+  updatedContent: Cord.IContents,
+  schema: Cord.ISchema,
+  signCallback: Cord.SignCallback,
+  authorDid: Cord.DidUri,
+  authorIdentity: Cord.CordKeyringPair,
+  signingkeys: any
+) {
+  const updatedDocument = await Cord.Document.updateFromContent(
+      document,
+      updatedContent,
+      schema,
+      signCallback,
+      {}
+  );
+
+  const api = Cord.ConfigService.get('api');
+  const { streamHash } = Cord.Stream.fromDocument(updatedDocument);
+  const authorization = Cord.Registry.uriToIdentifier(
+      updatedDocument.authorization
+  );
+
+  const streamTx = api.tx.stream.update(
+      updatedDocument.identifier.replace('stream:cord:', ''),
+      streamHash,
+      authorization
+  );
+
+  const authorizedStreamTx = await Cord.Did.authorizeTx(
+      authorDid,
+      streamTx,
+      async ({ data }) => ({
+          signature: signingkeys.assertionMethod.sign(data),
+          keyType: signingkeys.assertionMethod.type,
+      }),
+      authorIdentity.address
+  );
+
+  try {
+      await Cord.Chain.signAndSubmitTx(authorizedStreamTx, authorIdentity);
+      return updatedDocument;
+  } catch (e) {
+      console.log('Error: \n', e);
+  }
 }
