@@ -12,6 +12,8 @@ import {
   getSchema,
   getRegistry,
   revokeCredential,
+  updateStream,
+  getCredential,
 } from "../init";
 
 import { createConnection, getConnection } from "typeorm";
@@ -158,7 +160,9 @@ export async function issueVC(
       });
   }
 
-  return res.status(200).json({ id: cred.id, identifier: cred.identifier });
+  return res
+    .status(200)
+    .json({ result: "SUCCESS", id: cred.id, identifier: cred.identifier });
 }
 
 export async function getCredById(req: express.Request, res: express.Response) {
@@ -215,9 +219,75 @@ export async function revokeCred(req: express.Request, res: express.Response) {
 
     console.log(`✅ Credential revoked!`);
 
-    return res.status(200).json({ status: "SUCCESS" });
+    return res.status(200).json({ result: "Revoked Successfully" });
   } catch (error) {
     console.log("err: ", error);
+    return res.status(400).json({ err: error });
+  }
+}
+
+export async function updateCred(req: express.Request, res: express.Response) {
+  const data = req.body;
+  try {
+    let schemaProp: any = undefined;
+    let credProp: any = undefined;
+
+    if (data.schemaId) {
+      const schemaId = data.schemaId ? data.schemaId : "";
+      schemaProp = await getSchema(schemaId);
+      if (!schemaProp) {
+        return res.status(400).json({ result: "No Schema found" });
+      }
+    }
+
+    if (data.credId) {
+      const credId = data.credId ? data.credId : "";
+      credProp = await getCredential(credId);
+      if (!credProp) {
+        return res.status(400).json({ result: "No Cred found" });
+      }
+    }
+    const keyUri =
+      `${issuerDid.uri}${issuerDid.authentication[0].id}` as Cord.DidResourceUri;
+
+    const document = JSON.parse(credProp.credential);
+
+    const updatedContent = data.property;
+    const schema = JSON.parse(schemaProp.cordSchema);
+
+    const updatedDocument: any = await updateStream(
+      document,
+      updatedContent,
+      schema,
+      async ({ data }) => ({
+        signature: issuerKeys.authentication.sign(data),
+        keyType: issuerKeys.authentication.type,
+        keyUri,
+      }),
+      issuerDid?.uri,
+      authorIdentity,
+      issuerKeys
+    );
+
+    console.log("\n✅ Document updated!");
+
+    credProp.identifier = updatedDocument.identifier;
+    credProp.credential = JSON.stringify(updatedDocument);
+    credProp.hash = updatedDocument.documentHash;
+    credProp.details = {
+      meta: "endpoint-received",
+    };
+
+    await getConnection().manager.save(credProp);
+
+    return res
+      .status(200)
+      .json({
+        result: "Updated successufully",
+        identifier: credProp.identifier,
+      });
+  } catch (error) {
+    console.log("error: ", error);
     return res.status(400).json({ err: error });
   }
 }
