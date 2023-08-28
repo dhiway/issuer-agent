@@ -347,6 +347,52 @@
           }
         ]
       }
+    },
+
+    "/api/v1/cred/update": {
+      "put": {
+        "tags": ["Credential"],
+        "description": "Update a credential",
+        "operationId": "updateCred",
+        "requestBody": {
+          "description": "Update a VC of the given identifier",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "New vc issued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CredUpdateRes"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters",
+            "content": {
+              "application/json": {
+                "example": {
+                  "error": "Stream not updated"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
     }
   },
 
@@ -503,6 +549,18 @@
         "properties": {
           "status": {
             "example": "SUCCESS"
+          }
+        }
+      },
+
+      "CredUpdateRes": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "example": "SUCCESS"
+          },
+          "identifier": {
+            "example": "stream:cord:s3hB4khxYv6rKf4T47zXzeqBT4dQoaowSeiTfHYA1B8ucVKE3"
           }
         }
       },
@@ -843,6 +901,25 @@
             "type": "string",
             "description": "The holder DID to which VC is issued",
             "example": "did:cord:3wCdDiKx3GdRM8p79QYL5EE7NbhdewhjsL7T2C46QMhfbwifw"
+          }
+        }
+      },
+
+      "UpdateRequest": {
+        "type": "object",
+        "properties": {
+          "schemaId": {
+            "type": "string",
+            "description": "The schemaId generated at createSchema",
+            "example": "s2cdb6537-dddf-44c5-859f-9083cca756c9"
+          },
+          "credId": {
+            "type": "string",
+            "description": "The registryId generated at registryCreate",
+            "example": "c2cdb6357-gdcv-44c5-859f-9083cca856c9"
+          },
+          "property": {
+            "$ref": "#/components/schemas/RecordContent"
           }
         }
       }

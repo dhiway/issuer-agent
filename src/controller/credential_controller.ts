@@ -270,17 +270,18 @@ export async function updateCred(req: express.Request, res: express.Response) {
       issuerKeys
     );
 
-    console.log("\n✅ Document updated!");
-
+    
     credProp.identifier = updatedDocument.identifier;
     credProp.credential = JSON.stringify(updatedDocument);
     credProp.hash = updatedDocument.documentHash;
     credProp.details = {
       meta: "endpoint-received",
     };
-
+    
     await getConnection().manager.save(credProp);
-
+    
+    console.log("\n✅ Document updated!");
+    
     return res.status(200).json({
       result: "Updated successufully",
       identifier: credProp.identifier,

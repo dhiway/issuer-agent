@@ -37,7 +37,7 @@ credentialRouter.get("/:id", async (req, res) => {
 credentialRouter.post("/revoke", async (req, res) => {
   return await revokeCred(req, res);
 });
-credentialRouter.post("/update", async (req, res) => {
+credentialRouter.put("/update", async (req, res) => {
   return await updateCred(req, res);
 });
 
