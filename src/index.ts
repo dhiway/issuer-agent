@@ -2,6 +2,8 @@ import express from "express";
 import bodyParser from "body-parser";
 import fs from "fs";
 import swaggerUi from "swagger-ui-express";
+import cluster from "node:cluster";
+import os from "node:os";
 
 import {
   getCredById,
@@ -24,59 +26,75 @@ export const { PORT } = process.env;
 app.use(bodyParser.json({ limit: "5mb" }));
 app.use(express.json());
 
-const credentialRouter = express.Router({ mergeParams: true });
-const schemaRouter = express.Router({ mergeParams: true });
-const registryRouter = express.Router({ mergeParams: true });
+const numCPUs = os.cpus().length;
 
-credentialRouter.post("/", async (req, res) => {
-  return await issueCred(req, res);
-});
-credentialRouter.get("/:id", async (req, res) => {
-  return await getCredById(req, res);
-});
-credentialRouter.post("/revoke", async (req, res) => {
-  return await revokeCred(req, res);
-});
-credentialRouter.put("/update", async (req, res) => {
-  return await updateCred(req, res);
-});
+if (cluster.isMaster) {
+  console.log(`Primary ${process.pid} is running`);
 
-schemaRouter.post("/", async (req, res) => {
-  return await createSchema(req, res);
-});
-schemaRouter.get("/:id", async (req, res) => {
-  return await getSchemaById(req, res);
-});
-
-registryRouter.post("/", async (req, res) => {
-  return await createRegistry(req, res);
-});
-registryRouter.get("/:id", async (req, res) => {
-  return await getRegistryById(req, res);
-});
-
-const openApiDocumentation = JSON.parse(
-  fs.readFileSync("./apis.json").toString()
-);
-
-app.use("/docs", swaggerUi.serve, swaggerUi.setup(openApiDocumentation));
-app.use("/api/v1/cred", credentialRouter);
-app.use("/api/v1/schema", schemaRouter);
-app.use("/api/v1/registry", registryRouter);
-
-async function main() {
-  try {
-    await createConnection(dbConfig);
-  } catch (error) {
-    console.log("error: ", error);
+  for (let i = 0; i < numCPUs; i++) {
+    cluster.fork();
   }
 
-  app.listen(PORT, () => {
-    console.log(`Dhiway gateway is running at http://localhost:${PORT}`);
+  cluster.on("exit", (worker, code, signal) => {
+    console.log(`worker ${worker.process.pid} died`);
+    cluster.fork();
   });
-  if (!issuerDid) {
-    await setupDidAndIdentities();
-  }
-}
+} else {
+  const credentialRouter = express.Router({ mergeParams: true });
+  const schemaRouter = express.Router({ mergeParams: true });
+  const registryRouter = express.Router({ mergeParams: true });
 
-main().catch((e) => console.log(e));
+  credentialRouter.post("/", async (req, res) => {
+    return await issueCred(req, res);
+  });
+  credentialRouter.get("/:id", async (req, res) => {
+    return await getCredById(req, res);
+  });
+  credentialRouter.post("/revoke", async (req, res) => {
+    return await revokeCred(req, res);
+  });
+  credentialRouter.put("/update", async (req, res) => {
+    return await updateCred(req, res);
+  });
+
+  schemaRouter.post("/", async (req, res) => {
+    return await createSchema(req, res);
+  });
+  schemaRouter.get("/:id", async (req, res) => {
+    return await getSchemaById(req, res);
+  });
+
+  registryRouter.post("/", async (req, res) => {
+    return await createRegistry(req, res);
+  });
+  registryRouter.get("/:id", async (req, res) => {
+    return await getRegistryById(req, res);
+  });
+
+  const openApiDocumentation = JSON.parse(
+    fs.readFileSync("./apis.json").toString()
+  );
+
+  app.use("/docs", swaggerUi.serve, swaggerUi.setup(openApiDocumentation));
+  app.use("/api/v1/cred", credentialRouter);
+  app.use("/api/v1/schema", schemaRouter);
+  app.use("/api/v1/registry", registryRouter);
+
+  async function main() {
+    try {
+      await createConnection(dbConfig);
+    } catch (error) {
+      console.log("error: ", error);
+    }
+
+    app.listen(PORT, () => {
+      console.log(`Dhiway gateway is running at http://localhost:${PORT}`);
+    });
+    if (!issuerDid) {
+      await setupDidAndIdentities();
+    }
+  }
+
+  main().catch((e) => console.log(e));
+  console.log(`Worker ${process.pid} started`);
+}

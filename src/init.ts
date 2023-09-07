@@ -182,7 +182,7 @@ export async function setupDidAndIdentities() {
     AUTHOR_URI ?? "//Alice",
     "sr25519"
   );
-  console.log("Author: ", authorIdentity.address);
+
   try {
     const didDoc = await createDid(MNEMONIC, AGENT_DID_NAME);
     if (didDoc) {
@@ -439,39 +439,39 @@ export async function updateStream(
   signingkeys: any
 ) {
   const updatedDocument = await Cord.Document.updateFromContent(
-      document,
-      updatedContent,
-      schema,
-      signCallback,
-      {}
+    document,
+    updatedContent,
+    schema,
+    signCallback,
+    {}
   );
 
-  const api = Cord.ConfigService.get('api');
+  const api = Cord.ConfigService.get("api");
   const { streamHash } = Cord.Stream.fromDocument(updatedDocument);
   const authorization = Cord.Registry.uriToIdentifier(
-      updatedDocument.authorization
+    updatedDocument.authorization
   );
 
   const streamTx = api.tx.stream.update(
-      updatedDocument.identifier.replace('stream:cord:', ''),
-      streamHash,
-      authorization
+    updatedDocument.identifier.replace("stream:cord:", ""),
+    streamHash,
+    authorization
   );
 
   const authorizedStreamTx = await Cord.Did.authorizeTx(
-      authorDid,
-      streamTx,
-      async ({ data }) => ({
-          signature: signingkeys.assertionMethod.sign(data),
-          keyType: signingkeys.assertionMethod.type,
-      }),
-      authorIdentity.address
+    authorDid,
+    streamTx,
+    async ({ data }) => ({
+      signature: signingkeys.assertionMethod.sign(data),
+      keyType: signingkeys.assertionMethod.type,
+    }),
+    authorIdentity.address
   );
 
   try {
-      await Cord.Chain.signAndSubmitTx(authorizedStreamTx, authorIdentity);
-      return updatedDocument;
+    await Cord.Chain.signAndSubmitTx(authorizedStreamTx, authorIdentity);
+    return updatedDocument;
   } catch (e) {
-      console.log('Error: \n', e);
+    console.log("Error: \n", e);
   }
 }
