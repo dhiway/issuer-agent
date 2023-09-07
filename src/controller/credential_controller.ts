@@ -138,7 +138,7 @@ export async function issueVC(
 
   const url: any = WALLET_URL;
 
-  if (url) {
+  if (url && data.type) {
     await fetch(`${url}/message/${holderDidUri}`, {
       body: JSON.stringify({
         id: data.id,
@@ -228,6 +228,7 @@ export async function revokeCred(req: express.Request, res: express.Response) {
 
 export async function updateCred(req: express.Request, res: express.Response) {
   const data = req.body;
+
   try {
     let schemaProp: any = undefined;
     let credProp: any = undefined;
@@ -270,18 +271,17 @@ export async function updateCred(req: express.Request, res: express.Response) {
       issuerKeys
     );
 
-    
     credProp.identifier = updatedDocument.identifier;
     credProp.credential = JSON.stringify(updatedDocument);
     credProp.hash = updatedDocument.documentHash;
     credProp.details = {
       meta: "endpoint-received",
     };
-    
+
     await getConnection().manager.save(credProp);
-    
+
     console.log("\n✅ Document updated!");
-    
+
     return res.status(200).json({
       result: "Updated successufully",
       identifier: credProp.identifier,
