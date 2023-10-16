@@ -30,4 +30,7 @@ export class Schema {
 
   @Column({ default: null, nullable: true })
   schemaProperties?: string;
+
+  @Column({ default: null, nullable: true })
+  requiredFields?: string
 }
