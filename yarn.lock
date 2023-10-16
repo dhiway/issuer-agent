@@ -9,32 +9,32 @@
   dependencies:
     regenerator-runtime "^0.13.11"
 
-"@cord.network/augment-api@0.8.0-7":
-  version "0.8.0-7"
-  resolved "https://registry.npmjs.org/@cord.network/augment-api/-/augment-api-0.8.0-7.tgz"
-  integrity sha512-3Wg3JgDPRnvqmFKcTxelDh2A5YB+FXRzr2AzGlTs2SMdw343kVf0So5E/vk0ZksuxzhaSMpgMglyTVBgzDvjLA==
+"@cord.network/augment-api@0.8.0-9":
+  version "0.8.0-9"
+  resolved "https://registry.npmjs.org/@cord.network/augment-api/-/augment-api-0.8.0-9.tgz"
+  integrity sha512-MF+xoHFha+rGmLl0WaftY+CMaEbVcVTvaI7+/LUC6jQUduaKXo2GZnkwrt3wQDdsZouUWphD2U+DMsjKCImmRQ==
   dependencies:
-    "@cord.network/type-definitions" "0.8.0-7"
+    "@cord.network/type-definitions" "0.8.0-9"
 
-"@cord.network/config@0.8.0-7":
-  version "0.8.0-7"
-  resolved "https://registry.npmjs.org/@cord.network/config/-/config-0.8.0-7.tgz"
-  integrity sha512-mTLLTymMLhSk7eOyWGY856hWJUuwyE9GGrON4d3oNysX6E/JG5R6FJ+6MB7oAurj7bOZ+FEZeAzeOVFSOLhjAg==
+"@cord.network/config@0.8.0-9":
+  version "0.8.0-9"
+  resolved "https://registry.npmjs.org/@cord.network/config/-/config-0.8.0-9.tgz"
+  integrity sha512-xMkbE5QRa/LK51AZw+OkWk5iolur/whJjVg9YORjGvJcrZi5hmXN3BfWpgmptQIQ89PKaG8o1rK56ug1MWP/tw==
   dependencies:
-    "@cord.network/types" "0.8.0-7"
-    "@cord.network/utils" "0.8.0-7"
+    "@cord.network/types" "0.8.0-9"
+    "@cord.network/utils" "0.8.0-9"
     "@polkadot/api" "^9.10.2"
     typescript-logging "^1.0.0"
 
-"@cord.network/did@0.8.0-7":
-  version "0.8.0-7"
-  resolved "https://registry.npmjs.org/@cord.network/did/-/did-0.8.0-7.tgz"
-  integrity sha512-ol/HyOZyfdRekEkJOX9Dhnu5fhdhjUevlVrP5waSwptsChvxFSGgrG3ihz7VSNrTtItKrB/YrGFEdk7IKqPFSA==
+"@cord.network/did@0.8.0-9":
+  version "0.8.0-9"
+  resolved "https://registry.npmjs.org/@cord.network/did/-/did-0.8.0-9.tgz"
+  integrity sha512-sDVNzSFbA04ZSZhd5ENRw4JCLWPFnLd6drPcPyBxJqb6/6m0QqeAxNtDkpYBDmx4Sc57NkJCP8AY3fy/lvesvg==
   dependencies:
-    "@cord.network/augment-api" "0.8.0-7"
-    "@cord.network/config" "0.8.0-7"
-    "@cord.network/types" "0.8.0-7"
-    "@cord.network/utils" "0.8.0-7"
+    "@cord.network/augment-api" "0.8.0-9"
+    "@cord.network/config" "0.8.0-9"
+    "@cord.network/types" "0.8.0-9"
+    "@cord.network/utils" "0.8.0-9"
     "@polkadot/api" "^9.10.2"
     "@polkadot/keyring" "^10.2.1"
     "@polkadot/types" "^9.10.2"
@@ -42,68 +42,68 @@
     "@polkadot/util" "^10.2.1"
     "@polkadot/util-crypto" "^10.2.1"
 
-"@cord.network/messaging@0.8.0-7":
-  version "0.8.0-7"
-  resolved "https://registry.npmjs.org/@cord.network/messaging/-/messaging-0.8.0-7.tgz"
-  integrity sha512-Dn0Tg6oSfW4Dhcw5wZ1t5cOYtk6mG9RrA55siPg8pDy+jMq6BGN6e2R2IPRC3mhOoXyTZKbmbGjkeAB7lcyXDA==
+"@cord.network/messaging@0.8.0-9":
+  version "0.8.0-9"
+  resolved "https://registry.npmjs.org/@cord.network/messaging/-/messaging-0.8.0-9.tgz"
+  integrity sha512-cunDK9+LKz397TQfhYZUVIjzRPvXWOZvOq8RzyYeKIpuf4MkEie04DOQevfLrYeqqlCqK2h5uvTosXIqn+h8Vg==
   dependencies:
-    "@cord.network/did" "0.8.0-7"
-    "@cord.network/modules" "0.8.0-7"
-    "@cord.network/types" "0.8.0-7"
-    "@cord.network/utils" "0.8.0-7"
+    "@cord.network/did" "0.8.0-9"
+    "@cord.network/modules" "0.8.0-9"
+    "@cord.network/types" "0.8.0-9"
+    "@cord.network/utils" "0.8.0-9"
     "@polkadot/util" "^10.2.1"
 
-"@cord.network/modules@0.8.0-7":
-  version "0.8.0-7"
-  resolved "https://registry.npmjs.org/@cord.network/modules/-/modules-0.8.0-7.tgz"
-  integrity sha512-VKKVKwMHI2lqD5lp/1JuxwzQsPH3+RRz1HOnYxDA4vyOOqdCSieUVRxDYRDIlm2rYl2xdbsk0nk5ixl+HJ70Hg==
+"@cord.network/modules@0.8.0-9":
+  version "0.8.0-9"
+  resolved "https://registry.npmjs.org/@cord.network/modules/-/modules-0.8.0-9.tgz"
+  integrity sha512-MmeK204P0c4CZg0yUJMz8cKqCzwpz70t0Tr9FivdIu0gWhuEZ31dS++I6OuSJvhqN2R+rc6DEkAGFzPJE+tfug==
   dependencies:
-    "@cord.network/augment-api" "0.8.0-7"
-    "@cord.network/config" "0.8.0-7"
-    "@cord.network/did" "0.8.0-7"
-    "@cord.network/network" "0.8.0-7"
-    "@cord.network/type-definitions" "0.8.0-7"
-    "@cord.network/types" "0.8.0-7"
-    "@cord.network/utils" "0.8.0-7"
+    "@cord.network/augment-api" "0.8.0-9"
+    "@cord.network/config" "0.8.0-9"
+    "@cord.network/did" "0.8.0-9"
+    "@cord.network/network" "0.8.0-9"
+    "@cord.network/type-definitions" "0.8.0-9"
+    "@cord.network/types" "0.8.0-9"
+    "@cord.network/utils" "0.8.0-9"
     "@polkadot/api" "^9.10.2"
     "@polkadot/keyring" "^10.0.0"
     "@polkadot/types" "^9.10.2"
     "@polkadot/util" "^10.2.1"
     "@polkadot/util-crypto" "^10.2.1"
 
-"@cord.network/network@0.8.0-7":
-  version "0.8.0-7"
-  resolved "https://registry.npmjs.org/@cord.network/network/-/network-0.8.0-7.tgz"
-  integrity sha512-5XTDnbsLbIBS+TGvOay3n1ILdzfwhQcNY4U7KaT93rd0WCQbJZP9q3+VdyjNRXbQwyR8ySwjHInWx6rmp/9QAw==
+"@cord.network/network@0.8.0-9":
+  version "0.8.0-9"
+  resolved "https://registry.npmjs.org/@cord.network/network/-/network-0.8.0-9.tgz"
+  integrity sha512-Cin+uHsa2fnBQ+L9A/3TGl5NTBobtOMyF2oO18nP6lg+frUforzsu/JrOlfyvXxuM6fE0ebTr7AexVU0gix1sA==
   dependencies:
-    "@cord.network/config" "0.8.0-7"
-    "@cord.network/types" "0.8.0-7"
-    "@cord.network/utils" "0.8.0-7"
+    "@cord.network/config" "0.8.0-9"
+    "@cord.network/types" "0.8.0-9"
+    "@cord.network/utils" "0.8.0-9"
     "@polkadot/api" "^9.10.2"
     "@polkadot/types" "^9.10.2"
 
-"@cord.network/sdk@^0.8.0-7":
-  version "0.8.0-7"
-  resolved "https://registry.npmjs.org/@cord.network/sdk/-/sdk-0.8.0-7.tgz"
-  integrity sha512-1wMjprM9dRJk7Jc7c1zwKswTrn7Y5zsJ1XezTIZl2AZUpoag3385dBLRKn/EN1T68ao5qlWKFQOs4GA9ZLBg7A==
+"@cord.network/sdk@^0.8.0-9":
+  version "0.8.0-9"
+  resolved "https://registry.npmjs.org/@cord.network/sdk/-/sdk-0.8.0-9.tgz"
+  integrity sha512-FGmtQWtFNyfZVComwSg1D+37XdmDvhDfDOEJWrWoyySy5O/LZ4m+6Zm6UtcTGd7mlRHvxgxyXXJJxZgJnzQf8Q==
   dependencies:
-    "@cord.network/config" "0.8.0-7"
-    "@cord.network/did" "0.8.0-7"
-    "@cord.network/messaging" "0.8.0-7"
-    "@cord.network/modules" "0.8.0-7"
-    "@cord.network/network" "0.8.0-7"
-    "@cord.network/types" "0.8.0-7"
-    "@cord.network/utils" "0.8.0-7"
+    "@cord.network/config" "0.8.0-9"
+    "@cord.network/did" "0.8.0-9"
+    "@cord.network/messaging" "0.8.0-9"
+    "@cord.network/modules" "0.8.0-9"
+    "@cord.network/network" "0.8.0-9"
+    "@cord.network/types" "0.8.0-9"
+    "@cord.network/utils" "0.8.0-9"
 
-"@cord.network/type-definitions@0.8.0-7":
-  version "0.8.0-7"
-  resolved "https://registry.npmjs.org/@cord.network/type-definitions/-/type-definitions-0.8.0-7.tgz"
-  integrity sha512-hHyj58f/gSTvIwDKeeQKiLPTQFS4/vWSBm2UaZjeLZ0ZDnQdYG16NPM81TBvbeDJQrX93O/oXu0odUkGIl1U4w==
+"@cord.network/type-definitions@0.8.0-9":
+  version "0.8.0-9"
+  resolved "https://registry.npmjs.org/@cord.network/type-definitions/-/type-definitions-0.8.0-9.tgz"
+  integrity sha512-StW2ocRvwLJjpSVkdobtxyiC4b+e/itNodpSqhbLtgIsayh/jmAVMI0ISEQEqSiCoJr5noSKsvRIIaqdDp90cg==
 
-"@cord.network/types@0.8.0-7":
-  version "0.8.0-7"
-  resolved "https://registry.npmjs.org/@cord.network/types/-/types-0.8.0-7.tgz"
-  integrity sha512-KfeK/MrCOMFPptmUgCx789JA+Li+ECcXLylLJI9AvswhyBkYJW+H40hPSb1HTM4F10QjJQhLHTCWhBAAhudJkg==
+"@cord.network/types@0.8.0-9":
+  version "0.8.0-9"
+  resolved "https://registry.npmjs.org/@cord.network/types/-/types-0.8.0-9.tgz"
+  integrity sha512-3i6TH6gRMnBalzw3RD8FjDZe12q1ZjahCyuhMUbl3P5e9vwf9/Trp4ktlfKFYU4k2oxURRjtlrDuQ2mx3c/7yg==
   dependencies:
     "@polkadot/api" "^9.10.2"
     "@polkadot/keyring" "^10.2.1"
@@ -111,12 +111,12 @@
     "@polkadot/util" "^10.2.1"
     "@polkadot/util-crypto" "^10.2.1"
 
-"@cord.network/utils@0.8.0-7":
-  version "0.8.0-7"
-  resolved "https://registry.npmjs.org/@cord.network/utils/-/utils-0.8.0-7.tgz"
-  integrity sha512-w055K+91wn9tYmsZDwE/4WiDAngaY/D3Tbz2U9dLBd66aHCv571D5Ily6bVDQqZeoP4TqTcoWgMRSKeuhM5nPg==
+"@cord.network/utils@0.8.0-9":
+  version "0.8.0-9"
+  resolved "https://registry.npmjs.org/@cord.network/utils/-/utils-0.8.0-9.tgz"
+  integrity sha512-1OQ0dV7cf2FdriMgVAUVsokWPPBrFPk8CDaJx3dmRu218PC25tnOoH0Divjk7Hwu9M5qSIVWtoj0//L6NdGJXg==
   dependencies:
-    "@cord.network/types" "0.8.0-7"
+    "@cord.network/types" "0.8.0-9"
     "@polkadot/api" "^9.10.2"
     "@polkadot/keyring" "^10.2.1"
     "@polkadot/util" "^10.2.1"

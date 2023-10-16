@@ -51,6 +51,7 @@ export async function createSchema(
         : "";
       schemaData.schemaProperties = JSON.stringify(data.schema.properties);
       schemaData.cordSchema = JSON.stringify(schemaDetails);
+      schemaData.requiredFields = data.schema.required
       schemaData.identifier = schemaDetails.$id;
 
       await getConnection().manager.save(schemaData);

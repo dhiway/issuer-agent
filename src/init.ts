@@ -332,6 +332,7 @@ export async function ensureStoredSchema(
   const schema = Cord.Schema.fromProperties(
     data.schema.title,
     data.schema.properties,
+    data.schema.required,
     creator
   );
 
