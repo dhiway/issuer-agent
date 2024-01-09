@@ -4,7 +4,12 @@ import { getConnection } from 'typeorm';
 import 'reflect-metadata';
 
 import { Schema } from '../entity/Schema';
-import { authorIdentity, issuerDid, issuerKeysProperty } from '../init';
+import {
+  addDelegateAsRegistryDelegate,
+  authorIdentity,
+  issuerDid,
+  issuerKeysProperty,
+} from '../init';
 
 const { CHAIN_SPACE_ID, CHAIN_SPACE_AUTH } = process.env;
 
@@ -13,6 +18,10 @@ export async function createSchema(
   res: express.Response
 ) {
   try {
+    if (!authorIdentity) {
+      await addDelegateAsRegistryDelegate();
+    }
+    
     const data = req.body.schema;
 
     if (!data || !data.properties) {
