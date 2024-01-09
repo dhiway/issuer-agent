@@ -10,6 +10,7 @@ import {
   issuerDid,
   issuerKeysProperty,
 } from '../init';
+import { getSchema } from '../helper';
 
 const { CHAIN_SPACE_ID, CHAIN_SPACE_AUTH } = process.env;
 
@@ -21,7 +22,7 @@ export async function createSchema(
     if (!authorIdentity) {
       await addDelegateAsRegistryDelegate();
     }
-    
+
     const data = req.body.schema;
 
     if (!data || !data.properties) {
@@ -62,14 +63,13 @@ export async function createSchema(
       schemaData.identifier = schemaUri;
       schemaData.title = data.title ? data.title : '';
       schemaData.description = data.description ? data.description : '';
-      schemaData.schemaProperties = JSON.stringify(data.properties);
+      schemaData.schemaProperties = data.properties;
       schemaData.cordSchema = JSON.stringify(schemaDetails);
-      // schemaData.requiredFields = data.required;
+      schemaData.requiredFields = data.required;
 
       await getConnection().manager.save(schemaData);
       return res.status(200).json({
         result: 'SUCCESS',
-        schemaId: schemaData.id,
         identifier: schemaData.identifier,
       });
     } else {
@@ -86,11 +86,7 @@ export async function getSchemaById(
   res: express.Response
 ) {
   try {
-    const schema = await getConnection()
-      .getRepository(Schema)
-      .createQueryBuilder('schema')
-      .where('schema.id = :id', { id: req.params.id })
-      .getOne();
+    const schema = await getSchema(req.params.id)
 
     return res.status(200).json({ schema: schema });
   } catch (error) {
