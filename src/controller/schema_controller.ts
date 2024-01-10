@@ -71,9 +71,8 @@ export async function createSchema(
         result: 'SUCCESS',
         identifier: schemaData.identifier,
       });
-    } else {
-      res.status(400).json({ error: 'SchemaDetails not created' });
     }
+    return res.status(400).json({ error: 'SchemaDetails not created' });
   } catch (error) {
     console.log('err: ', error);
     throw new Error('Schema not created');
@@ -89,9 +88,13 @@ export async function getSchemaById(
       .getRepository(Schema)
       .findOne({ identifier: req.params.id });
 
+    if (!schema) {
+      return res.status(400).json({ error: 'Schema not found' });
+    }
+
     return res.status(200).json({ schema: schema });
   } catch (error) {
     console.log('err: ', error);
-    return res.status(400).json({ status: 'Schema not found' });
+    throw new Error('Schema not found');
   }
 }

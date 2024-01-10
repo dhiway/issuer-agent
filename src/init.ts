@@ -21,6 +21,9 @@ const {
 export let authorIdentity: any = undefined;
 export let issuerDid: any = undefined;
 export let issuerKeysProperty: any = undefined;
+export let delegateDid: any = undefined;
+export let delegateKeysProperty: any = undefined;
+export let delegateSpaceAuth: any = undefined;
 
 function generateKeyAgreement(mnemonic: string) {
   const secretKeyPair = ed25519PairFromSeed(mnemonicToMiniSecret(mnemonic));
@@ -151,6 +154,9 @@ export async function createDid(
       throw new Error('DID was not successfully created.');
     }
 
+    delegateDid = document;
+    delegateKeysProperty = delegateKeys;
+
     return { mnemonic, delegateKeys, document };
   } catch (err) {
     console.log('Error: ', err);
@@ -231,9 +237,11 @@ export async function addDelegateAsRegistryDelegate() {
       })
     );
 
+    delegateSpaceAuth = delegateAuth;
+
     console.log(`✅ Space Authorization added!`);
 
-    return { delegateMnemonic, delegateAuth };
+    return { delegateMnemonic };
   } catch (error) {
     console.log('err: ', error);
     throw new Error('Failed to create Delegate Registry');

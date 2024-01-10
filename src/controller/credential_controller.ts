@@ -7,6 +7,9 @@ import {
   authorIdentity,
   addDelegateAsRegistryDelegate,
   issuerKeysProperty,
+  delegateDid,
+  delegateSpaceAuth,
+  delegateKeysProperty,
 } from '../init';
 
 import { getConnection } from 'typeorm';
@@ -14,20 +17,12 @@ import { Cred } from '../entity/Cred';
 const { CHAIN_SPACE_ID, CHAIN_SPACE_AUTH } = process.env;
 
 export async function issueVD(req: express.Request, res: express.Response) {
-  const data = req.body;
-
-  if (!data.schemaId) {
-    return res
-      .status(400)
-      .json({ error: 'schemaId is a required field and should be a string' });
-  }
-
   if (!authorIdentity) {
     await addDelegateAsRegistryDelegate();
   }
 
   try {
-    const newCredContent = data;
+    const newCredContent = req.body;
     newCredContent.issuanceDate = new Date().toISOString();
     const serializedCred = Cord.Utils.Crypto.encodeObjectAsStr(newCredContent);
     const credHash = Cord.Utils.Crypto.hashStr(serializedCred);
@@ -36,7 +31,7 @@ export async function issueVD(req: express.Request, res: express.Response) {
       credHash,
       CHAIN_SPACE_ID as `space:cord:${string}`,
       issuerDid.uri,
-      data.schemaId
+      req.params.id as `schema:cord:${string}`
     );
 
     console.dir(statementEntry, {
@@ -58,6 +53,7 @@ export async function issueVD(req: express.Request, res: express.Response) {
     console.log(`✅ Statement element registered - ${statement}`);
 
     const cred = new Cred();
+    cred.schemaId = req.params.id;
     cred.identifier = statement;
     cred.active = true;
     cred.fromDid = issuerDid.uri;
@@ -65,13 +61,17 @@ export async function issueVD(req: express.Request, res: express.Response) {
     cred.newCredContent = newCredContent;
     cred.credentialEntry = statementEntry;
 
-    await getConnection().manager.save(cred);
-    return res
-      .status(200)
-      .json({ result: 'success', identifier: cred.identifier });
+    if (statement) {
+      await getConnection().manager.save(cred);
+      return res
+        .status(200)
+        .json({ result: 'success', identifier: cred.identifier });
+    } else {
+      return res.status(400).json({ error: 'Credential not issued' });
+    }
   } catch (err) {
     console.log('Error: ', err);
-    throw new Error('VD not issued');
+    throw new Error('Error in VD issuence');
   }
 
   // const url: any = WALLET_URL;
@@ -107,78 +107,82 @@ export async function getCredById(req: express.Request, res: express.Response) {
       .getRepository(Cred)
       .findOne({ identifier: req.params.id });
 
+    if (!cred) {
+      return res.status(400).json({ error: 'Cred not found' });
+    }
+
     return res.status(200).json({ credential: cred });
   } catch (error) {
     console.log('Error: ', error);
-    return res.status(400).json({ status: 'Credential not found' });
+    throw new Error('Error in cred fetch');
   }
 }
 
-// export async function updateCred(req: express.Request, res: express.Response) {
-//   const data = req.body;
+export async function updateCred(req: express.Request, res: express.Response) {
+  const data = req.body;
 
-//   try {
-//     let schemaProp: any = undefined;
-//     let credProp: any = undefined;
+  try {
+    const cred = await getConnection()
+      .getRepository(Cred)
+      .findOne({ identifier: req.params.id });
 
-//     const updatedContent = data.property;
+    if (!cred) {
+      return res.status(400).json({ error: 'Cred not found' });
+    }
 
-//     if (data.schemaId) {
-//       const schemaId = data.schemaId ? data.schemaId : '';
-//       schemaProp = await getSchema(schemaId);
-//       if (!schemaProp) {
-//         return res.status(400).json({ result: 'No Schema found' });
-//       }
-//     }
+    console.log(`\n❄️  Statement Updation `);
+    let updateCredContent = cred.newCredContent;
+    updateCredContent.issuanceDate = new Date().toISOString();
+    updateCredContent.property = data.property;
+    const serializedUpCred =
+      Cord.Utils.Crypto.encodeObjectAsStr(updateCredContent);
+    const upCredHash = Cord.Utils.Crypto.hashStr(serializedUpCred);
 
-//     if (data.credId) {
-//       const credId = data.credId ? data.credId : '';
-//       credProp = await getCredential(credId);
-//       if (!credProp) {
-//         return res.status(400).json({ result: 'No Cred found' });
-//       }
-//     }
+    const updatedStatementEntry = Cord.Statement.buildFromUpdateProperties(
+      cred.credentialEntry.elementUri,
+      upCredHash,
+      CHAIN_SPACE_ID as `space:cord:${string}`,
+      delegateDid.uri
+    );
 
-//     const schema = JSON.parse(schemaProp.cordSchema);
-//     const document = JSON.parse(credProp.credential);
+    console.dir(updatedStatementEntry, {
+      depth: null,
+      colors: true,
+    });
 
-//     const keyUri =
-//       `${issuerDid.uri}${issuerDid.authentication[0].id}` as Cord.DidResourceUri;
+    const updatedStatement = await Cord.Statement.dispatchUpdateToChain(
+      updatedStatementEntry,
+      delegateDid.uri,
+      authorIdentity,
+      delegateSpaceAuth as Cord.AuthorizationUri,
+      async ({ data }) => ({
+        signature: delegateKeysProperty.authentication.sign(data),
+        keyType: delegateKeysProperty.authentication.type,
+      })
+    );
+    console.log(`✅ Statement element registered - ${updatedStatement}`);
 
-//     const updatedDocument: any = await updateStream(
-//       document,
-//       updatedContent,
-//       schema,
-//       async ({ data }) => ({
-//         signature: issuerKeys.authentication.sign(data),
-//         keyType: issuerKeys.authentication.type,
-//         keyUri,
-//       }),
-//       issuerDid?.uri,
-//       authorIdentity,
-//       issuerKeys
-//     );
+    if (updatedStatement) {
+      cred.identifier = updatedStatement;
+      cred.credHash = upCredHash;
+      cred.newCredContent = updateCredContent;
+      cred.credentialEntry = updatedStatementEntry;
 
-//     credProp.identifier = updatedDocument.identifier;
-//     credProp.credential = JSON.stringify(updatedDocument);
-//     credProp.hash = updatedDocument.documentHash;
-//     credProp.details = {
-//       meta: 'endpoint-received',
-//     };
+      await getConnection().manager.save(cred);
 
-//     await getConnection().manager.save(credProp);
+      console.log('\n✅ Document updated!');
 
-//     console.log('\n✅ Document updated!');
-
-//     return res.status(200).json({
-//       result: 'Updated successufully',
-//       identifier: credProp.identifier,
-//     });
-//   } catch (error) {
-//     console.log('error: ', error);
-//     return res.status(400).json({ err: error });
-//   }
-// }
+      return res.status(200).json({
+        result: 'Updated successufully',
+        identifier: cred.identifier,
+      });
+    }
+    return res.status(400).json({ error: 'Document not updated' });
+  } catch (error) {
+    console.log('error: ', error);
+    throw new Error('Error in updating document');
+  }
+}
 
 // export async function revokeCred(req: express.Request, res: express.Response) {
 //   const data = req.body;

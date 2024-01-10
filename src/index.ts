@@ -7,7 +7,7 @@ import { createSchema, getSchemaById } from './controller/schema_controller';
 import { createConnection } from 'typeorm';
 import { dbConfig } from './dbconfig';
 import { addDelegateAsRegistryDelegate } from './init';
-import { issueVD } from './controller/credential_controller';
+import { getCredById, issueVD, updateCred } from './controller/credential_controller';
 
 const app = express();
 export const { PORT } = process.env;
@@ -18,18 +18,20 @@ app.use(express.json());
 const credentialRouter = express.Router({ mergeParams: true });
 const schemaRouter = express.Router({ mergeParams: true });
 
-credentialRouter.post('/', async (req, res) => {
+credentialRouter.post('/:id', async (req, res) => {
   return await issueVD(req, res);
 });
 
-// credentialRouter.get('/:id', async (req, res) => {
-//   return await getCredById(req, res);
-// });
+credentialRouter.get('/:id', async (req, res) => {
+  return await getCredById(req, res);
+});
+
+credentialRouter.put('/update/:id', async (req, res) => {
+  return await updateCred(req, res);
+});
+
 // credentialRouter.post('/revoke', async (req, res) => {
 //   return await revokeCred(req, res);
-// });
-// credentialRouter.put('/update', async (req, res) => {
-//   return await updateCred(req, res);
 // });
 
 schemaRouter.post('/', async (req, res) => {
