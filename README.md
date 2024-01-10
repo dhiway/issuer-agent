@@ -2,5 +2,5 @@
 Issuer Side of Wallet
 
 
-This project showcases the issuence of credential, creating schema and registries
+This project showcases creating schema, issuence of verifiable document acccording to cord V3
 
