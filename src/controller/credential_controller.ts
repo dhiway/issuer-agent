@@ -6,12 +6,12 @@ import {
   issuerDid,
   authorIdentity,
   addDelegateAsRegistryDelegate,
+  issuerKeysProperty,
 } from '../init';
 
 import { getConnection } from 'typeorm';
 import { Cred } from '../entity/Cred';
-import { getSchema } from '../helper';
-const { WALLET_URL } = process.env;
+const { CHAIN_SPACE_ID, CHAIN_SPACE_AUTH } = process.env;
 
 export async function issueVD(req: express.Request, res: express.Response) {
   const data = req.body;
@@ -26,34 +26,53 @@ export async function issueVD(req: express.Request, res: express.Response) {
     await addDelegateAsRegistryDelegate();
   }
 
-  const schemaProp = await getSchema(data.schemaId);
-  if (!schemaProp) {
-    return res.status(400).json({ result: 'No Schema' });
-  }
-
-  const cordSchema = JSON.parse(schemaProp.cordSchema as string);
-
   try {
-  } catch (err: any) {
+    const newCredContent = data;
+    newCredContent.issuanceDate = new Date().toISOString();
+    const serializedCred = Cord.Utils.Crypto.encodeObjectAsStr(newCredContent);
+    const credHash = Cord.Utils.Crypto.hashStr(serializedCred);
+
+    const statementEntry = Cord.Statement.buildFromProperties(
+      credHash,
+      CHAIN_SPACE_ID as `space:cord:${string}`,
+      issuerDid.uri,
+      data.schemaId
+    );
+
+    console.dir(statementEntry, {
+      depth: null,
+      colors: true,
+    });
+
+    const statement = await Cord.Statement.dispatchRegisterToChain(
+      statementEntry,
+      issuerDid.uri,
+      authorIdentity,
+      CHAIN_SPACE_AUTH as `auth:cord:${string}`,
+      async ({ data }) => ({
+        signature: issuerKeysProperty.authentication.sign(data),
+        keyType: issuerKeysProperty.authentication.type,
+      })
+    );
+
+    console.log(`✅ Statement element registered - ${statement}`);
+
+    const cred = new Cred();
+    cred.identifier = statement;
+    cred.active = true;
+    cred.fromDid = issuerDid.uri;
+    cred.credHash = credHash;
+    cred.newCredContent = newCredContent;
+    cred.credentialEntry = statementEntry;
+
+    await getConnection().manager.save(cred);
+    return res
+      .status(200)
+      .json({ result: 'success', identifier: cred.identifier });
+  } catch (err) {
     console.log('Error: ', err);
     throw new Error('VD not issued');
   }
-
-  // const cred = new Cred();
-  // cred.identifier = documents.identifier;
-  // cred.active = true;
-  // cred.did = holderDidUri;
-  // cred.credential = JSON.stringify(documents);
-  // cred.hash = documents.documentHash;
-  // cred.details = {
-  //   meta: 'endpoint-received',
-  // };
-
-  // try {
-  //   await getConnection().manager.save(cred);
-  // } catch (err) {
-  //   console.log('Error: ', err);
-  // }
 
   // const url: any = WALLET_URL;
 
@@ -79,18 +98,14 @@ export async function issueVD(req: express.Request, res: express.Response) {
   //     });
   // }
 
-  return res
-    .status(200)
-    .json({ result: 'SUCCESS' });
+  // return res.status(200).json({ result: 'SUCCESS' });
 }
 
 export async function getCredById(req: express.Request, res: express.Response) {
   try {
     const cred = await getConnection()
       .getRepository(Cred)
-      .createQueryBuilder('cred')
-      .where('cred.id = :id', { id: req.params.id })
-      .getOne();
+      .findOne({ identifier: req.params.id });
 
     return res.status(200).json({ credential: cred });
   } catch (error) {
@@ -98,52 +113,6 @@ export async function getCredById(req: express.Request, res: express.Response) {
     return res.status(400).json({ status: 'Credential not found' });
   }
 }
-
-// export async function revokeCred(req: express.Request, res: express.Response) {
-//   const data = req.body;
-
-//   if (!data.identifier || typeof data.identifier !== 'string') {
-//     return res.status(400).json({
-//       error: 'identifier is a required field and should be a string',
-//     });
-//   }
-
-//   if (!issuerDid) {
-//     await setupDidAndIdentities();
-//   }
-
-//   const cred = await getConnection()
-//     .getRepository(Cred)
-//     .createQueryBuilder('cred')
-//     .where('cred.identifier = :identifier', { identifier: data.identifier })
-//     .getOne();
-
-//   if (!cred) {
-//     return res.status(400).json({ error: 'Invalid identifier' });
-//   }
-
-//   try {
-//     const document = JSON.parse(cred.credential!) as IDocument;
-
-//     await revokeCredential(
-//       issuerDid.uri,
-//       authorIdentity,
-//       async ({ data }) => ({
-//         signature: issuerKeys.assertionMethod.sign(data),
-//         keyType: issuerKeys.assertionMethod.type,
-//       }),
-//       document,
-//       false
-//     );
-
-//     console.log(`✅ Credential revoked!`);
-
-//     return res.status(200).json({ result: 'Revoked Successfully' });
-//   } catch (error) {
-//     console.log('err: ', error);
-//     return res.status(400).json({ err: error });
-//   }
-// }
 
 // export async function updateCred(req: express.Request, res: express.Response) {
 //   const data = req.body;
@@ -207,6 +176,52 @@ export async function getCredById(req: express.Request, res: express.Response) {
 //     });
 //   } catch (error) {
 //     console.log('error: ', error);
+//     return res.status(400).json({ err: error });
+//   }
+// }
+
+// export async function revokeCred(req: express.Request, res: express.Response) {
+//   const data = req.body;
+
+//   if (!data.identifier || typeof data.identifier !== 'string') {
+//     return res.status(400).json({
+//       error: 'identifier is a required field and should be a string',
+//     });
+//   }
+
+//   if (!issuerDid) {
+//     await setupDidAndIdentities();
+//   }
+
+//   const cred = await getConnection()
+//     .getRepository(Cred)
+//     .createQueryBuilder('cred')
+//     .where('cred.identifier = :identifier', { identifier: data.identifier })
+//     .getOne();
+
+//   if (!cred) {
+//     return res.status(400).json({ error: 'Invalid identifier' });
+//   }
+
+//   try {
+//     const document = JSON.parse(cred.credential!) as IDocument;
+
+//     await revokeCredential(
+//       issuerDid.uri,
+//       authorIdentity,
+//       async ({ data }) => ({
+//         signature: issuerKeys.assertionMethod.sign(data),
+//         keyType: issuerKeys.assertionMethod.type,
+//       }),
+//       document,
+//       false
+//     );
+
+//     console.log(`✅ Credential revoked!`);
+
+//     return res.status(200).json({ result: 'Revoked Successfully' });
+//   } catch (error) {
+//     console.log('err: ', error);
 //     return res.status(400).json({ err: error });
 //   }
 // }

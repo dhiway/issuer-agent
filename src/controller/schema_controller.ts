@@ -10,7 +10,6 @@ import {
   issuerDid,
   issuerKeysProperty,
 } from '../init';
-import { getSchema } from '../helper';
 
 const { CHAIN_SPACE_ID, CHAIN_SPACE_AUTH } = process.env;
 
@@ -86,7 +85,9 @@ export async function getSchemaById(
   res: express.Response
 ) {
   try {
-    const schema = await getSchema(req.params.id)
+    const schema = await getConnection()
+      .getRepository(Schema)
+      .findOne({ identifier: req.params.id });
 
     return res.status(200).json({ schema: schema });
   } catch (error) {

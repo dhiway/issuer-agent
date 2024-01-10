@@ -10,7 +10,7 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 
 @Entity()
-@Unique(['identifier', 'hash'])
+@Unique(['identifier', 'credHash'])
 export class Cred {
   @BeforeInsert()
   generateId() {
@@ -28,17 +28,17 @@ export class Cred {
   @Column()
   identifier?: string;
 
-  @Column({ default: null, nullable: true })
-  hash?: string;
+  @Column()
+  fromDid?: string;
 
   @Column()
-  did?: string;
-
-  @Column()
-  credential?: string;
+  credHash?: string;
 
   @Column('simple-json', { nullable: true, default: null })
-  details?: any;
+  newCredContent?: any;
+
+  @Column('simple-json', { nullable: true, default: null })
+  credentialEntry?: any;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt?: Date;

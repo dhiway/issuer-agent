@@ -16,9 +16,6 @@ export class Schema {
   @Column({ nullable: true })
   identifier?: string;
 
-  @Column({ default: false })
-  registry?: boolean;
-
   @Column()
   title?: string;
 
@@ -28,7 +25,7 @@ export class Schema {
   @Column()
   cordSchema?: string;
 
-  @Column({ default: null, nullable: true })
+  @Column()
   schemaProperties?: string;
 
   @Column({ default: null, nullable: true })
