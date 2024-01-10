@@ -26,6 +26,9 @@ export class Cred {
   active?: boolean;
 
   @Column()
+  schemaId?: string;
+
+  @Column()
   identifier?: string;
 
   @Column()
