@@ -121,6 +121,12 @@ export async function getCredById(req: express.Request, res: express.Response) {
 export async function updateCred(req: express.Request, res: express.Response) {
   const data = req.body;
 
+  if (!data.property || typeof data.property !== 'object') {
+    return res.status(400).json({
+      error: '"property" is a required field and should be an object',
+    });
+  }
+
   try {
     const cred = await getConnection()
       .getRepository(Cred)
@@ -170,7 +176,7 @@ export async function updateCred(req: express.Request, res: express.Response) {
 
       await getConnection().manager.save(cred);
 
-      console.log('\n✅ Document updated!');
+      console.log('\n✅ Statement updated!');
 
       return res.status(200).json({
         result: 'Updated successufully',
@@ -184,48 +190,36 @@ export async function updateCred(req: express.Request, res: express.Response) {
   }
 }
 
-// export async function revokeCred(req: express.Request, res: express.Response) {
-//   const data = req.body;
+export async function revokeCred(req: express.Request, res: express.Response) {
+  try {
+    const cred = await getConnection()
+      .getRepository(Cred)
+      .findOne({ identifier: req.params.id });
 
-//   if (!data.identifier || typeof data.identifier !== 'string') {
-//     return res.status(400).json({
-//       error: 'identifier is a required field and should be a string',
-//     });
-//   }
+    if (!cred) {
+      return res.status(400).json({ error: 'Invalid identifier' });
+    }
 
-//   if (!issuerDid) {
-//     await setupDidAndIdentities();
-//   }
+    await Cord.Statement.dispatchRevokeToChain(
+      cred.credentialEntry.elementUri,
+      delegateDid.uri,
+      authorIdentity,
+      delegateSpaceAuth as Cord.AuthorizationUri,
+      async ({ data }) => ({
+        signature: delegateKeysProperty.authentication.sign(data),
+        keyType: delegateKeysProperty.authentication.type,
+      })
+    );
 
-//   const cred = await getConnection()
-//     .getRepository(Cred)
-//     .createQueryBuilder('cred')
-//     .where('cred.identifier = :identifier', { identifier: data.identifier })
-//     .getOne();
+    cred.active = false;
 
-//   if (!cred) {
-//     return res.status(400).json({ error: 'Invalid identifier' });
-//   }
+    await getConnection().manager.save(cred);
 
-//   try {
-//     const document = JSON.parse(cred.credential!) as IDocument;
+    console.log(`✅ Statement revoked!`);
 
-//     await revokeCredential(
-//       issuerDid.uri,
-//       authorIdentity,
-//       async ({ data }) => ({
-//         signature: issuerKeys.assertionMethod.sign(data),
-//         keyType: issuerKeys.assertionMethod.type,
-//       }),
-//       document,
-//       false
-//     );
-
-//     console.log(`✅ Credential revoked!`);
-
-//     return res.status(200).json({ result: 'Revoked Successfully' });
-//   } catch (error) {
-//     console.log('err: ', error);
-//     return res.status(400).json({ err: error });
-//   }
-// }
+    return res.status(200).json({ result: 'Statement revoked Successfully' });
+  } catch (error) {
+    console.log('err: ', error);
+    return res.status(400).json({ err: error });
+  }
+}

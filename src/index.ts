@@ -7,7 +7,12 @@ import { createSchema, getSchemaById } from './controller/schema_controller';
 import { createConnection } from 'typeorm';
 import { dbConfig } from './dbconfig';
 import { addDelegateAsRegistryDelegate } from './init';
-import { getCredById, issueVD, updateCred } from './controller/credential_controller';
+import {
+  getCredById,
+  issueVD,
+  revokeCred,
+  updateCred,
+} from './controller/credential_controller';
 
 const app = express();
 export const { PORT } = process.env;
@@ -30,9 +35,9 @@ credentialRouter.put('/update/:id', async (req, res) => {
   return await updateCred(req, res);
 });
 
-// credentialRouter.post('/revoke', async (req, res) => {
-//   return await revokeCred(req, res);
-// });
+credentialRouter.post('/revoke/:id', async (req, res) => {
+  return await revokeCred(req, res);
+});
 
 schemaRouter.post('/', async (req, res) => {
   return await createSchema(req, res);
