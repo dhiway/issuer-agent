@@ -25,47 +25,6 @@ export let delegateDid: any = undefined;
 export let delegateKeysProperty: any = undefined;
 export let delegateSpaceAuth: any = undefined;
 
-function generateKeyAgreement(mnemonic: string) {
-  const secretKeyPair = ed25519PairFromSeed(mnemonicToMiniSecret(mnemonic));
-  const { path } = keyExtractPath('//did//keyAgreement//0');
-  const { secretKey } = keyFromPath(secretKeyPair, path, 'ed25519');
-  return Cord.Utils.Crypto.makeEncryptionKeypairFromSeed(
-    blake2AsU8a(secretKey)
-  );
-}
-
-function generateKeypairs(mnemonic = mnemonicGenerate()) {
-  const keyring = new Cord.Utils.Keyring({
-    ss58Format: 29,
-    type: 'ed25519',
-  });
-
-  const account = keyring.addFromMnemonic(mnemonic) as Cord.CordKeyringPair;
-  const authentication = {
-    ...account.derive('//did//authentication//0'),
-    type: 'ed25519',
-  } as Cord.CordKeyringPair;
-
-  const assertionMethod = {
-    ...account.derive('//did//assertion//0'),
-    type: 'ed25519',
-  } as Cord.CordKeyringPair;
-
-  const capabilityDelegation = {
-    ...account.derive('//did//delegation//0'),
-    type: 'ed25519',
-  } as Cord.CordKeyringPair;
-
-  const keyAgreement = generateKeyAgreement(mnemonic);
-
-  return {
-    authentication: authentication,
-    keyAgreement: keyAgreement,
-    assertionMethod: assertionMethod,
-    capabilityDelegation: capabilityDelegation,
-  };
-}
-
 export async function createDidName(
   did: Cord.DidUri,
   submitterAccount: Cord.CordKeyringPair,
@@ -96,7 +55,7 @@ export async function createDid(
     const api = Cord.ConfigService.get('api');
     const mnemonic = mnemonicGenerate(24);
 
-    const delegateKeys = generateKeypairs(mnemonic);
+    const delegateKeys = Cord.Utils.Keys.generateKeypairs(mnemonic, 'ed25519');
     const {
       authentication,
       keyAgreement,
@@ -177,7 +136,7 @@ export async function checkDidAndIdentities(mnemonic: string): Promise<any> {
     );
   }
 
-  const issuerKeys = generateKeypairs(mnemonic);
+  const issuerKeys = Cord.Utils.Keys.generateKeypairs(mnemonic, 'ed25519');
   const {
     authentication,
     keyAgreement,
