@@ -24,6 +24,8 @@ services:
             - MNEMONIC=${MNEMONIC}
             - WALLET_URL=${WALLET_URL}
             - AGENT_DID_NAME=${AGENT_DID_NAME}
+            - CHAIN_SPACE_ID=${CHAIN_SPACE_ID}
+            - CHAIN_SPACE_AUTH=${CHAIN_SPACE_AUTH}
         ports:
             - ${AGENT_PORT}:${AGENT_PORT}
         depends_on:

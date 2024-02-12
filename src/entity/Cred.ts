@@ -1,48 +1,51 @@
 import {
-    Entity,
-    PrimaryColumn,
-    Column,
-    BeforeInsert,
-    CreateDateColumn,
-    UpdateDateColumn,
-    Unique,
+  Entity,
+  PrimaryColumn,
+  Column,
+  BeforeInsert,
+  CreateDateColumn,
+  UpdateDateColumn,
+  Unique,
 } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 
 @Entity()
-@Unique(['identifier', 'hash'])
+@Unique(['identifier', 'credHash'])
 export class Cred {
-    @BeforeInsert()
-    generateId() {
-        if (!this.id) {
-            // Add "c" prefix to identify this ID as a credential ID
-            this.id = 'c' + uuidv4();
-        }
+  @BeforeInsert()
+  generateId() {
+    if (!this.id) {
+      // Add "c" prefix to identify this ID as a credential ID
+      this.id = 'c' + uuidv4();
     }
-    @PrimaryColumn()
-    id?: string;
+  }
+  @PrimaryColumn()
+  id?: string;
 
-    @Column()
-    active?: boolean;
+  @Column()
+  active?: boolean;
 
-    @Column()
-    identifier?: string;
+  @Column()
+  schemaId?: string;
 
-    @Column({ default: null, nullable: true })
-    hash?: string;
+  @Column()
+  identifier?: string;
 
-    @Column()
-    did?: string;
+  @Column()
+  fromDid?: string;
 
-    @Column()
-    credential?: string;
+  @Column()
+  credHash?: string;
 
-    @Column('simple-json', { nullable: true, default: null })
-    details?: any;
+  @Column('simple-json', { nullable: true, default: null })
+  newCredContent?: any;
 
-    @CreateDateColumn({ name: 'created_at' })
-    createdAt?: Date;
+  @Column('simple-json', { nullable: true, default: null })
+  credentialEntry?: any;
 
-    @UpdateDateColumn({ name: 'updated_at' })
-    updatedAt?: Date;
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt?: Date;
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt?: Date;
 }
