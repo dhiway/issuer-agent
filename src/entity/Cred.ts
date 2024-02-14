@@ -41,7 +41,7 @@ export class Cred {
   newCredContent?: any;
 
   @Column('simple-json', { nullable: true, default: null })
-  credentialEntry?: any;
+  vc?: any;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt?: Date;

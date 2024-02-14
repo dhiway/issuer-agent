@@ -1,13 +1,6 @@
 import * as Cord from '@cord.network/sdk';
 
-import {
-  blake2AsU8a,
-  keyExtractPath,
-  keyFromPath,
-  mnemonicGenerate,
-  mnemonicToMiniSecret,
-  ed25519PairFromSeed,
-} from '@polkadot/util-crypto';
+import { mnemonicGenerate } from '@polkadot/util-crypto';
 
 const {
   CORD_WSS_URL,
