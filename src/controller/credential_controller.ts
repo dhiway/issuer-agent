@@ -83,7 +83,7 @@ export async function issueVD(req: express.Request, res: express.Response) {
     cred.fromDid = issuerDid.uri;
     cred.credHash = newCredContent.credentialHash;
     cred.newCredContent = newCredContent;
-    cred.vc = vc.proof;
+    cred.vc = vc;
 
     if (statement) {
       await getConnection().manager.save(cred);
@@ -97,6 +97,8 @@ export async function issueVD(req: express.Request, res: express.Response) {
     console.log('Error: ', err);
     throw new Error('Error in VD issuence');
   }
+
+  // TODO: If holder id is set vc will be sent to wallet
 
   // const url: any = WALLET_URL;
 
@@ -142,108 +144,113 @@ export async function getCredById(req: express.Request, res: express.Response) {
   }
 }
 
-// export async function updateCred(req: express.Request, res: express.Response) {
-//   const data = req.body;
+export async function updateCred(req: express.Request, res: express.Response) {
+  const data = req.body;
 
-//   if (!data.property || typeof data.property !== 'object') {
-//     return res.status(400).json({
-//       error: '"property" is a required field and should be an object',
-//     });
-//   }
+  if (!data.properties || typeof data.properties !== 'object') {
+    return res.status(400).json({
+      error: '"property" is a required field and should be an object',
+    });
+  }
 
-//   try {
-//     const cred = await getConnection()
-//       .getRepository(Cred)
-//       .findOne({ identifier: req.params.id });
+  try {
+    const cred = await getConnection()
+      .getRepository(Cred)
+      .findOne({ identifier: req.params.id });
 
-//     if (!cred) {
-//       return res.status(400).json({ error: 'Cred not found' });
-//     }
+    if (!cred) {
+      return res.status(400).json({ error: 'Cred not found' });
+    }
 
-//     console.log(`\n❄️  Statement Updation `);
-//     let updateCredContent = cred.newCredContent;
-//     updateCredContent.issuanceDate = new Date().toISOString();
-//     updateCredContent.property = data.property;
-//     const serializedUpCred =
-//       Cord.Utils.Crypto.encodeObjectAsStr(updateCredContent);
-//     const upCredHash = Cord.Utils.Crypto.hashStr(serializedUpCred);
+    console.log(`\n❄️  Statement Updation `);
 
-//     const updatedStatementEntry = Cord.Statement.buildFromUpdateProperties(
-//       cred.credentialEntry.elementUri,
-//       upCredHash,
-//       CHAIN_SPACE_ID as `space:cord:${string}`,
-//       delegateDid.uri
-//     );
+    const updatedCredContent = await Vc.updateVcFromContent(
+      data.properties,
+      cred.vc,
+      undefined
+    );
 
-//     console.dir(updatedStatementEntry, {
-//       depth: null,
-//       colors: true,
-//     });
+    let updatedVc: any = await Vc.addProof(
+      updatedCredContent,
+      async (data) => ({
+        signature: await issuerKeysProperty.assertionMethod.sign(data),
+        keyType: issuerKeysProperty.assertionMethod.type,
+        keyUri: `${issuerDid.uri}${
+          issuerDid.assertionMethod![0].id
+        }` as Cord.DidResourceUri,
+      }),
+      issuerDid,
+      {
+        spaceUri: CHAIN_SPACE_ID as `space:cord:${string}`,
+        schemaUri: cred.schemaId,
+        needSDR: true,
+      }
+    );
 
-//     const updatedStatement = await Cord.Statement.dispatchUpdateToChain(
-//       updatedStatementEntry,
-//       delegateDid.uri,
-//       authorIdentity,
-//       delegateSpaceAuth as Cord.AuthorizationUri,
-//       async ({ data }) => ({
-//         signature: delegateKeysProperty.authentication.sign(data),
-//         keyType: delegateKeysProperty.authentication.type,
-//       })
-//     );
-//     console.log(`✅ Statement element registered - ${updatedStatement}`);
+    console.dir(updatedVc, {
+      depth: null,
+      colors: true,
+    });
 
-//     if (updatedStatement) {
-//       cred.identifier = updatedStatement;
-//       cred.credHash = upCredHash;
-//       cred.newCredContent = updateCredContent;
-//       cred.credentialEntry = updatedStatementEntry;
+    const updatedStatement = await Cord.Statement.dispatchRegisterToChain(
+      updatedVc.proof[1],
+      issuerDid.uri,
+      authorIdentity,
+      CHAIN_SPACE_AUTH as `auth:cord:${string}`,
+      async ({ data }) => ({
+        signature: issuerKeysProperty.authentication.sign(data),
+        keyType: issuerKeysProperty.authentication.type,
+      })
+    );
 
-//       await getConnection().manager.save(cred);
+    console.log(`✅ UpdatedStatement element registered - ${updatedStatement}`);
 
-//       console.log('\n✅ Statement updated!');
+    if (updatedStatement) {
+      cred.identifier = updatedStatement;
+      cred.credHash = updatedCredContent.credentialHash;
+      cred.newCredContent = updatedCredContent;
+      cred.vc = updatedVc;
 
-//       return res.status(200).json({
-//         result: 'Updated successufully',
-//         identifier: cred.identifier,
-//       });
-//     }
-//     return res.status(400).json({ error: 'Document not updated' });
-//   } catch (error) {
-//     console.log('error: ', error);
-//     throw new Error('Error in updating document');
-//   }
-// }
+      await getConnection().manager.save(cred);
 
-// export async function revokeCred(req: express.Request, res: express.Response) {
-//   try {
-//     const cred = await getConnection()
-//       .getRepository(Cred)
-//       .findOne({ identifier: req.params.id });
+      console.log('\n✅ Statement updated!');
 
-//     if (!cred) {
-//       return res.status(400).json({ error: 'Invalid identifier' });
-//     }
+      return res.status(200).json({
+        result: 'Updated successufully',
+        identifier: cred.identifier,
+      });
+    }
+    return res.status(400).json({ error: 'Document not updated' });
+  } catch (error) {
+    console.log('error: ', error);
+    throw new Error('Error in updating document');
+  }
+}
 
-//     await Cord.Statement.dispatchRevokeToChain(
-//       cred.credentialEntry.elementUri,
-//       delegateDid.uri,
-//       authorIdentity,
-//       delegateSpaceAuth as Cord.AuthorizationUri,
-//       async ({ data }) => ({
-//         signature: delegateKeysProperty.authentication.sign(data),
-//         keyType: delegateKeysProperty.authentication.type,
-//       })
-//     );
-
-//     cred.active = false;
-
-//     await getConnection().manager.save(cred);
-
-//     console.log(`✅ Statement revoked!`);
-
-//     return res.status(200).json({ result: 'Statement revoked Successfully' });
-//   } catch (error) {
-//     console.log('err: ', error);
-//     return res.status(400).json({ err: error });
-//   }
-// }
+export async function revokeCred(req: express.Request, res: express.Response) {
+  // try {
+  //   const cred = await getConnection()
+  //     .getRepository(Cred)
+  //     .findOne({ identifier: req.params.id });
+  //   if (!cred) {
+  //     return res.status(400).json({ error: 'Invalid identifier' });
+  //   }
+  //   await Cord.Statement.dispatchRevokeToChain(
+  //     cred.vc[1].elementUri,
+  //     delegateDid.uri,
+  //     authorIdentity,
+  //     delegateSpaceAuth as Cord.AuthorizationUri,
+  //     async ({ data }) => ({
+  //       signature: delegateKeysProperty.authentication.sign(data),
+  //       keyType: delegateKeysProperty.authentication.type,
+  //     })
+  //   );
+  //   cred.active = false;
+  //   await getConnection().manager.save(cred);
+  //   console.log(`✅ Statement revoked!`);
+  //   return res.status(200).json({ result: 'Statement revoked Successfully' });
+  // } catch (error) {
+  //   console.log('err: ', error);
+  //   return res.status(400).json({ err: error });
+  // }
+}
