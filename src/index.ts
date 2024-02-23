@@ -10,8 +10,8 @@ import { addDelegateAsRegistryDelegate } from './init';
 import {
   getCredById,
   issueVD,
-  // revokeCred,
-  // updateCred,
+  revokeCred,
+  updateCred,
 } from './controller/credential_controller';
 
 const app = express();
@@ -31,13 +31,13 @@ credentialRouter.get('/:id', async (req, res) => {
   return await getCredById(req, res);
 });
 
-// credentialRouter.put('/update/:id', async (req, res) => {
-//   return await updateCred(req, res);
-// });
+credentialRouter.put('/update/:id', async (req, res) => {
+  return await updateCred(req, res);
+});
 
-// credentialRouter.post('/revoke/:id', async (req, res) => {
-//   return await revokeCred(req, res);
-// });
+credentialRouter.post('/revoke/:id', async (req, res) => {
+  return await revokeCred(req, res);
+});
 
 schemaRouter.post('/', async (req, res) => {
   return await createSchema(req, res);
