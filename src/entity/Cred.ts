@@ -38,9 +38,6 @@ export class Cred {
   credHash?: string;
 
   @Column('simple-json', { nullable: true, default: null })
-  newCredContent?: any;
-
-  @Column('simple-json', { nullable: true, default: null })
   vc?: any;
 
   @CreateDateColumn({ name: 'created_at' })

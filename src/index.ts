@@ -9,7 +9,7 @@ import { dbConfig } from './dbconfig';
 import { addDelegateAsRegistryDelegate } from './init';
 import {
   getCredById,
-  issueVD,
+  issueVC,
   revokeCred,
   updateCred,
 } from './controller/credential_controller';
@@ -24,7 +24,7 @@ const credentialRouter = express.Router({ mergeParams: true });
 const schemaRouter = express.Router({ mergeParams: true });
 
 credentialRouter.post('/:id', async (req, res) => {
-  return await issueVD(req, res);
+  return await issueVC(req, res);
 });
 
 credentialRouter.get('/:id', async (req, res) => {
