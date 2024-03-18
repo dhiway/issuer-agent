@@ -17,7 +17,7 @@ import { Cred } from '../entity/Cred';
 import { Schema } from '../entity/Schema';
 const { CHAIN_SPACE_ID, CHAIN_SPACE_AUTH } = process.env;
 
-export async function issueVD(req: express.Request, res: express.Response) {
+export async function issueVC(req: express.Request, res: express.Response) {
   const data = req.body;
 
   if (!authorIdentity) {
@@ -78,11 +78,10 @@ export async function issueVD(req: express.Request, res: express.Response) {
 
     const cred = new Cred();
     cred.schemaId = req.params.id;
-    cred.identifier = statement;
+    cred.identifier = vc.proof[1].identifier;
     cred.active = true;
     cred.fromDid = issuerDid.uri;
     cred.credHash = newCredContent.credentialHash;
-    cred.newCredContent = newCredContent;
     cred.vc = vc;
 
     if (statement) {
@@ -206,9 +205,8 @@ export async function updateCred(req: express.Request, res: express.Response) {
     console.log(`✅ UpdatedStatement element registered - ${updatedStatement}`);
 
     if (updatedStatement) {
-      cred.identifier = updatedStatement;
+      cred.identifier = updatedVc.proof[1].identifier;
       cred.credHash = updatedCredContent.credentialHash;
-      cred.newCredContent = updatedCredContent;
       cred.vc = updatedVc;
 
       await getConnection().manager.save(cred);
@@ -228,29 +226,31 @@ export async function updateCred(req: express.Request, res: express.Response) {
 }
 
 export async function revokeCred(req: express.Request, res: express.Response) {
-  // try {
-  //   const cred = await getConnection()
-  //     .getRepository(Cred)
-  //     .findOne({ identifier: req.params.id });
-  //   if (!cred) {
-  //     return res.status(400).json({ error: 'Invalid identifier' });
-  //   }
-  //   await Cord.Statement.dispatchRevokeToChain(
-  //     cred.vc[1].elementUri,
-  //     delegateDid.uri,
-  //     authorIdentity,
-  //     delegateSpaceAuth as Cord.AuthorizationUri,
-  //     async ({ data }) => ({
-  //       signature: delegateKeysProperty.authentication.sign(data),
-  //       keyType: delegateKeysProperty.authentication.type,
-  //     })
-  //   );
-  //   cred.active = false;
-  //   await getConnection().manager.save(cred);
-  //   console.log(`✅ Statement revoked!`);
-  //   return res.status(200).json({ result: 'Statement revoked Successfully' });
-  // } catch (error) {
-  //   console.log('err: ', error);
-  //   return res.status(400).json({ err: error });
-  // }
+  try {
+    const cred = await getConnection()
+      .getRepository(Cred)
+      .findOne({ identifier: req.params.id });
+
+    if (!cred) {
+      return res.status(400).json({ error: 'Invalid identifier' });
+    }
+
+    await Cord.Statement.dispatchRevokeToChain(
+      cred.vc.proof[1].elementUri as `stmt:cord:${string}`,
+      delegateDid.uri,
+      authorIdentity,
+      delegateSpaceAuth as Cord.AuthorizationUri,
+      async ({ data }) => ({
+        signature: delegateKeysProperty.authentication.sign(data),
+        keyType: delegateKeysProperty.authentication.type,
+      })
+    );
+
+    console.log(`✅ Statement revoked!`);
+
+    return res.status(200).json({ result: 'Statement revoked Successfully' });
+  } catch (error) {
+    console.log('err: ', error);
+    return res.status(400).json({ err: error });
+  }
 }
