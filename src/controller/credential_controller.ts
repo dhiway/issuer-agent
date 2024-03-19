@@ -1,6 +1,7 @@
 import express from 'express';
 import * as Vc from '@cord.network/vc-export';
 import * as Cord from '@cord.network/sdk';
+import crypto from 'crypto';
 
 import {
   issuerDid,
@@ -251,6 +252,48 @@ export async function revokeCred(req: express.Request, res: express.Response) {
     return res.status(200).json({ result: 'Statement revoked Successfully' });
   } catch (error) {
     console.log('err: ', error);
+    return res.status(400).json({ err: error });
+  }
+}
+
+export async function documentHashOnChain(
+  req: express.Request,
+  res: express.Response
+) {
+  try {
+    const data = req.body;
+
+    // const content: any = fs.readFileSync('./package.json');
+    const content = JSON.stringify(data);
+
+    const hashFn = crypto.createHash('sha256');
+    hashFn.update(content);
+    let digest = `0x${hashFn.digest('hex')}`;
+
+    const docProof = await Vc.getCordProofForDigest(
+      digest as `0x${string}`,
+      issuerDid,
+      {
+        spaceUri: CHAIN_SPACE_ID as `space:cord:${string}`,
+      }
+    );
+
+    const statement1 = await Cord.Statement.dispatchRegisterToChain(
+      docProof,
+      issuerDid.uri,
+      authorIdentity,
+      CHAIN_SPACE_AUTH as `auth:cord:${string}`,
+      async ({ data }) => ({
+        signature: issuerKeysProperty.authentication.sign(data),
+        keyType: issuerKeysProperty.authentication.type,
+      })
+    );
+
+    console.dir(docProof, { colors: true, depth: null });
+    console.log(`✅ Statement element registered - ${statement1}`);
+
+    return res.status(200).json({ result: statement1 });
+  } catch (error) {
     return res.status(400).json({ err: error });
   }
 }
