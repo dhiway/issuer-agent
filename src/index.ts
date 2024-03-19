@@ -8,6 +8,7 @@ import { createConnection } from 'typeorm';
 import { dbConfig } from './dbconfig';
 import { addDelegateAsRegistryDelegate } from './init';
 import {
+  documentHashOnChain,
   getCredById,
   issueVC,
   revokeCred,
@@ -54,6 +55,10 @@ const openApiDocumentation = JSON.parse(
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(openApiDocumentation));
 app.use('/api/v1/schema', schemaRouter);
 app.use('/api/v1/cred', credentialRouter);
+
+app.post('/api/v1/docHash', async (req, res) => {
+  return await documentHashOnChain(req, res);
+});
 
 async function main() {
   try {
