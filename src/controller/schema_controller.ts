@@ -33,8 +33,9 @@ export async function createSchema(
 
     let newSchemaName = data.title + ':' + Cord.Utils.UUID.generate();
     data.title = newSchemaName;
+    data.type = 'object';
 
-    let schemaDetails = Cord.Schema.buildFromProperties(
+    let schemaDetails = await Cord.Schema.buildFromProperties(
       data,
       CHAIN_SPACE_ID as `space:cord:${string}`,
       issuerDid.uri
