@@ -28,7 +28,7 @@ export async function issueVC(req: express.Request, res: express.Response) {
   try {
     const schema = await getConnection()
       .getRepository(Schema)
-      .findOne({ identifier: req.params.id });
+      .findOne({ identifier: data.schemaId });
 
     const parsedSchema = JSON.parse(schema?.cordSchema as string);
 
@@ -78,7 +78,7 @@ export async function issueVC(req: express.Request, res: express.Response) {
     console.log(`✅ Statement element registered - ${statement}`);
 
     const cred = new Cred();
-    cred.schemaId = req.params.id;
+    cred.schemaId = data.schemaId;
     cred.identifier = vc.proof[1].identifier;
     cred.active = true;
     cred.fromDid = issuerDid.uri;
