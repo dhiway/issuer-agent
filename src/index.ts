@@ -24,7 +24,7 @@ app.use(express.json());
 const credentialRouter = express.Router({ mergeParams: true });
 const schemaRouter = express.Router({ mergeParams: true });
 
-credentialRouter.post('/:id', async (req, res) => {
+credentialRouter.post('/', async (req, res) => {
   return await issueVC(req, res);
 });
 
