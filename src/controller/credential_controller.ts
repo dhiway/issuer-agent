@@ -294,6 +294,7 @@ export async function documentHashOnChain(
 
     return res.status(200).json({ result: statement1 });
   } catch (error) {
+    console.log('errr: ', error);
     return res.status(400).json({ err: error });
   }
 }
