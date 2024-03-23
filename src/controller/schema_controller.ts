@@ -70,7 +70,7 @@ export async function createSchema(
       await getConnection().manager.save(schemaData);
       return res.status(200).json({
         result: 'SUCCESS',
-        identifier: schemaData.identifier,
+        schemaId: schemaData.identifier,
       });
     }
     return res.status(400).json({ error: 'SchemaDetails not created' });
