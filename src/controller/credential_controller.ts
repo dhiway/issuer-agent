@@ -57,6 +57,7 @@ export async function issueVC(req: express.Request, res: express.Response) {
         spaceUri: CHAIN_SPACE_ID as `space:cord:${string}`,
         schemaUri: schema?.identifier,
         needSDR: true,
+        needStatementProof: true,
       }
     );
     console.dir(vc, {
@@ -79,7 +80,7 @@ export async function issueVC(req: express.Request, res: express.Response) {
 
     const cred = new Cred();
     cred.schemaId = data.schemaId;
-    cred.identifier = vc.proof[1].identifier;
+    cred.identifier = statement;
     cred.active = true;
     cred.fromDid = issuerDid.uri;
     cred.credHash = newCredContent.credentialHash;
@@ -170,7 +171,8 @@ export async function updateCred(req: express.Request, res: express.Response) {
       undefined
     );
 
-    let updatedVc: any = await Vc.addProof(
+    let updatedVc: any = await Vc.updateAddProof(
+      cred.identifier as `stmt:cord:${string}`,
       updatedCredContent,
       async (data) => ({
         signature: await issuerKeysProperty.assertionMethod.sign(data),
@@ -184,6 +186,7 @@ export async function updateCred(req: express.Request, res: express.Response) {
         spaceUri: CHAIN_SPACE_ID as `space:cord:${string}`,
         schemaUri: cred.schemaId,
         needSDR: true,
+        needStatementProof: true,
       }
     );
 
@@ -206,7 +209,7 @@ export async function updateCred(req: express.Request, res: express.Response) {
     console.log(`✅ UpdatedStatement element registered - ${updatedStatement}`);
 
     if (updatedStatement) {
-      cred.identifier = updatedVc.proof[1].identifier;
+      cred.identifier = updatedStatement;
       cred.credHash = updatedCredContent.credentialHash;
       cred.vc = updatedVc;
 

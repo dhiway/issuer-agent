@@ -48,7 +48,7 @@ export async function createDid(
     const api = Cord.ConfigService.get('api');
     const mnemonic = mnemonicGenerate(24);
 
-    const delegateKeys = Cord.Utils.Keys.generateKeypairs(mnemonic, 'ed25519');
+    const delegateKeys = Cord.Utils.Keys.generateKeypairs(mnemonic, 'sr25519');
     const {
       authentication,
       keyAgreement,
@@ -129,7 +129,7 @@ export async function checkDidAndIdentities(mnemonic: string): Promise<any> {
     );
   }
 
-  const issuerKeys = Cord.Utils.Keys.generateKeypairs(mnemonic, 'ed25519');
+  const issuerKeys = Cord.Utils.Keys.generateKeypairs(mnemonic, 'sr25519');
   const {
     authentication,
     keyAgreement,
