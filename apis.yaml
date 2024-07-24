@@ -1,0 +1,536 @@
+openapi: 3.0.1
+info:
+  version: 1.4.1
+  title: Issuer Agent
+  description: API for wallet agent
+  termsOfService: http://studio.dhiway.com/page/terms-and-conditions
+  contact:
+    name: Dhiway Networks
+    email: info@dhiway.com
+    url: https://dhiway.com
+  license:
+    name: Apache v2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+servers:
+  - url: http://localhost:5106/
+    description: Local server
+  - url: ''
+    description: Demo server
+paths:
+  /api/v1/schema:
+    post:
+      tags:
+        - Schema
+      description: Create a schema
+      operationId: createSchema
+      requestBody:
+        description: Create a schema of choice
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SchemaRequest'
+        required: true
+      responses:
+        '201':
+          description: New schema created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaRes'
+        '400':
+          description: Invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaError'
+      security:
+        - bearerAuth: []
+  /api/v1/schema/{id}:
+    get:
+      tags:
+        - Schema
+      description: Get a schema by id
+      operationId: getSchemaById
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: Schema ID
+      responses:
+        '201':
+          description: Get schema
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetSchemaRes'
+        '400':
+          description: Invalid parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SchemaFound'
+      security:
+        - bearerAuth: []
+
+  /api/v1/cred:
+    post:
+      tags:
+        - Verifiable Credential
+      description: Issue a verifiable credential
+      operationId: issueCred
+      requestBody:
+        description: Add a VC to the given holderDID
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecordRequest'
+        required: true
+      responses:
+        '201':
+          description: New vc issued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CredRes'
+        '400':
+          description: Invalid parameters
+          content:
+            application/json:
+              example:
+                result: VC not issued
+      security:
+        - bearerAuth: []
+
+  /api/v1/cred/{id}:
+    get:
+      tags:
+        - Verifiable Credential
+      description: Get credendial by id
+      operationId: getCredById
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: Credential ID
+      responses:
+        '201':
+          description: Get Credential
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetCredRes'
+        '400':
+          description: Invalid parameters
+          content:
+            application/json:
+              example:
+                status: Credential not found
+      security:
+        - bearerAuth: []
+
+  /api/v1/cred/revoke/{id}:
+    post:
+      tags:
+        - Verifiable Credential
+      description: Revoke a credential
+      operationId: revokeCred
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: Credential ID
+      responses:
+        '201':
+          description: New vc issued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CredRevokeRes'
+        '400':
+          description: Invalid parameters
+          content:
+            application/json:
+              example:
+                error: CordDispatchError
+      security:
+        - bearerAuth: []
+
+  /api/v1/cred/update/{id}:
+    put:
+      tags:
+        - Verifiable Credential
+      description: Update a credential
+      operationId: updateCred
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: Credential ID
+      requestBody:
+        description: Update a VC of the given identifier
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRequest'
+        required: true
+      responses:
+        '201':
+          description: New vc issued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CredUpdateRes'
+        '400':
+          description: Invalid parameters
+          content:
+            application/json:
+              example:
+                error: Statement not updated
+      security:
+        - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    SchemaError:
+      type: object
+      properties:
+        result:
+          type: string
+          description: Error message
+          example: Schema not created
+    SchemaFound:
+      type: object
+      properties:
+        status:
+          type: string
+          description: Error message
+          example: Schema not found
+    RegisrtyFound:
+      type: object
+      properties:
+        status:
+          type: string
+          description: Error message
+          example: Registry not found
+    SchemaId:
+      type: string
+      description: Schema Id
+      example: schema:cord:s33Nap3uKe3A3DTuroTEXFUBbkG5P3WRE9RcJFJDxh5Ktc14v
+    Identifier:
+      type: string
+      description: Schema Id
+      example: s1f1b9b3d-c07d-4c8e-901f-6445aa6aef8e
+    RegistryId:
+      type: string
+      description: Registry Id
+      example: r0aa3623b-903f-4ae1-ab0f-ed65eb6b5e77
+    CredId:
+      type: string
+      description: Credential Id
+      example: c0aa3623b-903f-4ae1-ab0f-ed65eb6b5e77
+    AuthId:
+      type: string
+      description: Auth Id
+      example: auth:cord:t3jS7PMN2mpJ52AyYKJppxwwE23pCV2gbRw6rWu5FrHgsjzB2
+    Registry:
+      type: boolean
+      description: flag
+      example: false
+    SpaceName:
+      type: string
+      description: Schema name
+      example: Event XYZ Participation
+    SpaceDescription:
+      type: string
+      description: Schema Description
+      example: Description of the title
+    SchemaRequest:
+      type: object
+      properties:
+        schema:
+          type: object
+          properties:
+            title:
+              $ref: '#/components/schemas/SpaceName'
+            description:
+              $ref: '#/components/schemas/SpaceDescription'
+            properties:
+              $ref: '#/components/schemas/Schema'
+    GetSchemaRes:
+      type: object
+      properties:
+        schema:
+          type: object
+          properties:
+            id:
+              $ref: '#/components/schemas/SchemaId'
+            identifier:
+              $ref: '#/components/schemas/SchemaId'
+            title:
+              $ref: '#/components/schemas/SpaceName'
+            description:
+              $ref: '#/components/schemas/SpaceDescription'
+            cordSchema:
+              $ref: '#/components/schemas/CordSchema'
+            schemaProperties:
+              $ref: '#/components/schemas/Schema'
+    GetRegistryRes:
+      type: object
+      properties:
+        regisrty:
+          type: object
+          properties:
+            id:
+              $ref: '#/components/schemas/RegistryId'
+            registry:
+              $ref: '#/components/schemas/RegistryProp'
+            authId:
+              $ref: '#/components/schemas/AuthId'
+    CredRevokeRes:
+      type: object
+      properties:
+        resukt:
+          example: Statement revoked Successfully
+    CredUpdateRes:
+      type: object
+      properties:
+        result:
+          example: Updated successufully
+        identifier:
+          example: stmt:cord:s3dgvtunhXyxg5oBb1QNaqR9NvhF3tnQoLj2jmNBHiW4cYzby:de689c81fae40362f8f6a9ca228e9d3389e15d0ba8199066366264b017454066
+    GetCredRes:
+      type: object
+      properties:
+        credential:
+          type: object
+          properties:
+            id:
+              $ref: '#/components/schemas/CredId'
+            active:
+              type: boolean
+              example: true
+            identifier:
+              example: stmt:cord:s3dgvtunhXyxg5oBb1QNaqR9NvhF3tnQoLj2jmNBHiW4cYzby:d528de06ecb92d68b33c77c627c2dac6f08ed2507e4bd1ca00456f9635c94af6
+            fromDid:
+              example: did:cord:3wCdDiKx3GdRM8p79QYL5EE7NbaiwrL7T2C46QMBfadr9nre
+            credHash:
+              example: >-
+                0x12a3d334a35bc389cff37fddf36ba7f7a4aa476b2c671e5abc657bcbb7ef0792
+            credential:
+              $ref: '#/components/schemas/CredProp'
+            details:
+              $ref: '#/components/schemas/MetaDetails'
+            createdAt:
+              example: '2023-05-05T18:01:09.109Z'
+            updatedAt:
+              example: '2023-05-05T18:01:09.109Z'
+    GetSchema:
+      type: object
+      properties:
+        schemaId:
+          type: number
+          description: The schemaId generated at createSchema
+          example: s2cdb6537-dddf-44c5-859f-9083cca756c9
+    GetRegistry:
+      type: object
+      properties:
+        registryId:
+          type: number
+          description: The registryId generated at createRegistry
+          example: r0aa3623b-903f-4ae1-ab0f-ed65eb6b5e77
+    GetCred:
+      type: object
+      properties:
+        credId:
+          type: number
+          example: c4dab1a1b-b728-4840-b80f-3c166e2ac1f3
+    Schema:
+      type: object
+      properties:
+        name:
+          properties:
+            type:
+              type: string
+              example: string
+        email:
+          properties:
+            type:
+              type: string
+              example: string
+        age:
+          properties:
+            type:
+              type: string
+              example: number
+    SchemaExtra:
+      type: object
+      properties:
+        name:
+          properties:
+            type:
+              type: string
+              example: string
+        email:
+          properties:
+            type:
+              type: string
+              example: string
+        age:
+          properties:
+            type:
+              type: string
+              example: number
+    CordSchema:
+      type: object
+      properties:
+        $id:
+          example: >-
+            schema:cord:m3xcC65uSJmyoeciGiKmpF4zKiCq8F2Qz1npCmitXMZbJXqBV","$schema":"http://cord.network/draft-01/schema#
+        additionalProperties:
+          example: 'false'
+        properties:
+          $ref: '#/components/schemas/SchemaExtra'
+        title:
+          example: Event XYZ Participation
+        type:
+          example: object
+    RegistryProp:
+      type: object
+      properties:
+        identifier:
+          example: registry:cord:r3V54RuUknyxHHsMUhTAXmugFPKRiaxupzP9sUG1MHn8F5N4D
+        details:
+          example: '{\"description\":\"ach\",\"title\":\"bfwuh\"}'
+        meta:
+          example: >-
+            {"digest":"0xbafc51b4ea74d30ca8a6d9da228570289a32094ba57a152b76c2d053395dde0c","schema":"schema:cord:m3xcC65uSJmyoeciGiKmpF4zKiCq8F2Qz1npCmitXMZbJXqBV","creator":"did:cord:3yzW2BjxDwgzZJ6adJ2Ueg758dmxL3gRJi6FqYy66FQMSsvy","active":true}
+    MetaDetails:
+      type: object
+      properties:
+        meta:
+          example: endpoint-received
+    CredProp:
+      type: object
+      properties:
+        identifier:
+          example: stream:cord:s3hB4khxYv6rKf4T47zXzeqBT4dQoaowSeiTfHYA1B8ucVKE3
+        content:
+          example: >-
+            {"schemaId":"schema:cord:m3tdRqo3NeTGnR7t5K2qgx1723nVEwj5b6b122stndyfA1gum","contents":{"name":"alex","email":"alex@dhiway","age":23},"holder":"did:cord:3wCdDiKx3GdRM8p79QYL5EE7NbaiwrL7T2C46QMBfadr9nre","issuer":"did:cord:3yzW2BjxDwgzZJ6adJ2Ueg758dmxL3gRJi6FqYy66FQMSsvy"}
+        contentHashes:
+          example: >-
+            ["0x21f3081a43d24a59d45d5f31b7109c52895ac17842dbe7b997860ea0343b1468","0x9338ada00f3b953064d8eb947622ad3b22e9d92e839e68e17ce9713dc3ec9dcc","0xa342238c25caed7cc9a3e86a62a3c60209a57cea6c1dc6292fc5aa8211133cec","0xae14a9096b75f3904c3138e4696a2acdad980a5f2bdca622c77a20d863c9227d","0xb052a3a92e53286aa45280d0d93520cc117fdb83629c46fef1e65347d47ff189"]
+        contentNonceMap:
+          example: >-
+            {"0xeca68f933bbbc630a64aa54b0bd66946f1be6143a80130204b2c4fed17d6d10c":"3ab6d099-1f10-4f40-a7ae-e8a499cbd3a5","0xdfcdd40667064715454957b1c71315274da696b96be5eaa15c613fca6e15c3f2":"5d97caa7-5ca0-4ddd-830d-c9bd131cb3ef","0x507cd27f5971973a6b82a7330c5e981f921a1480052f0bb551b5c2d8bed5407c":"38760e12-5fc7-4c49-8571-f21a0e1f8a5d","0x7b9489d9000d6e73b036b6981264281354f4fbc4aea29a723a8c7a43800bebf2":"8adb383d-90e7-4701-8aa3-766a6ffecb9e","0x3d4435a33c22afede034689c8acaf8afb60ad59c06e815d41622b2260240dc23":"522cb5f4-9c8d-4ad2-9d64-68067b9306a8"}
+        evidenceIds:
+          example: '[]'
+        authorization:
+          example: auth:cord:t3mVGf8Bi5NkNoP6Fw9hdcf7qBh7vUTrVU8WA4XW1wDG4Ah7b
+        registry:
+          example: registry:cord:r3WPws8XCC89vfGdCzQemEtjcxHU12uKNU8fyJospcqRvK7Xo
+        createdAt:
+          example: '2023-05-05T18:01:07.529Z'
+        validUntil:
+          example: Infinity
+        documentHash:
+          example: '0x12a3d334a35bc389cff37fddf36ba7f7a4aa476b2c671e5abc657bcbb7ef0792'
+        issuerSignature:
+          example: >-
+            {"signature":"0x825ec1ee370add3c0282006bcd260f7f41e46222a473178c8607e77361b55f36f5adc83576ad6bef4918451ad58379683535e3262d77fbab50c27b74d8868b8c","keyUri":"did:cord:3yzW2BjxDwgzZJ6adJ2Ueg758dmxL3gRJi6FqYy66FQMSsvy#0x6698aed61778f1a6c59d84072d654c4408e95f319f48b9e691074a82951588fb"}
+        metadata:
+          example: '{"templates":[],"labels":[]}'
+    SchemaRes:
+      type: object
+      properties:
+        result:
+          type: string
+          description: Result status
+          example: SUCCESS
+        schemaId:
+          type: string
+          description: SchemaID of the generated schema
+          example: schema:cord:s34ouTR2XCJprL48EbkyhNV4SSsbQU9JGN4KhJbAerz6wEVWC
+    RegistryRes:
+      type: object
+      properties:
+        result:
+          type: string
+          description: Result status
+          example: SUCCESS
+        registryID:
+          type: string
+          description: SchemaID of the generated schema
+          example: r2cdb6537-dddf-44c5-859f-9083cca756c9
+    SpaceRequest:
+      type: object
+      properties:
+        title:
+          $ref: '#/components/schemas/SpaceName'
+        description:
+          $ref: '#/components/schemas/SpaceDescription'
+        schemaId:
+          type: number
+          description: The schemaId generated at createSchema
+          example: s2cdb6537-dddf-44c5-859f-9083cca756c9
+    RecordContent:
+      type: object
+      description: Record Content
+      properties:
+        name:
+          type: string
+          description: Enter name
+          example: Jack
+        email:
+          type: string
+          description: Enter email
+          example: jack@dhiway.com
+        age:
+          type: number
+          description: Enter age
+          example: 23
+    CredRevoke:
+      type: object
+      properties:
+        identifier:
+          type: string
+          description: Identifier of VC
+          example: stream:cord:s3caubjdFkCg7mK8Uw2XhddcfWtwBESrnWWpVAuBc18wViCY7
+    CredRes:
+      type: object
+      properties:
+        result:
+          type: string
+          description: Result status
+          example: SUCCESS
+        identifier:
+          type: string
+          description: Identifier of VC
+          example: stmt:cord:s3dgvtunhXyxg5oBb1QNaqR9NvhF3tnQoLj2jmNBHiW4cYzby:d528de06ecb92d68b33c77c627c2dac6f08ed2507e4bd1ca00456f9635c94af6
+    RecordRequest:
+      type: object
+      properties:
+        schemaId:
+          type: string
+          description: The schemaId generated at createSchema
+          example: schema:cord:s34ouTR2XCJprL48EbkyhNV4SSsbQU9JGN4KhJbAerz6wEVWC
+        properties:
+          $ref: '#/components/schemas/RecordContent'
+    UpdateRequest:
+      type: object
+      properties:
+        properties:
+          $ref: '#/components/schemas/RecordContent'

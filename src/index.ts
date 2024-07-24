@@ -2,6 +2,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import fs from 'fs';
 import swaggerUi from 'swagger-ui-express';
+import YAML from 'yamljs';
 
 import { createSchema, getSchemaById } from './controller/schema_controller';
 import { createConnection } from 'typeorm';
@@ -48,9 +49,7 @@ schemaRouter.get('/:id', async (req, res) => {
   return await getSchemaById(req, res);
 });
 
-const openApiDocumentation = JSON.parse(
-  fs.readFileSync('./apis.json').toString()
-);
+const openApiDocumentation = YAML.load('./apis.yaml');
 
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(openApiDocumentation));
 app.use('/api/v1/schema', schemaRouter);
@@ -58,6 +57,12 @@ app.use('/api/v1/cred', credentialRouter);
 
 app.post('/api/v1/docHash', async (req, res) => {
   return await documentHashOnChain(req, res);
+});
+
+app.get('/*', async (req, res) => {
+  return res.json({
+    message: 'check https://docs.dhiway.com/api for details of the APIs',
+  });
 });
 
 async function main() {
