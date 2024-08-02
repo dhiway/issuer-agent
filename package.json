@@ -12,8 +12,8 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
-        "@cord.network/sdk": "0.9.3-1rc14",
-        "@cord.network/vc-export": "0.9.3-1rc14",
+        "@cord.network/sdk": "0.9.1-1rc18",
+        "@cord.network/vc-export": "0.9.1-1rc18",
         "body-parser": "^1.20.2",
         "cors": "^2.8.5",
         "dotenv": "^16.0.3",
