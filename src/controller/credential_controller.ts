@@ -20,7 +20,7 @@ const { CHAIN_SPACE_ID, CHAIN_SPACE_AUTH } = process.env;
 
 export async function issueVC(req: express.Request, res: express.Response) {
   const data = req.body;
-
+  const api = Cord.ConfigService.get('api');
   if (!authorIdentity) {
     await addDelegateAsRegistryDelegate();
   }
@@ -53,6 +53,7 @@ export async function issueVC(req: express.Request, res: express.Response) {
         }` as Cord.DidResourceUri,
       }),
       issuerDid,
+      api,
       {
         spaceUri: CHAIN_SPACE_ID as `space:cord:${string}`,
         schemaUri: schema?.identifier,
@@ -147,7 +148,7 @@ export async function getCredById(req: express.Request, res: express.Response) {
 
 export async function updateCred(req: express.Request, res: express.Response) {
   const data = req.body;
-
+  const api = Cord.ConfigService.get('api');
   if (!data.properties || typeof data.properties !== 'object') {
     return res.status(400).json({
       error: '"property" is a required field and should be an object',
@@ -182,6 +183,7 @@ export async function updateCred(req: express.Request, res: express.Response) {
         }` as Cord.DidResourceUri,
       }),
       issuerDid,
+      api,
       {
         spaceUri: CHAIN_SPACE_ID as `space:cord:${string}`,
         schemaUri: cred.schemaId,
@@ -265,7 +267,7 @@ export async function documentHashOnChain(
 ) {
   try {
     const data = req.body;
-
+    const api = Cord.ConfigService.get('api');
     // const content: any = fs.readFileSync('./package.json');
     const content = JSON.stringify(data);
 
@@ -276,6 +278,7 @@ export async function documentHashOnChain(
     const docProof = await Vc.getCordProofForDigest(
       digest as `0x${string}`,
       issuerDid,
+      api,
       {
         spaceUri: CHAIN_SPACE_ID as `space:cord:${string}`,
       }
