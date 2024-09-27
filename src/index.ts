@@ -1,7 +1,6 @@
 import app from './server';
 import express from 'express';
-import { createConnection } from 'typeorm';
-import { dbConfig } from './dbconfig';
+import { dataSource } from './dbconfig';
 import { addDelegateAsRegistryDelegate } from './init';
 import {
   createSchema,
@@ -60,7 +59,7 @@ app.get('/*', async (req, res) => {
 
 async function main() {
   try {
-    await createConnection(dbConfig);
+    await dataSource.initialize();
     await addDelegateAsRegistryDelegate();
   } catch (error) {
     console.log('error: ', error);

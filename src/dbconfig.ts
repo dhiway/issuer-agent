@@ -1,4 +1,4 @@
-import { ConnectionOptions } from 'typeorm';
+import { DataSource, DataSourceOptions } from 'typeorm';
 
 const {
     TYPEORM_HOST,
@@ -16,7 +16,7 @@ const {
     TYPEORM_SUBSCRIBERS_DIR,
 } = process.env;
 
-export const dbConfig: ConnectionOptions = {
+const dbConfig = {
     type: 'postgres',
     host: TYPEORM_HOST,
     port: parseInt(TYPEORM_PORT as string),
@@ -34,3 +34,5 @@ export const dbConfig: ConnectionOptions = {
         subscribersDir: TYPEORM_SUBSCRIBERS_DIR as string,
     },
 };
+
+export const dataSource = new DataSource(dbConfig as DataSourceOptions);

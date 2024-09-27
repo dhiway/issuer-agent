@@ -1,6 +1,5 @@
 import * as Cord from '@cord.network/sdk';
 import express from 'express';
-import { getConnection } from 'typeorm';
 import 'reflect-metadata';
 
 import { Schema } from '../entity/Schema';
@@ -10,6 +9,7 @@ import {
   issuerDid,
   issuerKeysProperty,
 } from '../init';
+import { dataSource } from '../dbconfig';
 
 const { CHAIN_SPACE_ID, CHAIN_SPACE_AUTH } = process.env;
 
@@ -67,7 +67,7 @@ export async function createSchema(
       schemaData.cordSchema = JSON.stringify(schemaDetails);
       schemaData.requiredFields = data.required;
 
-      await getConnection().manager.save(schemaData);
+      await dataSource.manager.save(schemaData);
       return res.status(200).json({
         result: 'SUCCESS',
         schemaId: schemaData.identifier,
@@ -85,9 +85,9 @@ export async function getSchemaById(
   res: express.Response
 ) {
   try {
-    const schema = await getConnection()
+    const schema = await dataSource
       .getRepository(Schema)
-      .findOne({ identifier: req.params.id });
+      .findOne({ where: { identifier: req.params.id } });
 
     if (!schema) {
       return res.status(400).json({ error: 'Schema not found' });
