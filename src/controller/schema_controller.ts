@@ -1,8 +1,10 @@
 import * as Cord from '@cord.network/sdk';
 import express from 'express';
 import 'reflect-metadata';
-
+import { validateSchema } from '../utils/SchemaValidationUtils';
+import { extractSchemaFields } from '../utils/SchemaUtils';
 import { Schema } from '../entity/Schema';
+
 import {
   addDelegateAsRegistryDelegate,
   authorIdentity,
@@ -22,18 +24,20 @@ export async function createSchema(
       await addDelegateAsRegistryDelegate();
     }
 
-    const data = req.body.schema;
+    let data = req.body.schema?.schema || req.body.schema || null;
 
-    if (!data || !data.properties) {
-      return res.status(400).json({
-        error:
-          "'schema' is a required field in the form of key-value pair, with title and description",
-      });
-    }
-
+    
+    const validationError = validateSchema(data);
+    if (validationError) {
+      return res.status(400).json({ error: validationError });
+        }
+    
+    data = extractSchemaFields(data)
+   
+   
     let newSchemaName = data.title + ':' + Cord.Utils.UUID.generate();
     data.title = newSchemaName;
-    data.type = 'object';
+    
 
     let schemaDetails = await Cord.Schema.buildFromProperties(
       data,
