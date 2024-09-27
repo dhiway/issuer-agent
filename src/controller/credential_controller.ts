@@ -13,9 +13,9 @@ import {
   delegateKeysProperty,
 } from '../init';
 
-import { getConnection } from 'typeorm';
 import { Cred } from '../entity/Cred';
 import { Schema } from '../entity/Schema';
+import { dataSource } from '../dbconfig';
 const { CHAIN_SPACE_ID, CHAIN_SPACE_AUTH } = process.env;
 
 export async function issueVC(req: express.Request, res: express.Response) {
@@ -26,9 +26,9 @@ export async function issueVC(req: express.Request, res: express.Response) {
   }
 
   try {
-    const schema = await getConnection()
+    const schema = await dataSource
       .getRepository(Schema)
-      .findOne({ identifier: data.schemaId });
+      .findOne({ where: { identifier: data.schemaId } });
 
     const parsedSchema = JSON.parse(schema?.cordSchema as string);
 
@@ -88,7 +88,7 @@ export async function issueVC(req: express.Request, res: express.Response) {
     cred.vc = vc;
 
     if (statement) {
-      await getConnection().manager.save(cred);
+      await dataSource.manager.save(cred);
       return res
         .status(200)
         .json({ result: 'success', identifier: cred.identifier });
@@ -131,9 +131,9 @@ export async function issueVC(req: express.Request, res: express.Response) {
 
 export async function getCredById(req: express.Request, res: express.Response) {
   try {
-    const cred = await getConnection()
+    const cred = await dataSource
       .getRepository(Cred)
-      .findOne({ identifier: req.params.id });
+      .findOne({ where: { identifier: req.params.id } });
 
     if (!cred) {
       return res.status(400).json({ error: 'Cred not found' });
@@ -156,9 +156,9 @@ export async function updateCred(req: express.Request, res: express.Response) {
   }
 
   try {
-    const cred = await getConnection()
+    const cred = await dataSource
       .getRepository(Cred)
-      .findOne({ identifier: req.params.id });
+      .findOne({ where: { identifier: req.params.id } });
 
     if (!cred) {
       return res.status(400).json({ error: 'Cred not found' });
@@ -215,7 +215,7 @@ export async function updateCred(req: express.Request, res: express.Response) {
       cred.credHash = updatedCredContent.credentialHash;
       cred.vc = updatedVc;
 
-      await getConnection().manager.save(cred);
+      await dataSource.manager.save(cred);
 
       console.log('\n✅ Statement updated!');
 
@@ -233,9 +233,9 @@ export async function updateCred(req: express.Request, res: express.Response) {
 
 export async function revokeCred(req: express.Request, res: express.Response) {
   try {
-    const cred = await getConnection()
+    const cred = await dataSource
       .getRepository(Cred)
-      .findOne({ identifier: req.params.id });
+      .findOne({ where: { identifier: req.params.id } });
 
     if (!cred) {
       return res.status(400).json({ error: 'Invalid identifier' });
