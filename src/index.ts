@@ -1,11 +1,7 @@
-import app from './server';
 import express from 'express';
 import { dataSource } from './dbconfig';
 import { addDelegateAsRegistryDelegate } from './init';
-import {
-  createSchema,
-  getSchemaById,
-} from './controller/schema_controller';
+import { createSchema, getSchemaById } from './controller/schema_controller';
 import {
   documentHashOnChain,
   getCredById,
@@ -13,9 +9,9 @@ import {
   revokeCred,
   updateCred,
 } from './controller/credential_controller';
-const {
-  PORT
-} = process.env;
+import app from './server';
+
+const { PORT } = process.env;
 
 const credentialRouter = express.Router({ mergeParams: true });
 const schemaRouter = express.Router({ mergeParams: true });
