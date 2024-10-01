@@ -222,6 +222,7 @@ export async function updateCred(req: express.Request, res: express.Response) {
       return res.status(200).json({
         result: 'Updated successufully',
         identifier: cred.identifier,
+        vc: updatedVc
       });
     }
     return res.status(400).json({ error: 'Document not updated' });
