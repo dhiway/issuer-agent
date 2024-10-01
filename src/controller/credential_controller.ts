@@ -91,7 +91,7 @@ export async function issueVC(req: express.Request, res: express.Response) {
       await dataSource.manager.save(cred);
       return res
         .status(200)
-        .json({ result: 'success', identifier: cred.identifier });
+        .json({ result: 'success', identifier: cred.identifier, vc: vc });
     } else {
       return res.status(400).json({ error: 'Credential not issued' });
     }
