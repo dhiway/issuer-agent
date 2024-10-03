@@ -39,7 +39,6 @@ export async function issueVC(req: express.Request, res: express.Response) {
       .findOne({ where: { identifier: data.schemaId } });
 
     const parsedSchema = JSON.parse(schema?.cordSchema as string);
-    
     const newCredContent = await Vc.buildVcFromContent(
       parsedSchema.schema,
       data.properties,
