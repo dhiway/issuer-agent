@@ -2,7 +2,7 @@ import express from 'express';
 import * as Vc from '@cord.network/vc-export';
 import * as Cord from '@cord.network/sdk';
 import crypto from 'crypto';
-
+import { validateCredential } from '../utils/CredentialValidationUtils';
 import {
   issuerDid,
   authorIdentity,
@@ -16,22 +16,29 @@ import {
 import { Cred } from '../entity/Cred';
 import { Schema } from '../entity/Schema';
 import { dataSource } from '../dbconfig';
+import { extractCredentialFields } from '../utils/CredentialUtils';
 const { CHAIN_SPACE_ID, CHAIN_SPACE_AUTH } = process.env;
 
 export async function issueVC(req: express.Request, res: express.Response) {
-  const data = req.body;
+  let data = req.body;
   const api = Cord.ConfigService.get('api');
   if (!authorIdentity) {
     await addDelegateAsRegistryDelegate();
   }
 
   try {
+    const validationError = validateCredential(data);
+    if (validationError) {
+      return res.status(400).json({ error: validationError });
+    }
+
+    data = extractCredentialFields(data);
+
     const schema = await dataSource
       .getRepository(Schema)
       .findOne({ where: { identifier: data.schemaId } });
 
     const parsedSchema = JSON.parse(schema?.cordSchema as string);
-
     const newCredContent = await Vc.buildVcFromContent(
       parsedSchema.schema,
       data.properties,
@@ -97,7 +104,8 @@ export async function issueVC(req: express.Request, res: express.Response) {
     }
   } catch (err) {
     console.log('Error: ', err);
-    throw new Error('Error in VD issuence');
+
+    return res.status(500).json({ error: 'Error in VD issuence' });
   }
 
   // TODO: If holder id is set vc will be sent to wallet
@@ -142,7 +150,7 @@ export async function getCredById(req: express.Request, res: express.Response) {
     return res.status(200).json({ credential: cred });
   } catch (error) {
     console.log('Error: ', error);
-    throw new Error('Error in cred fetch');
+    return res.status(500).json({ error: 'Error in cred fetch' });
   }
 }
 
@@ -222,13 +230,13 @@ export async function updateCred(req: express.Request, res: express.Response) {
       return res.status(200).json({
         result: 'Updated successufully',
         identifier: cred.identifier,
-        vc: updatedVc
+        vc: updatedVc,
       });
     }
     return res.status(400).json({ error: 'Document not updated' });
   } catch (error) {
     console.log('error: ', error);
-    throw new Error('Error in updating document');
+    return res.status(500).json({ error: 'Error in updating document' });
   }
 }
 

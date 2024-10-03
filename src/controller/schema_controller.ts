@@ -26,18 +26,15 @@ export async function createSchema(
 
     let data = req.body.schema?.schema || req.body.schema || null;
 
-    
     const validationError = validateSchema(data);
     if (validationError) {
       return res.status(400).json({ error: validationError });
-        }
-    
-    data = extractSchemaFields(data)
-   
-   
+    }
+
+    data = extractSchemaFields(data);
+
     let newSchemaName = data.title + ':' + Cord.Utils.UUID.generate();
     data.title = newSchemaName;
-    
 
     let schemaDetails = await Cord.Schema.buildFromProperties(
       data,
@@ -80,7 +77,7 @@ export async function createSchema(
     return res.status(400).json({ error: 'SchemaDetails not created' });
   } catch (error) {
     console.log('err: ', error);
-    throw new Error('Schema not created');
+    return res.status(500).json({ error: 'Schema not created' });
   }
 }
 
@@ -100,6 +97,6 @@ export async function getSchemaById(
     return res.status(200).json({ schema: schema });
   } catch (error) {
     console.log('err: ', error);
-    throw new Error('Schema not found');
+    return res.status(500).json({ error: 'Error Fetching Schema' });
   }
 }
