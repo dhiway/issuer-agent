@@ -26,18 +26,15 @@ export async function createSchema(
 
     let data = req.body.schema?.schema || req.body.schema || null;
 
-    
     const validationError = validateSchema(data);
     if (validationError) {
       return res.status(400).json({ error: validationError });
-        }
-    
-    data = extractSchemaFields(data)
-   
-   
+    }
+
+    data = extractSchemaFields(data);
+
     let newSchemaName = data.title + ':' + Cord.Utils.UUID.generate();
     data.title = newSchemaName;
-    
 
     let schemaDetails = await Cord.Schema.buildFromProperties(
       data,

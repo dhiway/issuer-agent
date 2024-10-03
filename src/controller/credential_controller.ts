@@ -30,9 +30,9 @@ export async function issueVC(req: express.Request, res: express.Response) {
     const validationError = validateCredential(data);
     if (validationError) {
       return res.status(400).json({ error: validationError });
-        }
+    }
 
-    data = extractCredentialFields(data)
+    data = extractCredentialFields(data);
 
     const schema = await dataSource
       .getRepository(Schema)
@@ -49,7 +49,7 @@ export async function issueVC(req: express.Request, res: express.Response) {
         schemaUri: schema?.identifier,
       }
     );
-   
+
     const vc: any = await Vc.addProof(
       newCredContent,
       async (data) => ({
@@ -106,9 +106,7 @@ export async function issueVC(req: express.Request, res: express.Response) {
     console.log('Error: ', err);
 
     return res.status(500).json({ error: 'Error in VD issuence' });
-    }
-
-
+  }
 
   // TODO: If holder id is set vc will be sent to wallet
 
@@ -232,14 +230,13 @@ export async function updateCred(req: express.Request, res: express.Response) {
       return res.status(200).json({
         result: 'Updated successufully',
         identifier: cred.identifier,
-        vc: updatedVc
+        vc: updatedVc,
       });
     }
     return res.status(400).json({ error: 'Document not updated' });
   } catch (error) {
     console.log('error: ', error);
     return res.status(500).json({ error: 'Error in updating document' });
-    
   }
 }
 
