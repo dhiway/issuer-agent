@@ -105,8 +105,11 @@ export async function issueVC(req: express.Request, res: express.Response) {
     }
   } catch (err) {
     console.log('Error: ', err);
+
     return res.status(500).json({ error: 'Error in VD issuence' });
-  }
+    }
+
+
 
   // TODO: If holder id is set vc will be sent to wallet
 
