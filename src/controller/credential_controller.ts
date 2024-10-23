@@ -39,11 +39,17 @@ export async function issueVC(req: express.Request, res: express.Response) {
       .findOne({ where: { identifier: data.schemaId } });
 
     const parsedSchema = JSON.parse(schema?.cordSchema as string);
+
+    let holder = issuerDid.uri;
+    if (data.properties.id) {
+      holder = data.properties.id;
+      delete data.properties.id;
+    }
     const newCredContent = await Vc.buildVcFromContent(
       parsedSchema.schema,
       data.properties,
       issuerDid,
-      issuerDid.uri,
+      holder,
       {
         spaceUri: CHAIN_SPACE_ID as `space:cord:${string}`,
         schemaUri: schema?.identifier,
@@ -55,9 +61,8 @@ export async function issueVC(req: express.Request, res: express.Response) {
       async (data) => ({
         signature: await issuerKeysProperty.assertionMethod.sign(data),
         keyType: issuerKeysProperty.assertionMethod.type,
-        keyUri: `${issuerDid.uri}${
-          issuerDid.assertionMethod![0].id
-        }` as Cord.DidResourceUri,
+        keyUri: `${issuerDid.uri}${issuerDid.assertionMethod![0].id
+          }` as Cord.DidResourceUri,
       }),
       issuerDid,
       api,
@@ -186,9 +191,8 @@ export async function updateCred(req: express.Request, res: express.Response) {
       async (data) => ({
         signature: await issuerKeysProperty.assertionMethod.sign(data),
         keyType: issuerKeysProperty.assertionMethod.type,
-        keyUri: `${issuerDid.uri}${
-          issuerDid.assertionMethod![0].id
-        }` as Cord.DidResourceUri,
+        keyUri: `${issuerDid.uri}${issuerDid.assertionMethod![0].id
+          }` as Cord.DidResourceUri,
       }),
       issuerDid,
       api,

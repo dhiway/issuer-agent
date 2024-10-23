@@ -9,12 +9,14 @@ import {
   revokeCred,
   updateCred,
 } from './controller/credential_controller';
+import { generateDid } from './controller/did_controller';
 import app from './server';
 
 const { PORT } = process.env;
 
 const credentialRouter = express.Router({ mergeParams: true });
 const schemaRouter = express.Router({ mergeParams: true });
+const didRouter = express.Router({ mergeParams: true });
 
 credentialRouter.post('/', async (req, res) => {
   return await issueVC(req, res);
@@ -40,8 +42,12 @@ schemaRouter.get('/:id', async (req, res) => {
   return await getSchemaById(req, res);
 });
 
+didRouter.post('/create', async (req, res) => {
+  return await generateDid(req, res);
+})
 app.use('/api/v1/schema', schemaRouter);
 app.use('/api/v1/cred', credentialRouter);
+app.use('/api/v1/did', didRouter);
 
 app.post('/api/v1/docHash', async (req, res) => {
   return await documentHashOnChain(req, res);
