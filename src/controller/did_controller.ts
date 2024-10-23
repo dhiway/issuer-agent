@@ -14,7 +14,7 @@ export async function generateDid(
   req: express.Request,
   res: express.Response
 ) {
-  const didName = undefined;
+
   try {
     if (!authorIdentity) {
       await addDelegateAsRegistryDelegate();
@@ -35,7 +35,6 @@ export async function generateDid(
     const serviceData = req.body.services[0];
     const processedService = processServiceData(serviceData);
 
-    // Get tx that will create the DID on chain and DID-URI that can be used to resolve the DID Document.
     const didCreationTx = await Cord.Did.getStoreTx(
       {
         authentication: [authentication],
@@ -58,22 +57,6 @@ export async function generateDid(
     );
 
     await Cord.Chain.signAndSubmitTx(didCreationTx, authorIdentity);
-
-    if (didName) {
-      try {
-        await createDidName(
-          didUri,
-          authorIdentity,
-          didName,
-          async ({ data }) => ({
-            signature: authentication.sign(data),
-            keyType: authentication.type,
-          })
-        );
-      } catch (err: any) {
-        console.log('Error to interact with chain', err);
-      }
-    }
 
     const encodedDid = await api.call.didApi.query(Cord.Did.toChain(didUri));
     const { document } = Cord.Did.linkedInfoFromChain(encodedDid);
