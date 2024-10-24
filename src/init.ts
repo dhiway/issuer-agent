@@ -25,7 +25,6 @@ export async function createDidName(
   signCallback: Cord.SignExtrinsicCallback
 ): Promise<void> {
   const api = Cord.ConfigService.get('api');
-
   const didNameClaimTx = await api.tx.didNames.register(name);
   const authorizedDidNameClaimTx = await Cord.Did.authorizeTx(
     did,
@@ -34,6 +33,7 @@ export async function createDidName(
     submitterAccount.address
   );
   await Cord.Chain.signAndSubmitTx(authorizedDidNameClaimTx, submitterAccount);
+
 }
 
 export async function createDid(
