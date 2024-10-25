@@ -21,7 +21,7 @@ export async function generateDid(
     }
     const serviceData = req.body.services[0];
     const processedService = processServiceData(serviceData);
-    const { mnemonic, delegateKeys, document } = await createDid(authorIdentity,processedService);
+    const { mnemonic, delegateKeys, document } = await createDid(authorIdentity, processedService);
 
     return res.status(200).json({ mnemonic, delegateKeys, document });
   } catch (error) {
