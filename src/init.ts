@@ -38,6 +38,7 @@ export async function createDidName(
 
 export async function createDid(
   submitterAccount: Cord.CordKeyringPair,
+  service?: Cord.DidServiceEndpoint[],
   didName?: string | undefined
 ): Promise<{
   mnemonic: string;
@@ -65,8 +66,7 @@ export async function createDid(
         keyAgreement: [keyAgreement],
         assertionMethod: [assertionMethod],
         capabilityDelegation: [capabilityDelegation],
-        // Example service.
-        service: [
+        service: Array.isArray(service) && service.length > 0 ? service : [
           {
             id: '#my-service',
             type: ['service-type'],
@@ -105,16 +105,15 @@ export async function createDid(
     if (!document) {
       throw new Error('DID was not successfully created.');
     }
-
     delegateDid = document;
     delegateKeysProperty = delegateKeys;
-
     return { mnemonic, delegateKeys, document };
   } catch (err) {
     console.log('Error: ', err);
     throw new Error('Failed to create delegate DID');
   }
 }
+
 
 export async function checkDidAndIdentities(mnemonic: string): Promise<any> {
   if (!mnemonic) return null;
