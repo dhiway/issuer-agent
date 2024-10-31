@@ -20,9 +20,9 @@ export async function createSchema(
   res: express.Response
 ) {
   try {
-    if (!authorIdentity) {
-      await addDelegateAsRegistryDelegate();
-    }
+    // if (!authorIdentity) {
+    //   await addDelegateAsRegistryDelegate();
+    // }
 
     let data = req.body.schema?.schema || req.body.schema || null;
 
@@ -70,8 +70,7 @@ export async function createSchema(
 
       await dataSource.manager.save(schemaData);
       return res.status(200).json({
-        result: 'SUCCESS',
-        schemaId: schemaData.identifier,
+        result: { message: 'SUCCESS', schemaId: schemaData.identifier },
       });
     }
     return res.status(400).json({ error: 'SchemaDetails not created' });

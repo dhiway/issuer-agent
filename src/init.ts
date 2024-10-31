@@ -25,7 +25,8 @@ export async function createDidName(
   signCallback: Cord.SignExtrinsicCallback
 ): Promise<void> {
   const api = Cord.ConfigService.get('api');
-  const didNameClaimTx = await api.tx.didNames.register(name);
+
+  const didNameClaimTx = await api.tx.didName.register(name);
   const authorizedDidNameClaimTx = await Cord.Did.authorizeTx(
     did,
     didNameClaimTx,
@@ -33,16 +34,10 @@ export async function createDidName(
     submitterAccount.address
   );
   await Cord.Chain.signAndSubmitTx(authorizedDidNameClaimTx, submitterAccount);
-
 }
 
-export async function createDid(
-  submitterAccount: Cord.CordKeyringPair,
-  service?: Cord.DidServiceEndpoint[],
-  didName?: string | undefined
-): Promise<{
+export async function createDid(didName?: string | undefined): Promise<{
   mnemonic: string;
-  delegateKeys: any;
   document: Cord.DidDocument;
 }> {
   try {
@@ -66,7 +61,8 @@ export async function createDid(
         keyAgreement: [keyAgreement],
         assertionMethod: [assertionMethod],
         capabilityDelegation: [capabilityDelegation],
-        service: Array.isArray(service) && service.length > 0 ? service : [
+        // Example service.
+        service: [
           {
             id: '#my-service',
             type: ['service-type'],
@@ -74,20 +70,20 @@ export async function createDid(
           },
         ],
       },
-      submitterAccount.address,
+      authorIdentity.address,
       async ({ data }) => ({
         signature: authentication.sign(data),
         keyType: authentication.type,
       })
     );
 
-    await Cord.Chain.signAndSubmitTx(didCreationTx, submitterAccount);
+    await Cord.Chain.signAndSubmitTx(didCreationTx, authorIdentity);
 
     if (didName) {
       try {
         await createDidName(
           didUri,
-          submitterAccount,
+          authorIdentity,
           didName,
           async ({ data }) => ({
             signature: authentication.sign(data),
@@ -105,15 +101,16 @@ export async function createDid(
     if (!document) {
       throw new Error('DID was not successfully created.');
     }
+
     delegateDid = document;
     delegateKeysProperty = delegateKeys;
-    return { mnemonic, delegateKeys, document };
+
+    return { mnemonic, document };
   } catch (err) {
     console.log('Error: ', err);
     throw new Error('Failed to create delegate DID');
   }
 }
-
 
 export async function checkDidAndIdentities(mnemonic: string): Promise<any> {
   if (!mnemonic) return null;
@@ -160,7 +157,7 @@ export async function addDelegateAsRegistryDelegate() {
 
     /* Creating delegate from authorIdentity. */
     const { mnemonic: delegateMnemonic, document: delegateDid } =
-      await createDid(authorIdentity);
+      await createDid();
 
     if (!document || !issuerKeys) {
       throw new Error('Failed to create DID');

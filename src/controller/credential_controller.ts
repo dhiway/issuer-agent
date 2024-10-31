@@ -22,9 +22,9 @@ const { CHAIN_SPACE_ID, CHAIN_SPACE_AUTH } = process.env;
 export async function issueVC(req: express.Request, res: express.Response) {
   let data = req.body;
   const api = Cord.ConfigService.get('api');
-  if (!authorIdentity) {
-    await addDelegateAsRegistryDelegate();
-  }
+  // if (!authorIdentity) {
+  //   await addDelegateAsRegistryDelegate();
+  // }
 
   try {
     const validationError = validateCredential(data);
@@ -40,11 +40,12 @@ export async function issueVC(req: express.Request, res: express.Response) {
 
     const parsedSchema = JSON.parse(schema?.cordSchema as string);
 
-    let holder = issuerDid.uri;
+    let holder = delegateDid.uri;
     if (data.properties.id) {
       holder = data.properties.id;
       delete data.properties.id;
     }
+
     const newCredContent = await Vc.buildVcFromContent(
       parsedSchema.schema,
       data.properties,
@@ -61,8 +62,9 @@ export async function issueVC(req: express.Request, res: express.Response) {
       async (data) => ({
         signature: await issuerKeysProperty.assertionMethod.sign(data),
         keyType: issuerKeysProperty.assertionMethod.type,
-        keyUri: `${issuerDid.uri}${issuerDid.assertionMethod![0].id
-          }` as Cord.DidResourceUri,
+        keyUri: `${issuerDid.uri}${
+          issuerDid.assertionMethod![0].id
+        }` as Cord.DidResourceUri,
       }),
       issuerDid,
       api,
@@ -101,9 +103,9 @@ export async function issueVC(req: express.Request, res: express.Response) {
 
     if (statement) {
       await dataSource.manager.save(cred);
-      return res
-        .status(200)
-        .json({ result: 'success', identifier: cred.identifier, vc: vc });
+      return res.status(200).json({
+        result: { message: 'SUCCESS', identifier: cred.identifier, vc },
+      });
     } else {
       return res.status(400).json({ error: 'Credential not issued' });
     }
@@ -191,8 +193,9 @@ export async function updateCred(req: express.Request, res: express.Response) {
       async (data) => ({
         signature: await issuerKeysProperty.assertionMethod.sign(data),
         keyType: issuerKeysProperty.assertionMethod.type,
-        keyUri: `${issuerDid.uri}${issuerDid.assertionMethod![0].id
-          }` as Cord.DidResourceUri,
+        keyUri: `${issuerDid.uri}${
+          issuerDid.assertionMethod![0].id
+        }` as Cord.DidResourceUri,
       }),
       issuerDid,
       api,
