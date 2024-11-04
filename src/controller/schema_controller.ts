@@ -62,7 +62,7 @@ export async function createSchema(
     if (schemaDetails) {
       const schemaData = new Schema();
       schemaData.identifier = schemaUri;
-      schemaData.title = data.title ? data.title : '';
+      schemaData.title = newSchemaName ? newSchemaName : '';
       schemaData.description = data.description ? data.description : '';
       schemaData.schemaProperties = data.properties;
       schemaData.cordSchema = JSON.stringify(schemaDetails);
