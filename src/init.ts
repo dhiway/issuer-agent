@@ -36,8 +36,24 @@ export async function createDidName(
   await Cord.Chain.signAndSubmitTx(authorizedDidNameClaimTx, submitterAccount);
 }
 
+export async function getDidDocFromName(
+  didName: Cord.Did.DidName
+): Promise<string> {
+  const api = Cord.ConfigService.get('api');
+  console.log(`\n❄️  Resolve DID name ${didName} `);
+
+  // Query the owner of the provided didName.
+  const encodedDidNameOwner = await api.call.didApi.queryByName(didName);
+
+  const {
+    document: { uri },
+  } = Cord.Did.linkedInfoFromChain(encodedDidNameOwner);
+
+  console.log(` uri: ${uri}`);
+  return uri;
+}
+
 export async function createDid(didName?: string | undefined): Promise<{
-  mnemonic: string;
   document: Cord.DidDocument;
 }> {
   try {
@@ -105,7 +121,7 @@ export async function createDid(didName?: string | undefined): Promise<{
     delegateDid = document;
     delegateKeysProperty = delegateKeys;
 
-    return { mnemonic, document };
+    return { document };
   } catch (err) {
     console.log('Error: ', err);
     throw new Error('Failed to create delegate DID');
@@ -156,8 +172,7 @@ export async function addDelegateAsRegistryDelegate() {
     );
 
     /* Creating delegate from authorIdentity. */
-    const { mnemonic: delegateMnemonic, document: delegateDid } =
-      await createDid();
+    const { document: delegateDid } = await createDid();
 
     if (!document || !issuerKeys) {
       throw new Error('Failed to create DID');
@@ -189,7 +204,7 @@ export async function addDelegateAsRegistryDelegate() {
 
     console.log(`✅ Space Authorization added!`);
 
-    return { delegateMnemonic };
+    return;
   } catch (error) {
     console.log('err: ', error);
     throw new Error('Failed to create Delegate Registry');

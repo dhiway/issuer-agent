@@ -2,19 +2,18 @@ import * as Cord from '@cord.network/sdk';
 import express from 'express';
 import 'reflect-metadata';
 
-import { createDid } from '../init';
+import { createDid, getDidDocFromName } from '../init';
 import { studio_encrypt } from '../identity/org';
 
 export async function generateDid(req: express.Request, res: express.Response) {
   const { didName } = req.body;
 
   try {
-    const { mnemonic, document } = await createDid(didName);
+    const { document } = await createDid(didName);
 
     return res.status(200).json({
       result: {
         message: 'Successfully created did',
-        mnemonic,
         document,
       },
     });
@@ -50,22 +49,17 @@ export async function didNameNewCheck(
   }
 }
 
-export async function encryptMnemonic(
-  req: express.Request,
-  res: express.Response
-) {
+export async function getDidDoc(req: express.Request, res: express.Response) {
   try {
-    const { issuerMnemonic } = req.body;
+    const didName = req.params.id;
 
-    const encryptedMnemonic = JSON.stringify(
-      await studio_encrypt(issuerMnemonic)
-    );
+    const didUri = await getDidDocFromName(didName);
 
     return res.status(200).json({
-      result: { message: 'Encryption Successfully', encryptedMnemonic },
+      result: { message: 'Did Successfully fetched', didUri },
     });
   } catch (error) {
-    console.error('Error in encryption', error);
+    console.error('Error in did fetch', error);
     return res
       .status(400)
       .json({ success: false, message: 'Internal server error' });

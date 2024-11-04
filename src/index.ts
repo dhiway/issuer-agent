@@ -14,8 +14,8 @@ import {
 } from './controller/credential_controller';
 import {
   didNameNewCheck,
-  encryptMnemonic,
   generateDid,
+  getDidDoc,
 } from './controller/did_controller';
 import app from './server';
 import { studio_identity_init } from './identity/org';
@@ -71,8 +71,8 @@ if (cluster.isMaster) {
     return await generateDid(req, res);
   });
 
-  didRouter.post('/encrypt', async (req, res) => {
-    return await encryptMnemonic(req, res);
+  didRouter.get('/didFetch/:id', async (req, res) => {
+    return await getDidDoc(req, res);
   });
 
   app.use('/api/v1/schema', schemaRouter);

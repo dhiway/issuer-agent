@@ -28,6 +28,7 @@ export async function issueVC(req: express.Request, res: express.Response) {
 
   try {
     const validationError = validateCredential(data);
+
     if (validationError) {
       return res.status(400).json({ error: validationError });
     }
@@ -40,7 +41,7 @@ export async function issueVC(req: express.Request, res: express.Response) {
 
     const parsedSchema = JSON.parse(schema?.cordSchema as string);
 
-    let holder = delegateDid.uri;
+    let holder = delegateDid?.uri || '';
     if (data.properties.id) {
       holder = data.properties.id;
       delete data.properties.id;
