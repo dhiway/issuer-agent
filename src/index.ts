@@ -16,6 +16,7 @@ import {
   didNameNewCheck,
   generateDid,
   getDidDoc,
+  resolveDid,
 } from './controller/did_controller';
 import app from './server';
 import { studio_identity_init } from './identity/org';
@@ -73,6 +74,10 @@ if (cluster.isMaster) {
 
   didRouter.get('/didFetch/:id', async (req, res) => {
     return await getDidDoc(req, res);
+  });
+
+  didRouter.get('/didDoc/:id', async (req, res) => {
+    return await resolveDid(req, res);
   });
 
   app.use('/api/v1/schema', schemaRouter);

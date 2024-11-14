@@ -17,6 +17,7 @@ const allowedOrigins = [
   'https://studio.dhiway.com',
   'https://markdemo.dhiway.com',
   'https://studiodemo.dhiway.com',
+  'https://oid4vci.demo.cord.network'
 ];
 
 const allowedDomains = [
