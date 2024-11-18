@@ -20,6 +20,7 @@ import {
 } from './controller/did_controller';
 import app from './server';
 import { studio_identity_init } from './identity/org';
+import { createVcForAffinidi } from './controller/oid4vci_controller';
 
 const { PORT, MNEMONIC } = process.env;
 
@@ -86,6 +87,10 @@ if (cluster.isMaster) {
 
   app.post('/api/v1/docHash', async (req, res) => {
     return await documentHashOnChain(req, res);
+  });
+
+  app.post('/api/v1/generate-vc', async (req, res) => {
+    return await createVcForAffinidi(req, res);
   });
 
   app.get('/*', async (req, res) => {
