@@ -130,38 +130,13 @@ async function generateVC(content: any, holderDid: string) {
   return wrappedVC;
 }
 
-// async function main() {
-//   const content = {
-//     email: 'amar@dhiway.com',
-//     studentName: 'Amar Tumballi',
-//     courseName: 'Masters in Data Analytics (Dhiway) ',
-//     instituteName: 'Hogwarts University',
-//     instituteLogo: '' /* TODO: send URL */,
-//     dateOfCompletion: new Date().toISOString() /* TODO: make this a old date */,
-//     scoreAchieved: '450/500',
-//   };
-//   const holderDid =
-//     'did:web:oid4vci.demo.cord.network:3zKcL2oAsvZZwFA5uPxtysk5jsai2TGx4AvrpJcBYmAwzGyN';
-//   await generateVC(content, holderDid);
-// }
-
-// main()
-//   .then(() => console.log('\nBye! 👋 👋 👋 '))
-//   .finally();
-
-// process.on('SIGINT', async () => {
-//   console.log('\nBye! 👋 👋 👋 \n');
-//   //Cord.disconnect();
-//   process.exit(0);
-// });
-
 export async function createVcForAffinidi(
   req: express.Request,
   res: express.Response
 ) {
   try {
-    // Extract `content` and `holderDid` from the request body
     const { content } = req.body;
+
     /*
     const content = {
     email: 'amar@dhiway.com',
@@ -173,6 +148,7 @@ export async function createVcForAffinidi(
     scoreAchieved: '450/500',
     holderDid: 'did:web:oid4vci.demo.cord.network:3zKcL2oAsvZZwFA5uPxtysk5jsai2TGx4AvrpJcBYmAwzGyN'
   }; */
+
     const holderDid = content.holderDid;
 
     if (!content || !holderDid) {
