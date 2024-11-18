@@ -16,9 +16,11 @@ import {
   didNameNewCheck,
   generateDid,
   getDidDoc,
+  resolveDid,
 } from './controller/did_controller';
 import app from './server';
 import { studio_identity_init } from './identity/org';
+import { createVcForAffinidi } from './controller/oid4vci_controller';
 
 const { PORT, MNEMONIC } = process.env;
 
@@ -75,12 +77,20 @@ if (cluster.isMaster) {
     return await getDidDoc(req, res);
   });
 
+  didRouter.get('/didDoc/:id', async (req, res) => {
+    return await resolveDid(req, res);
+  });
+
   app.use('/api/v1/schema', schemaRouter);
   app.use('/api/v1/cred', credentialRouter);
   app.use('/api/v1/did', didRouter);
 
   app.post('/api/v1/docHash', async (req, res) => {
     return await documentHashOnChain(req, res);
+  });
+
+  app.post('/api/v1/generate-vc', async (req, res) => {
+    return await createVcForAffinidi(req, res);
   });
 
   app.get('/*', async (req, res) => {
