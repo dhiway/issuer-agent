@@ -24,7 +24,7 @@ const vcTemplate: any = {
         '@id': 'schema-id:email',
         '@type': 'https://schema.org/Text',
       },
-      studentName: {
+      name: {
         '@id': 'schema-id:studentName',
         '@type': 'https://schema.org/Text',
       },
@@ -111,7 +111,7 @@ async function generateVC(content: any, holderDid: string) {
   vc.credentialSubject = {
     id: holderDid,
     email: content.email,
-    studentName: content.studentName,
+    name: content.name,
     courseName: content.courseName,
     instituteName: content.instituteName,
     instituteLogo: content.instituteLogo,
@@ -173,9 +173,7 @@ export async function createVcForAffinidi(
     scoreAchieved: '450/500',
     holderDid: 'did:web:oid4vci.demo.cord.network:3zKcL2oAsvZZwFA5uPxtysk5jsai2TGx4AvrpJcBYmAwzGyN'
   }; */
-    console.log('content: ', content, req.body);
     const holderDid = content.holderDid;
-    console.log('holderDid: ', holderDid);
 
     if (!content || !holderDid) {
       return res.status(400).json({
@@ -185,7 +183,6 @@ export async function createVcForAffinidi(
 
     // Generate the Verifiable Credential
     const signedVC = await generateVC(content, holderDid);
-    console.log('signedVC: ', signedVC);
 
     // Respond with the signed VC
     res.status(200).json({
