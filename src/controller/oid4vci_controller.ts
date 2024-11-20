@@ -24,8 +24,8 @@ const vcTemplate: any = {
         '@id': 'schema-id:email',
         '@type': 'https://schema.org/Text',
       },
-      name: {
-        '@id': 'schema-id:studentName',
+      fullName: {
+        '@id': 'schema-id:fullName',
         '@type': 'https://schema.org/Text',
       },
       courseName: {
@@ -110,8 +110,8 @@ async function generateVC(content: any, holderDid: string) {
 
   vc.credentialSubject = {
     id: holderDid,
+    fullName: content.fullName,
     email: content.email,
-    name: content.name,
     courseName: content.courseName,
     instituteName: content.instituteName,
     instituteLogo: content.instituteLogo,
