@@ -55,7 +55,7 @@ app.post('/api/v1/docHash', async (req, res) => {
 });
 
 app.get('/:id/did.json', async (req, res) => {
-  await resolveDid(req, res);
+  return await resolveDid(req, res);
 });
 
 app.get('/*', async (req, res) => {
@@ -67,7 +67,7 @@ app.get('/*', async (req, res) => {
 async function main() {
   try {
     await dataSource.initialize();
-    await addDelegateAsRegistryDelegate();
+    addDelegateAsRegistryDelegate();
   } catch (error) {
     console.log('error: ', error);
     throw new Error('Main error');

@@ -35,70 +35,100 @@ export async function generateDid(req: express.Request, res: express.Response) {
 export async function resolveDid(req: Request, res: Response) {
   try {
     const didUri = `did:cord:${req.params.id}`;
+    const didDoc = await resolve2Did(didUri);
 
-    let didDoc = await resolve2Did(didUri);
+    if (!didDoc) {
+      return res.status(404).json({ error: 'DID document not found' });
+    }
 
-    let id = didDoc.uri.replace('did:cord', `did:web:${WEB_URL}`);
+    const webDid = didDoc.uri.replace('did:cord', `did:web:${WEB_URL}`);
+    const context = [
+      'https://www.w3.org/ns/did/v1',
+      'https://w3id.org/security/suites/ed25519-2020/v1',
+    ];
 
-    let authId;
-    let assesId;
+    const { authentication, assertionMethod } = didDoc;
+    const verificationMethod = [];
 
-    delete didDoc.uri;
-    didDoc.id = id;
-    didDoc.verificationMethod = didDoc.authentication;
-    didDoc.verificationMethod[0].type = 'Ed25519VerificationKey2020';
-    authId = `${id}${didDoc.authentication[0].id}`;
-    didDoc.verificationMethod[0].id = authId;
-    didDoc.verificationMethod[0].controller = id;
-    didDoc.authentication = [authId];
+    // Process authentication method
+    if (authentication?.[0]) {
+      const [authMethod] = authentication;
+      delete authMethod.publicKey;
+      const authEntry = createVerificationMethod(authMethod, webDid, 'auth');
+      verificationMethod.push(authEntry);
+      didDoc.authentication = [authEntry.id];
+    }
 
-    // delete didDoc.authentication;
-    didDoc.verificationMethod.push(didDoc.assertionMethod[0]);
-    didDoc.verificationMethod[1].type = 'Ed25519VerificationKey2020';
-    assesId = `${id}${didDoc.assertionMethod[0].id}`;
-    didDoc.verificationMethod[1].id = assesId;
-    didDoc.verificationMethod[1].controller = id;
-    didDoc.assertionMethod = [assesId];
-    // delete didDoc.assertionMethod;
-    delete didDoc.service;
-    delete didDoc.capabilityDelegation;
-    delete didDoc.keyAgreement;
-    /* fix the publicKey */
-    console.log('document: ', didDoc);
-    return res.status(200).json({
-      '@context': [
-        'https://www.w3.org/ns/did/v1',
-        'https://w3id.org/security/suites/ed25519-2020/v1',
-      ],
+    // Process assertion method
+    if (assertionMethod?.[0]) {
+      const [assertMethod] = assertionMethod;
+      delete assertMethod.publicKey;
+      const assertEntry = createVerificationMethod(
+        assertMethod,
+        webDid,
+        'assert'
+      );
+      verificationMethod.push(assertEntry);
+      didDoc.assertionMethod = [assertEntry.id];
+    }
+
+    const resolvedDocument = {
+      '@context': context,
       ...didDoc,
-    });
+      id: webDid,
+      verificationMethod,
+    };
+
+    // Remove unwanted properties
+    const {
+      uri,
+      service,
+      capabilityDelegation,
+      keyAgreement,
+      ...cleanDocument
+    } = resolvedDocument;
+
+    return res.status(200).json(cleanDocument);
   } catch (error) {
-    console.log('error: ', error);
-    return res.status(400).json({ error: 'Did resolution failed' });
+    console.error('DID resolution error:', error);
+    return res.status(500).json({ error: 'DID resolution failed' });
   }
 }
 
 export async function resolve2Did(didUri: string) {
   try {
-    const didDoc = await Cord.Did.resolve(didUri as `did:cord:3${string}`);
+    const resolved = await Cord.Did.resolve(didUri as `did:cord:3${string}`);
+    if (!resolved?.document) return null;
 
-    let didResponse: any = { ...didDoc?.document };
-    if (didDoc) {
-      let a = Cord.u8aToHex(didResponse.assertionMethod[0].publicKey);
-      didResponse.assertionMethod[0]!.publicKeyHex = a;
-      didResponse.assertionMethod[0]!.publicKeyMultibase =
-        'z' + encodeAddress(a);
-      delete didResponse.assertionMethod[0]?.publicKey;
+    const processKey = (method: any) => {
+      const publicKeyHex = Cord.u8aToHex(method.publicKey);
+      return {
+        ...method,
+        publicKeyHex,
+        publicKeyMultibase: `z${encodeAddress(publicKeyHex)}`,
+      };
+    };
 
-      let b = Cord.u8aToHex(didResponse.authentication[0].publicKey);
-      didResponse.authentication[0]!.publicKeyHex = b;
-      didResponse.authentication[0]!.publicKeyMultibase =
-        'z' + encodeAddress(b);
-      delete didResponse.authentication[0]?.publicKey;
-    }
-
-    return didResponse;
+    return {
+      ...resolved.document,
+      authentication: resolved.document.authentication?.map(processKey),
+      assertionMethod: resolved.document.assertionMethod?.map(processKey),
+    };
   } catch (error) {
-    console.log('error: ', error);
+    console.error('DID processing error:', error);
+    return null;
   }
+}
+
+function createVerificationMethod(
+  method: any,
+  controller: string,
+  type: 'auth' | 'assert'
+) {
+  return {
+    ...method,
+    type: 'Ed25519VerificationKey2020',
+    id: `${controller}#${type}-key`,
+    controller,
+  };
 }
