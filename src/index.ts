@@ -9,7 +9,7 @@ import {
   revokeCred,
   updateCred,
 } from './controller/credential_controller';
-import { generateDid } from './controller/did_controller';
+import { generateDid, resolveDid } from './controller/did_controller';
 import app from './server';
 
 const { PORT } = process.env;
@@ -44,13 +44,18 @@ schemaRouter.get('/:id', async (req, res) => {
 
 didRouter.post('/create', async (req, res) => {
   return await generateDid(req, res);
-})
+});
+
 app.use('/api/v1/schema', schemaRouter);
 app.use('/api/v1/cred', credentialRouter);
 app.use('/api/v1/did', didRouter);
 
 app.post('/api/v1/docHash', async (req, res) => {
   return await documentHashOnChain(req, res);
+});
+
+app.get('/:id/did.json', async (req, res) => {
+  return await resolveDid(req, res);
 });
 
 app.get('/*', async (req, res) => {
@@ -62,7 +67,7 @@ app.get('/*', async (req, res) => {
 async function main() {
   try {
     await dataSource.initialize();
-    await addDelegateAsRegistryDelegate();
+    addDelegateAsRegistryDelegate();
   } catch (error) {
     console.log('error: ', error);
     throw new Error('Main error');

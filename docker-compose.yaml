@@ -26,6 +26,7 @@ services:
             - AGENT_DID_NAME=${AGENT_DID_NAME}
             - CHAIN_SPACE_ID=${CHAIN_SPACE_ID}
             - CHAIN_SPACE_AUTH=${CHAIN_SPACE_AUTH}
+            - WEB_URL=${WEB_URL}
         ports:
             - ${AGENT_PORT}:${AGENT_PORT}
         depends_on:
