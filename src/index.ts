@@ -11,12 +11,17 @@ import {
 } from './controller/credential_controller';
 import { generateDid } from './controller/did_controller';
 import app from './server';
+import multer from "multer";
 
 const { PORT } = process.env;
 
 const credentialRouter = express.Router({ mergeParams: true });
 const schemaRouter = express.Router({ mergeParams: true });
 const didRouter = express.Router({ mergeParams: true });
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 3 * 1024 * 1024 }, // 3MB limit
+});
 
 credentialRouter.post('/', async (req, res) => {
   return await issueVC(req, res);
@@ -49,8 +54,17 @@ app.use('/api/v1/schema', schemaRouter);
 app.use('/api/v1/cred', credentialRouter);
 app.use('/api/v1/did', didRouter);
 
-app.post('/api/v1/docHash', async (req, res) => {
+app.post("/api/v1/docHash", upload.single("file"), async (req, res) => {
   return await documentHashOnChain(req, res);
+});
+
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (err instanceof multer.MulterError) {
+    if (err.code === "LIMIT_FILE_SIZE") {
+      return res.status(400).json({ err: "❌ File size exceeds 3MB limit!" });
+    }
+  }
+  next(err);
 });
 
 app.get('/*', async (req, res) => {
