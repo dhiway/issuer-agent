@@ -17,6 +17,7 @@ import { Cred } from '../entity/Cred';
 import { Schema } from '../entity/Schema';
 import { dataSource } from '../dbconfig';
 import { extractCredentialFields } from '../utils/CredentialUtils';
+import { MulterRequest } from '../types/type';
 const { CHAIN_SPACE_ID, CHAIN_SPACE_AUTH } = process.env;
 
 export async function issueVC(req: express.Request, res: express.Response) {
@@ -274,19 +275,24 @@ export async function revokeCred(req: express.Request, res: express.Response) {
   }
 }
 
+
+
+
 export async function documentHashOnChain(
-  req: express.Request,
+  req: MulterRequest,
   res: express.Response
 ) {
-  try {
-    const data = req.body;
-    const api = Cord.ConfigService.get('api');
-    // const content: any = fs.readFileSync('./package.json');
-    const content = JSON.stringify(data);
 
-    const hashFn = crypto.createHash('sha256');
-    hashFn.update(content);
-    let digest = `0x${hashFn.digest('hex')}`;
+  try {
+// Ensure a file is uploaded
+if (!req.file) {
+  return res.status(400).json({ err: "No file uploaded" });
+}
+const api = Cord.ConfigService.get('api');
+// Compute SHA-256 hash of the file buffer
+const hashFn = crypto.createHash("sha256");
+hashFn.update(req.file.buffer);
+const digest = `0x${hashFn.digest("hex")}`;
 
     const docProof = await Vc.getCordProofForDigest(
       digest as `0x${string}`,
@@ -312,8 +318,8 @@ export async function documentHashOnChain(
     console.log(`✅ Statement element registered - ${statement1}`);
 
     return res.status(200).json({ result: statement1 });
-  } catch (error) {
+  } catch (error:any) {
     console.log('errr: ', error);
-    return res.status(400).json({ err: error });
+    return res.status(400).json({ err: error.message ? error.message : error });
   }
 }
