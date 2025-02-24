@@ -20,7 +20,7 @@ const schemaRouter = express.Router({ mergeParams: true });
 const didRouter = express.Router({ mergeParams: true });
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 3 * 1024 * 1024 }, // 3MB limit
+  limits: { fileSize: 1024 * 1024 * 1024 }, // 1GB limit
 });
 
 credentialRouter.post('/', async (req, res) => {
@@ -66,7 +66,7 @@ app.get('/:id/did.json', async (req, res) => {
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   if (err instanceof multer.MulterError) {
     if (err.code === "LIMIT_FILE_SIZE") {
-      return res.status(400).json({ err: "❌ File size exceeds 3MB limit!" });
+      return res.status(400).json({ err: "❌ File size exceeds 1GB limit!" });
     }
   }
   next(err);

@@ -282,17 +282,16 @@ export async function documentHashOnChain(
   req: MulterRequest,
   res: express.Response
 ) {
-
   try {
-// Ensure a file is uploaded
-if (!req.file) {
-  return res.status(400).json({ err: "No file uploaded" });
-}
-const api = Cord.ConfigService.get('api');
-// Compute SHA-256 hash of the file buffer
-const hashFn = crypto.createHash("sha256");
-hashFn.update(req.file.buffer);
-const digest = `0x${hashFn.digest("hex")}`;
+    // Ensure a file is uploaded
+    if (!req.file) {
+      return res.status(400).json({ err: 'No file uploaded' });
+    }
+    const api = Cord.ConfigService.get('api');
+    // Compute SHA-256 hash of the file buffer
+    const hashFn = crypto.createHash('sha256');
+    hashFn.update(req.file.buffer);
+    const digest = `0x${hashFn.digest('hex')}`;
 
     const docProof = await Vc.getCordProofForDigest(
       digest as `0x${string}`,
@@ -314,11 +313,18 @@ const digest = `0x${hashFn.digest("hex")}`;
       })
     );
 
-    console.dir(docProof, { colors: true, depth: null });
-    console.log(`✅ Statement element registered - ${statement1}`);
-
-    return res.status(200).json({ result: statement1 });
-  } catch (error:any) {
+    const statementDetails = await api.query.statement.statements(
+      docProof.identifier
+    );
+    return res
+      .status(200)
+      .json({
+        result: {
+          identifier: docProof.identifier,
+          blockHash: statementDetails.createdAtHash?.toString(),
+        },
+      });
+  } catch (error: any) {
     console.log('errr: ', error);
     return res.status(400).json({ err: error.message ? error.message : error });
   }
