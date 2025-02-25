@@ -17,7 +17,6 @@ import { Cred } from '../entity/Cred';
 import { Schema } from '../entity/Schema';
 import { dataSource } from '../dbconfig';
 import { extractCredentialFields } from '../utils/CredentialUtils';
-import { MulterRequest } from '../types/type';
 const { CHAIN_SPACE_ID, CHAIN_SPACE_AUTH } = process.env;
 
 export async function issueVC(req: express.Request, res: express.Response) {
@@ -279,22 +278,18 @@ export async function revokeCred(req: express.Request, res: express.Response) {
 
 
 export async function documentHashOnChain(
-  req: MulterRequest,
+  req: express.Request,
   res: express.Response
 ) {
   try {
-    // Ensure a file is uploaded
-    if (!req.file) {
-      return res.status(400).json({ err: 'No file uploaded' });
-    }
+    const fileHash= req?.body.filehash;
+     if (!fileHash) {
+        return res.status(400).json({ err: 'No file uploaded' });
+      }
     const api = Cord.ConfigService.get('api');
-    // Compute SHA-256 hash of the file buffer
-    const hashFn = crypto.createHash('sha256');
-    hashFn.update(req.file.buffer);
-    const digest = `0x${hashFn.digest('hex')}`;
 
     const docProof = await Vc.getCordProofForDigest(
-      digest as `0x${string}`,
+      fileHash as `0x${string}`,
       issuerDid,
       api,
       {
@@ -324,6 +319,48 @@ export async function documentHashOnChain(
           blockHash: statementDetails.createdAtHash?.toString(),
         },
       });
+  } catch (error: any) {
+    console.log('errr: ', error);
+    return res.status(400).json({ err: error.message ? error.message : error });
+  }
+}
+
+export async function revokeDocumentHashOnChain(
+  req: express.Request,
+  res: express.Response
+) {
+  try {
+    const fileHash= req?.body.filehash;
+     if (!fileHash) {
+        return res.status(400).json({ err: 'No file uploaded' });
+      }
+    const api = Cord.ConfigService.get('api');
+
+    const space = Cord.Identifier.uriToIdentifier(CHAIN_SPACE_ID);
+    const identifierencoded = await api.query.statement.identifierLookup(
+      fileHash as `0x${string}`,
+      space
+    );
+    const identifier = identifierencoded.toHuman();
+    const digest = fileHash.replace(/^0x/, ""); 
+    const statmentid = `stmt:cord:${identifier}:${digest}`
+    const statement1 = await Cord.Statement.dispatchRevokeToChain(
+      statmentid as `stmt:cord:${string}`,
+      issuerDid.uri,
+      authorIdentity,
+      CHAIN_SPACE_AUTH as `auth:cord:${string}`,
+      async ({ data }) => ({
+        signature: issuerKeysProperty.authentication.sign(data),
+        keyType: issuerKeysProperty.authentication.type,
+      })
+    );
+
+    const statementStatus = await Cord.Statement.fetchStatementDetailsfromChain(statmentid as `stmt:cord:${string}`);
+    if(statementStatus?.revoked){
+      return res.status(200).json({ result:{msg:'Successfully revoked'} });
+    }else{
+      return res.status(400).json({ err:'Document not revoked' });
+    }
   } catch (error: any) {
     console.log('errr: ', error);
     return res.status(400).json({ err: error.message ? error.message : error });

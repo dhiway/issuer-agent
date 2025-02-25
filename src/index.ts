@@ -7,21 +7,18 @@ import {
   getCredById,
   issueVC,
   revokeCred,
+  revokeDocumentHashOnChain,
   updateCred,
 } from './controller/credential_controller';
 import { generateDid, resolveDid } from './controller/did_controller';
 import app from './server';
-import multer from "multer";
 
 const { PORT } = process.env;
 
 const credentialRouter = express.Router({ mergeParams: true });
 const schemaRouter = express.Router({ mergeParams: true });
 const didRouter = express.Router({ mergeParams: true });
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 1024 * 1024 * 1024 }, // 1GB limit
-});
+const docRouter = express.Router({ mergeParams: true });
 
 credentialRouter.post('/', async (req, res) => {
   return await issueVC(req, res);
@@ -51,25 +48,22 @@ didRouter.post('/create', async (req, res) => {
   return await generateDid(req, res);
 });
 
-app.use('/api/v1/schema', schemaRouter);
-app.use('/api/v1/cred', credentialRouter);
-app.use('/api/v1/did', didRouter);
-
-app.post("/api/v1/docHash", upload.single("file"), async (req, res) => {
+docRouter.post("/issue", async (req, res) => {
   return await documentHashOnChain(req, res);
 });
 
-app.get('/:id/did.json', async (req, res) => {
-  return await resolveDid(req, res);
+docRouter.post("/revoke", async (req, res) => {
+  return await revokeDocumentHashOnChain(req, res);
 });
 
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  if (err instanceof multer.MulterError) {
-    if (err.code === "LIMIT_FILE_SIZE") {
-      return res.status(400).json({ err: "❌ File size exceeds 1GB limit!" });
-    }
-  }
-  next(err);
+app.use('/api/v1/schema', schemaRouter);
+app.use('/api/v1/cred', credentialRouter);
+app.use('/api/v1/did', didRouter);
+app.use('/api/v1/docHash', docRouter);
+
+
+app.get('/:id/did.json', async (req, res) => {
+  return await resolveDid(req, res);
 });
 
 app.get('/*', async (req, res) => {
