@@ -8,6 +8,7 @@ import {
   issueVC,
   revokeCred,
   revokeDocumentHashOnChain,
+  udpateDocumentHashonChain,
   updateCred,
 } from './controller/credential_controller';
 import { generateDid, resolveDid } from './controller/did_controller';
@@ -54,6 +55,10 @@ docRouter.post("/issue", async (req, res) => {
 
 docRouter.post("/revoke", async (req, res) => {
   return await revokeDocumentHashOnChain(req, res);
+});
+
+docRouter.post("/update", async (req, res) => {
+  return await udpateDocumentHashonChain(req, res);
 });
 
 app.use('/api/v1/schema', schemaRouter);

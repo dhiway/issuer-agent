@@ -330,22 +330,40 @@ export async function revokeDocumentHashOnChain(
   res: express.Response
 ) {
   try {
-    const fileHash= req?.body.filehash;
-     if (!fileHash) {
-        return res.status(400).json({ err: 'No file uploaded' });
-      }
+    const fileHash = req?.body.filehash;
+    const identifierReq = req?.body.identifier;
+    let statementUri = ``;
     const api = Cord.ConfigService.get('api');
-
-    const space = Cord.Identifier.uriToIdentifier(CHAIN_SPACE_ID);
-    const identifierencoded = await api.query.statement.identifierLookup(
-      fileHash as `0x${string}`,
-      space
+    if (fileHash) {
+      const space = Cord.Identifier.uriToIdentifier(CHAIN_SPACE_ID);
+      const identifierencoded = await api.query.statement.identifierLookup(
+        fileHash as `0x${string}`,
+        space
+      );
+      const identifier = identifierencoded.toHuman();
+      const digest = fileHash.replace(/^0x/, '');
+      statementUri = `stmt:cord:${identifier}:${digest}`;
+    } else if (identifierReq) {
+      const statementDetails = await Cord.Statement.getDetailsfromChain(
+        identifierReq
+      );
+      const digest = statementDetails?.digest.replace(/^0x/, '');
+      statementUri = `${statementDetails?.uri}:${digest}`;
+    } else {
+      return res
+        .status(400)
+        .json({ err: 'File hash or identifier is required for revoke' });
+    }
+    const statementStatus = await Cord.Statement.fetchStatementDetailsfromChain(
+      statementUri as `stmt:cord:${string}`
     );
-    const identifier = identifierencoded.toHuman();
-    const digest = fileHash.replace(/^0x/, ""); 
-    const statmentid = `stmt:cord:${identifier}:${digest}`
-    const statement1 = await Cord.Statement.dispatchRevokeToChain(
-      statmentid as `stmt:cord:${string}`,
+    if (statementStatus?.revoked) {
+      return res
+        .status(400)
+        .json({ err: 'Document is already revoked on chain' });
+    }
+    const revokeResponse = await Cord.Statement.dispatchRevokeToChain(
+      statementUri as `stmt:cord:${string}`,
       issuerDid.uri,
       authorIdentity,
       CHAIN_SPACE_AUTH as `auth:cord:${string}`,
@@ -355,11 +373,67 @@ export async function revokeDocumentHashOnChain(
       })
     );
 
-    const statementStatus = await Cord.Statement.fetchStatementDetailsfromChain(statmentid as `stmt:cord:${string}`);
-    if(statementStatus?.revoked){
-      return res.status(200).json({ result:{msg:'Successfully revoked'} });
-    }else{
-      return res.status(400).json({ err:'Document not revoked' });
+    const statementStatusRevoked =
+      await Cord.Statement.fetchStatementDetailsfromChain(
+        statementUri as `stmt:cord:${string}`
+      );
+    if (statementStatusRevoked?.revoked) {
+      return res.status(200).json({ result: { msg: 'Successfully revoked' } });
+    } else {
+      return res.status(400).json({ err: 'Document not revoked' });
+    }
+  } catch (error: any) {
+    console.log('errr: ', error);
+    return res.status(400).json({ err: error.message ? error.message : error });
+  }
+}
+
+export async function udpateDocumentHashonChain(
+  req: express.Request,
+  res: express.Response
+) {
+  try {
+    const fileHash = req?.body.filehash;
+    const identifierReq = req?.body.identifier;
+    if (!req.params.id) {
+      return res.status(400).json({ err: 'Please enter correct id' });
+    }
+    const api = Cord.ConfigService.get('api');
+    if (!CHAIN_SPACE_ID) {
+      return res.status(400).json({ err: 'chain space id not' });
+    }
+    const statementDetails = await Cord.Statement.getDetailsfromChain(
+      req.params.id
+    );
+    if (statementDetails?.digest) {
+      const digest = statementDetails.digest.replace(/^0x/, '');
+      const elementUri = `${statementDetails.uri}:digest`;
+      const updatedStatementEntry = Cord.Statement.buildFromUpdateProperties(
+        elementUri as `stmt:cord:${string}`,
+        statementDetails?.digest,
+        CHAIN_SPACE_ID as `space:cord:${string}`,
+        issuerDid.uri
+      );
+      console.dir(updatedStatementEntry, {
+        depth: null,
+        colors: true,
+      });
+
+      const updatedStatement = await Cord.Statement.dispatchUpdateToChain(
+        updatedStatementEntry,
+        issuerDid.uri,
+        authorIdentity,
+        CHAIN_SPACE_AUTH as `auth:cord:${string}`,
+        async ({ data }) => ({
+          signature: issuerKeysProperty.authentication.sign(data),
+          keyType: issuerKeysProperty.authentication.type,
+        })
+      );
+      console.log(`✅ Statement element registered - ${updatedStatement}`);
+
+      return res.status(200).json({ result: { msg: 'Successfully update' } });
+    } else {
+      return res.status(400).json({ err: 'Unable to find the digest' });
     }
   } catch (error: any) {
     console.log('errr: ', error);
