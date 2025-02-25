@@ -430,7 +430,7 @@ export async function udpateDocumentHashonChain(
         })
       );
       console.log(`✅ Statement element registered - ${updatedStatement}`);
-      console.log('here', statementDetails);
+
       return res.status(200).json({ result: { msg: 'Successfully update' } });
     } else {
       return res.status(400).json({ err: 'Unable to find the digest' });
