@@ -395,22 +395,25 @@ export async function udpateDocumentHashonChain(
   try {
     const fileHash = req?.body.filehash;
     const identifierReq = req?.body.identifier;
-    if (!req.params.id) {
-      return res.status(400).json({ err: 'Please enter correct id' });
+    if (!fileHash) {
+      return res.status(400).json({ err: 'Please enter valid document' });
+    }
+    if (!identifierReq) {
+      return res.status(400).json({ err: 'Please enter valid identifier' });
     }
     const api = Cord.ConfigService.get('api');
     if (!CHAIN_SPACE_ID) {
       return res.status(400).json({ err: 'chain space id not' });
     }
     const statementDetails = await Cord.Statement.getDetailsfromChain(
-      req.params.id
+      identifierReq
     );
     if (statementDetails?.digest) {
       const digest = statementDetails.digest.replace(/^0x/, '');
-      const elementUri = `${statementDetails.uri}:digest`;
+      const elementUri = `${statementDetails.uri}:{digest}`;
       const updatedStatementEntry = Cord.Statement.buildFromUpdateProperties(
         elementUri as `stmt:cord:${string}`,
-        statementDetails?.digest,
+        fileHash,
         CHAIN_SPACE_ID as `space:cord:${string}`,
         issuerDid.uri
       );
@@ -431,7 +434,15 @@ export async function udpateDocumentHashonChain(
       );
       console.log(`✅ Statement element registered - ${updatedStatement}`);
 
-      return res.status(200).json({ result: { msg: 'Successfully update' } });
+      const updatedStatementDetails = await api.query.statement.statements(
+        updatedStatementEntry.elementUri
+      );
+      return res.status(200).json({
+        result: {
+          identifier: updatedStatementEntry.elementUri,
+          blockHash: updatedStatementDetails.createdAtHash?.toString(),
+        },
+      });
     } else {
       return res.status(400).json({ err: 'Unable to find the digest' });
     }
