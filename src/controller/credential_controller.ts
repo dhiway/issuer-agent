@@ -283,7 +283,6 @@ export async function documentHashOnChain(
 ) {
   try {
     const fileHash= req?.body.filehash;
-    console.log("herefilehash",fileHash);
      if (!fileHash) {
         return res.status(400).json({ err: 'No file uploaded' });
       }
