@@ -1,8 +1,8 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
-import YAML from 'yamljs';
-import swaggerUi from 'swagger-ui-express';
+import * as swaggerUi from 'swagger-ui-express';
+import * as YAML from 'yamljs';
 
 const app = express();
 export const { PORT } = process.env;
@@ -71,6 +71,7 @@ app.use(
 );
 
 const openApiDocumentation = YAML.load('./apis.yaml');
-// app.use('/docs', swaggerUi.serve, swaggerUi.setup(openApiDocumentation));
+
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(openApiDocumentation));
 
 export default app;

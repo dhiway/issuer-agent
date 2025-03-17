@@ -3,13 +3,13 @@ import { dataSource } from './dbconfig';
 import { addDelegateAsRegistryDelegate } from './init';
 import { createSchema, getSchemaById } from './controller/schema_controller';
 import {
-  documentHashOnChain,
   getCredById,
   issueVC,
   revokeCred,
-  revokeDocumentHashOnChain,
-  udpateDocumentHashonChain,
   updateCred,
+  documentHashOnChain,
+  updateDocumentHashOnChain,
+  revokeDocumentHashOnChain,
 } from './controller/credential_controller';
 import { generateDid, resolveDid } from './controller/did_controller';
 import app from './server';
@@ -49,23 +49,22 @@ didRouter.post('/create', async (req, res) => {
   return await generateDid(req, res);
 });
 
-docRouter.post("/issue", async (req, res) => {
+docRouter.post('/issue', async (req, res) => {
   return await documentHashOnChain(req, res);
 });
 
-docRouter.post("/revoke", async (req, res) => {
+docRouter.post('/revoke', async (req, res) => {
   return await revokeDocumentHashOnChain(req, res);
 });
 
-docRouter.post("/update", async (req, res) => {
-  return await udpateDocumentHashonChain(req, res);
+docRouter.put('/update', async (req, res) => {
+  return await updateDocumentHashOnChain(req, res);
 });
 
 app.use('/api/v1/schema', schemaRouter);
 app.use('/api/v1/cred', credentialRouter);
 app.use('/api/v1/did', didRouter);
-app.use('/api/v1/docHash', docRouter);
-
+app.use('/api/v1/doc-hash', docRouter);
 
 app.get('/:id/did.json', async (req, res) => {
   return await resolveDid(req, res);
