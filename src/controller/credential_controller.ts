@@ -1,7 +1,6 @@
 import express from 'express';
 import * as Vc from '@cord.network/vc-export';
 import * as Cord from '@cord.network/sdk';
-import crypto from 'crypto';
 import { validateCredential } from '../utils/CredentialValidationUtils';
 import {
   issuerDid,
@@ -61,8 +60,9 @@ export async function issueVC(req: express.Request, res: express.Response) {
       async (data) => ({
         signature: await issuerKeysProperty.assertionMethod.sign(data),
         keyType: issuerKeysProperty.assertionMethod.type,
-        keyUri: `${issuerDid.uri}${issuerDid.assertionMethod![0].id
-          }` as Cord.DidResourceUri,
+        keyUri: `${issuerDid.uri}${
+          issuerDid.assertionMethod![0].id
+        }` as Cord.DidResourceUri,
       }),
       issuerDid,
       api,
@@ -191,8 +191,9 @@ export async function updateCred(req: express.Request, res: express.Response) {
       async (data) => ({
         signature: await issuerKeysProperty.assertionMethod.sign(data),
         keyType: issuerKeysProperty.assertionMethod.type,
-        keyUri: `${issuerDid.uri}${issuerDid.assertionMethod![0].id
-          }` as Cord.DidResourceUri,
+        keyUri: `${issuerDid.uri}${
+          issuerDid.assertionMethod![0].id
+        }` as Cord.DidResourceUri,
       }),
       issuerDid,
       api,
@@ -274,18 +275,15 @@ export async function revokeCred(req: express.Request, res: express.Response) {
   }
 }
 
-
-
-
 export async function documentHashOnChain(
   req: express.Request,
   res: express.Response
 ) {
   try {
-    const fileHash= req?.body.filehash;
-     if (!fileHash) {
-        return res.status(400).json({ err: 'No file uploaded' });
-      }
+    const fileHash = req?.body.filehash;
+    if (!fileHash) {
+      return res.status(400).json({ err: 'No file uploaded' });
+    }
     const api = Cord.ConfigService.get('api');
 
     const docProof = await Vc.getCordProofForDigest(
@@ -311,14 +309,12 @@ export async function documentHashOnChain(
     const statementDetails = await api.query.statement.statements(
       docProof.identifier
     );
-    return res
-      .status(200)
-      .json({
-        result: {
-          identifier: docProof.identifier,
-          blockHash: statementDetails.createdAtHash?.toString(),
-        },
-      });
+    return res.status(200).json({
+      result: {
+        identifier: docProof.identifier,
+        blockHash: statementDetails.createdAtHash?.toString(),
+      },
+    });
   } catch (error: any) {
     console.log('errr: ', error);
     return res.status(400).json({ err: error.message ? error.message : error });
@@ -388,7 +384,7 @@ export async function revokeDocumentHashOnChain(
   }
 }
 
-export async function udpateDocumentHashonChain(
+export async function updateDocumentHashOnChain(
   req: express.Request,
   res: express.Response
 ) {
