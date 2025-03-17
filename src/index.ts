@@ -13,8 +13,11 @@ import {
 } from './controller/credential_controller';
 import { generateDid, resolveDid } from './controller/did_controller';
 import app from './server';
+import { authMiddleware } from './controller/auth_controller';
 
 const { PORT } = process.env;
+
+app.use(authMiddleware);
 
 const credentialRouter = express.Router({ mergeParams: true });
 const schemaRouter = express.Router({ mergeParams: true });

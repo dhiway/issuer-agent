@@ -40,9 +40,9 @@ export async function issueVC(req: express.Request, res: express.Response) {
     const parsedSchema = JSON.parse(schema?.cordSchema as string);
 
     let holder = issuerDid.uri;
-    if (data.properties.id) {
-      holder = data.properties.id;
-      delete data.properties.id;
+    if (data.properties.holderDid) {
+      holder = data.properties.holderDid;
+      delete data.properties.holderDid;
     }
     const newCredContent = await Vc.buildVcFromContent(
       parsedSchema.schema,
