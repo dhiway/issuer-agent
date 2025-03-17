@@ -71,6 +71,6 @@ app.use(
 );
 
 const openApiDocumentation = YAML.load('./apis.yaml');
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(openApiDocumentation));
+// app.use('/docs', swaggerUi.serve, swaggerUi.setup(openApiDocumentation));
 
 export default app;
