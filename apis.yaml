@@ -145,37 +145,6 @@ paths:
       security:
         - bearerAuth: []
 
-  /api/v1/cred/revoke/{id}:
-    post:
-      tags:
-        - Verifiable Credential
-      description: Revoke a previously issued verifiable credential by its identifier.
-      operationId: revokeCred
-      parameters:
-        - in: path
-          name: id
-          schema:
-            type: string
-          required: true
-          description: Unique identifier of the credential to revoke.
-      responses:
-        '204':
-          description: Credential revoked successfully. No content returned.
-        '400':
-          description: Invalid credential ID format.
-          content:
-            application/json:
-              example:
-                error: Invalid credential ID
-        '404':
-          description: Credential with the specified ID not found.
-          content:
-            application/json:
-              example:
-                error: Credential not found
-      security:
-        - bearerAuth: []
-
   /api/v1/cred/update/{id}:
     put:
       tags:
@@ -209,6 +178,37 @@ paths:
             application/json:
               example:
                 error: Statement not updated
+        '404':
+          description: Credential with the specified ID not found.
+          content:
+            application/json:
+              example:
+                error: Credential not found
+      security:
+        - bearerAuth: []
+
+  /api/v1/cred/revoke/{id}:
+    post:
+      tags:
+        - Verifiable Credential
+      description: Revoke a previously issued verifiable credential by its identifier.
+      operationId: revokeCred
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: Unique identifier of the credential to revoke.
+      responses:
+        '204':
+          description: Credential revoked successfully. No content returned.
+        '400':
+          description: Invalid credential ID format.
+          content:
+            application/json:
+              example:
+                error: Invalid credential ID
         '404':
           description: Credential with the specified ID not found.
           content:
