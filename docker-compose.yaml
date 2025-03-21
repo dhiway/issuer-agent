@@ -27,17 +27,18 @@ services:
             - CHAIN_SPACE_ID=${CHAIN_SPACE_ID}
             - CHAIN_SPACE_AUTH=${CHAIN_SPACE_AUTH}
             - WEB_URL=${WEB_URL}
+            - REQUEST_URL_TOKEN=${REQUEST_URL_TOKEN}
         ports:
             - ${AGENT_PORT}:${AGENT_PORT}
         depends_on:
-            - postgres30
+            - postgres42
         networks:
             - local
         command: node dist/index.js
 
-    postgres30:
+    postgres42:
         image: postgres:14.5-alpine
-        container_name: postgres30
+        container_name: postgres42
         environment:
             POSTGRES_USER: ${STUDIO_TYPEORM_USERNAME}
             POSTGRES_PASSWORD: ${STUDIO_TYPEORM_PASSWORD}
@@ -47,13 +48,13 @@ services:
             - ${STUDIO_TYPEORM_PORT}:${TYPEORM_PORT}
         restart: always
         volumes:
-            - postgres-data30:/var/lib/postgresql/data
+            - postgres-data42:/var/lib/postgresql/data
         networks:
             - local
 
 volumes:
-    postgres-data30:
-        name: postgres-data30
+    postgres-data42:
+        name: postgres-data42
 
 networks:
     local:

@@ -40,9 +40,9 @@ export async function issueVC(req: express.Request, res: express.Response) {
     const parsedSchema = JSON.parse(schema?.cordSchema as string);
 
     let holder = issuerDid.uri;
-    if (data.properties.id) {
-      holder = data.properties.id;
-      delete data.properties.id;
+    if (data.properties.holderDid) {
+      holder = data.properties.holderDid;
+      delete data.properties.holderDid;
     }
     const newCredContent = await Vc.buildVcFromContent(
       parsedSchema.schema,
@@ -109,8 +109,7 @@ export async function issueVC(req: express.Request, res: express.Response) {
     }
   } catch (err) {
     console.log('Error: ', err);
-
-    return res.status(500).json({ error: 'Error in VD issuence' });
+    return res.status(500).json({ error: 'Fields does not match schema' });
   }
 
   // TODO: If holder id is set vc will be sent to wallet
@@ -210,7 +209,7 @@ export async function updateCred(req: express.Request, res: express.Response) {
       colors: true,
     });
 
-    const updatedStatement = await Cord.Statement.dispatchRegisterToChain(
+    const updatedStatement = await Cord.Statement.dispatchUpdateToChain(
       updatedVc.proof[1],
       issuerDid.uri,
       authorIdentity,
@@ -268,7 +267,7 @@ export async function revokeCred(req: express.Request, res: express.Response) {
 
     console.log(`✅ Statement revoked!`);
 
-    return res.status(200).json({ result: 'Statement revoked Successfully' });
+    return res.status(200).json({ result: 'Statement revoked successfully' });
   } catch (error) {
     console.log('err: ', error);
     return res.status(400).json({ err: error });

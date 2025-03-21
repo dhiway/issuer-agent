@@ -17,6 +17,7 @@ const allowedOrigins = [
   'https://studio.dhiway.com',
   'https://markdemo.dhiway.com',
   'https://studiodemo.dhiway.com',
+  'https://issuer-agent-api.demo.dhiway.net'
 ];
 
 const allowedDomains = [
