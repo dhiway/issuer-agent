@@ -2,6 +2,7 @@ import express from 'express';
 import * as Vc from '@cord.network/vc-export';
 import * as Cord from '@cord.network/sdk';
 import { validateCredential } from '../utils/CredentialValidationUtils';
+import { parseAndFormatDate } from '../utils/DateUtils';
 import {
   issuerDid,
   authorIdentity,
@@ -46,8 +47,8 @@ export async function issueVC(req: express.Request, res: express.Response) {
       delete data.properties.id;
   }
   
-    const validFromDate = new Date(data.validFrom)
-    const validUntilDate = new Date(data.validUntil)
+    const validFromDate = parseAndFormatDate(data.validFrom)
+    const validUntilDate = parseAndFormatDate(data.validUntil)
     const newCredContent = await Vc.buildVcFromContent(
       parsedSchema.schema,
       data.properties,
@@ -113,9 +114,9 @@ export async function issueVC(req: express.Request, res: express.Response) {
     } else {
       return res.status(400).json({ error: 'Credential not issued' });
     }
-  } catch (err) {
+  } catch (err:any) {
     console.log('Error: ', err);
-    return res.status(500).json({ error: 'Fields does not match schema' });
+    return res.status(500).json({ error: err.message || 'Fields does not match schema' });
   }
 
   // TODO: If holder id is set vc will be sent to wallet
