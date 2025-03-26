@@ -45,18 +45,18 @@ export async function issueVC(req: express.Request, res: express.Response) {
       holder = data.properties.holderDid || data.properties.id;
       delete data.properties.holderDid;
       delete data.properties.id;
-  }
-  let validFromDate
-  let validUntilDate
-  let vcValidityObj= {} as any;
+    }
+    let validFromDate
+    let validUntilDate
+    let vcValidityObj = {} as any;
 
-    if(data.validFrom){
+    if (data.validFrom) {
       validFromDate = parseAndFormatDate(data.validFrom)
       vcValidityObj.validFrom = validFromDate
     }
-    if(data.validUntil){
+    if (data.validUntil) {
       validUntilDate = parseAndFormatDate(data.validUntil)
-      vcValidityObj.validUntil= validUntilDate
+      vcValidityObj.validUntil = validUntilDate
     }
     const newCredContent = await Vc.buildVcFromContent(
       parsedSchema.schema,
@@ -69,15 +69,14 @@ export async function issueVC(req: express.Request, res: express.Response) {
         ...vcValidityObj
       },
     );
- 
+
     const vc: any = await Vc.addProof(
       newCredContent,
       async (data) => ({
         signature: await issuerKeysProperty.assertionMethod.sign(data),
         keyType: issuerKeysProperty.assertionMethod.type,
-        keyUri: `${issuerDid.uri}${
-          issuerDid.assertionMethod![0].id
-        }` as Cord.DidResourceUri,
+        keyUri: `${issuerDid.uri}${issuerDid.assertionMethod![0].id
+          }` as Cord.DidResourceUri,
       }),
       issuerDid,
       api,
@@ -122,7 +121,7 @@ export async function issueVC(req: express.Request, res: express.Response) {
     } else {
       return res.status(400).json({ error: 'Credential not issued' });
     }
-  } catch (err:any) {
+  } catch (err: any) {
     console.log('Error: ', err);
     return res.status(500).json({ error: err.message || 'Fields does not match schema' });
   }
@@ -205,9 +204,8 @@ export async function updateCred(req: express.Request, res: express.Response) {
       async (data) => ({
         signature: await issuerKeysProperty.assertionMethod.sign(data),
         keyType: issuerKeysProperty.assertionMethod.type,
-        keyUri: `${issuerDid.uri}${
-          issuerDid.assertionMethod![0].id
-        }` as Cord.DidResourceUri,
+        keyUri: `${issuerDid.uri}${issuerDid.assertionMethod![0].id
+          }` as Cord.DidResourceUri,
       }),
       issuerDid,
       api,
