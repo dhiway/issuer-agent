@@ -46,9 +46,18 @@ export async function issueVC(req: express.Request, res: express.Response) {
       delete data.properties.holderDid;
       delete data.properties.id;
   }
-  
-    const validFromDate = parseAndFormatDate(data.validFrom)
-    const validUntilDate = parseAndFormatDate(data.validUntil)
+  let validFromDate
+  let validUntilDate
+  let vcValidityObj= {} as any;
+
+    if(data.validFrom){
+      validFromDate = parseAndFormatDate(data.validFrom)
+      vcValidityObj.validFrom = validFromDate
+    }
+    if(data.validUntil){
+      validUntilDate = parseAndFormatDate(data.validUntil)
+      vcValidityObj.validUntil= validUntilDate
+    }
     const newCredContent = await Vc.buildVcFromContent(
       parsedSchema.schema,
       data.properties,
@@ -57,8 +66,7 @@ export async function issueVC(req: express.Request, res: express.Response) {
       {
         spaceUri: CHAIN_SPACE_ID as `space:cord:${string}`,
         schemaUri: schema?.identifier,
-        validUntil: validUntilDate,
-        validFrom:validFromDate
+        ...vcValidityObj
       },
     );
  
