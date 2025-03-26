@@ -20,6 +20,7 @@ const { CHAIN_SPACE_ID, CHAIN_SPACE_AUTH } = process.env;
 
 export async function issueVC(req: express.Request, res: express.Response) {
   let data = req.body;
+
   const api = Cord.ConfigService.get('api');
   if (!authorIdentity) {
     await addDelegateAsRegistryDelegate();
@@ -32,7 +33,6 @@ export async function issueVC(req: express.Request, res: express.Response) {
     }
 
     data = extractCredentialFields(data);
-
     const schema = await dataSource
       .getRepository(Schema)
       .findOne({ where: { identifier: data.schemaId } });
@@ -40,10 +40,18 @@ export async function issueVC(req: express.Request, res: express.Response) {
     const parsedSchema = JSON.parse(schema?.cordSchema as string);
 
     let holder = issuerDid.uri;
-    if (data.properties.holderDid) {
-      holder = data.properties.holderDid;
+    // if (data.properties.holderDid) {
+    //   holder = data.properties.holderDid;
+    //   delete data.properties.holderDid;
+    // }
+    if (data.properties.holderDid || data.properties.id) {
+      holder = data.properties.holderDid || data.properties.id;
       delete data.properties.holderDid;
-    }
+      delete data.properties.id;
+  }
+  
+    const validFromDate = new Date(data.validFrom)
+    const validUntilDate = new Date(data.validUntil)
     const newCredContent = await Vc.buildVcFromContent(
       parsedSchema.schema,
       data.properties,
@@ -52,9 +60,11 @@ export async function issueVC(req: express.Request, res: express.Response) {
       {
         spaceUri: CHAIN_SPACE_ID as `space:cord:${string}`,
         schemaUri: schema?.identifier,
-      }
+        validUntil: validUntilDate,
+        validFrom:validFromDate
+      },
     );
-
+ 
     const vc: any = await Vc.addProof(
       newCredContent,
       async (data) => ({
@@ -70,7 +80,7 @@ export async function issueVC(req: express.Request, res: express.Response) {
         spaceUri: CHAIN_SPACE_ID as `space:cord:${string}`,
         schemaUri: schema?.identifier,
         needSDR: true,
-        needStatementProof: true,
+        needStatementProof: true
       }
     );
     console.dir(vc, {
