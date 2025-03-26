@@ -88,7 +88,7 @@ paths:
       description: Issue a new verifiable credential (VC) to a specified holder using a predefined schema.
       operationId: issueCred
       requestBody:
-        description: Details required to issue the VC, including the schema ID and credential properties such as holder DID.
+        description: Details required to issue the VC, including the schema ID, credential properties such as holder DID, and validity timestamps.
         content:
           application/json:
             schema:
@@ -345,6 +345,16 @@ components:
               type: string
               description: DID of the credential holder.
               example: did:cord:3wCdDiKx3GdRM8p79QYL5EE7NbaiwrL7T2C46QMBfadr9nre
+        validFrom:
+          type: string
+          format: date-time
+          description: The date and time from which the credential is valid.
+          example: "2025-03-24T09:02:56.793Z"
+        validUntil:
+          type: string
+          format: date-time
+          description: The date and time until which the credential is valid.
+          example: "2025-03-26T09:02:56.793Z"
       required:
         - schemaId
         - properties
