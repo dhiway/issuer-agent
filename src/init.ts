@@ -33,7 +33,6 @@ export async function createDidName(
     submitterAccount.address
   );
   await Cord.Chain.signAndSubmitTx(authorizedDidNameClaimTx, submitterAccount);
-
 }
 
 export async function createDid(
@@ -66,13 +65,16 @@ export async function createDid(
         keyAgreement: [keyAgreement],
         assertionMethod: [assertionMethod],
         capabilityDelegation: [capabilityDelegation],
-        service: Array.isArray(service) && service.length > 0 ? service : [
-          {
-            id: '#my-service',
-            type: ['service-type'],
-            serviceEndpoint: ['https://www.example.com'],
-          },
-        ],
+        service:
+          Array.isArray(service) && service.length > 0
+            ? service
+            : [
+                {
+                  id: '#my-service',
+                  type: ['service-type'],
+                  serviceEndpoint: ['https://www.example.com'],
+                },
+              ],
       },
       submitterAccount.address,
       async ({ data }) => ({
@@ -114,7 +116,6 @@ export async function createDid(
   }
 }
 
-
 export async function checkDidAndIdentities(mnemonic: string): Promise<any> {
   if (!mnemonic) return null;
 
@@ -129,12 +130,7 @@ export async function checkDidAndIdentities(mnemonic: string): Promise<any> {
   }
 
   const issuerKeys = Cord.Utils.Keys.generateKeypairs(mnemonic, 'sr25519');
-  const {
-    authentication,
-    keyAgreement,
-    assertionMethod,
-    capabilityDelegation,
-  } = issuerKeys;
+  const { authentication } = issuerKeys;
 
   const api = Cord.ConfigService.get('api');
   const didUri = Cord.Did.getDidUriFromKey(authentication);
@@ -159,40 +155,40 @@ export async function addDelegateAsRegistryDelegate() {
     );
 
     /* Creating delegate from authorIdentity. */
-    const { mnemonic: delegateMnemonic, document: delegateDid } =
-      await createDid(authorIdentity);
+    // const { mnemonic: delegateMnemonic, document: delegateDid } =
+    //   await createDid(authorIdentity);
 
     if (!document || !issuerKeys) {
       throw new Error('Failed to create DID');
     }
 
-    console.log(`\n❄️  Space Delegate Authorization `);
-    const permission: Cord.PermissionType = Cord.Permission.ASSERT;
+    // console.log(`\n❄️  Space Delegate Authorization `);
+    // const permission: Cord.PermissionType = Cord.Permission.ASSERT;
 
-    const spaceAuthProperties =
-      await Cord.ChainSpace.buildFromAuthorizationProperties(
-        CHAIN_SPACE_ID as `space:cord:${string}`,
-        delegateDid.uri,
-        permission,
-        document.uri
-      );
+    // const spaceAuthProperties =
+    //   await Cord.ChainSpace.buildFromAuthorizationProperties(
+    //     CHAIN_SPACE_ID as `space:cord:${string}`,
+    //     delegateDid.uri,
+    //     permission,
+    //     document.uri
+    //   );
 
-    console.log(`\n❄️  Space Delegation To Chain `);
-    const delegateAuth = await Cord.ChainSpace.dispatchDelegateAuthorization(
-      spaceAuthProperties,
-      authorIdentity,
-      CHAIN_SPACE_AUTH as `auth:cord:${string}`,
-      async ({ data }) => ({
-        signature: issuerKeys.capabilityDelegation.sign(data),
-        keyType: issuerKeys.capabilityDelegation.type,
-      })
-    );
+    // console.log(`\n❄️  Space Delegation To Chain `);
+    // const delegateAuth = await Cord.ChainSpace.dispatchDelegateAuthorization(
+    //   spaceAuthProperties,
+    //   authorIdentity,
+    //   CHAIN_SPACE_AUTH as `auth:cord:${string}`,
+    //   async ({ data }) => ({
+    //     signature: issuerKeys.capabilityDelegation.sign(data),
+    //     keyType: issuerKeys.capabilityDelegation.type,
+    //   })
+    // );
 
-    delegateSpaceAuth = delegateAuth;
+    // delegateSpaceAuth = delegateAuth;
 
-    console.log(`✅ Space Authorization added!`);
-
-    return { delegateMnemonic };
+    // console.log(`✅ Space Authorization added!`);
+    // return { delegateMnemonic };
+    return;
   } catch (error) {
     console.log('err: ', error);
     throw new Error('Failed to create Delegate Registry');

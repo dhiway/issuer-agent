@@ -20,54 +20,61 @@ import { extractCredentialFields } from '../utils/CredentialUtils';
 const { CHAIN_SPACE_ID, CHAIN_SPACE_AUTH } = process.env;
 
 export async function issueVC(req: express.Request, res: express.Response) {
-  let data = req.body;
-
-  const api = Cord.ConfigService.get('api');
-  if (!authorIdentity) {
-    await addDelegateAsRegistryDelegate();
-  }
-
   try {
+    const data = req.body;
     const validationError = validateCredential(data);
     if (validationError) {
       return res.status(400).json({ error: validationError });
     }
 
-    data = extractCredentialFields(data);
+    if (!authorIdentity) {
+      await addDelegateAsRegistryDelegate();
+    }
+
+    const processedData = extractCredentialFields(data);
     const schema = await dataSource
       .getRepository(Schema)
-      .findOne({ where: { identifier: data.schemaId } });
+      .findOne({ where: { identifier: processedData.schemaId } });
 
-    const parsedSchema = JSON.parse(schema?.cordSchema as string);
+    if (!schema?.cordSchema) {
+      return res.status(400).json({ error: 'Schema not found' });
+    }
 
-    let holder = issuerDid.uri;
-    if (data.properties.holderDid || data.properties.id) {
-      holder = data.properties.holderDid || data.properties.id;
-      delete data.properties.holderDid;
-      delete data.properties.id;
-    }
-    let validFromDate
-    let validUntilDate
-    let vcValidityObj = {} as any;
+    const parsedSchema = JSON.parse(schema.cordSchema);
 
-    if (data.validFrom) {
-      validFromDate = parseAndFormatDate(data.validFrom)
-      vcValidityObj.validFrom = validFromDate
+    const holder =
+      processedData.properties.holderDid ||
+      processedData.properties.id ||
+      issuerDid.uri;
+
+    // Clean up properties object
+    delete processedData.properties.holderDid;
+    delete processedData.properties.id;
+
+    const vcValidityObj: Record<string, string> = {};
+    if (processedData.validFrom) {
+      const formattedDate = parseAndFormatDate(processedData.validFrom);
+      vcValidityObj.validFrom = formattedDate
+        ? formattedDate.toISOString()
+        : '';
     }
-    if (data.validUntil) {
-      validUntilDate = parseAndFormatDate(data.validUntil)
-      vcValidityObj.validUntil = validUntilDate
+    if (processedData.validUntil) {
+      const formattedDate = parseAndFormatDate(processedData.validUntil);
+      vcValidityObj.validUntil = formattedDate
+        ? formattedDate.toISOString()
+        : '';
     }
+
     const newCredContent = await Vc.buildVcFromContent(
       parsedSchema.schema,
-      data.properties,
+      processedData.properties,
       issuerDid,
       holder,
       {
         spaceUri: CHAIN_SPACE_ID as `space:cord:${string}`,
-        schemaUri: schema?.identifier,
-        ...vcValidityObj
-      },
+        schemaUri: schema.identifier,
+        ...vcValidityObj,
+      }
     );
 
     const vc: any = await Vc.addProof(
@@ -75,18 +82,20 @@ export async function issueVC(req: express.Request, res: express.Response) {
       async (data) => ({
         signature: await issuerKeysProperty.assertionMethod.sign(data),
         keyType: issuerKeysProperty.assertionMethod.type,
-        keyUri: `${issuerDid.uri}${issuerDid.assertionMethod![0].id
-          }` as Cord.DidResourceUri,
+        keyUri: `${issuerDid.uri}${
+          issuerDid.assertionMethod![0].id
+        }` as Cord.DidResourceUri,
       }),
       issuerDid,
-      api,
+      Cord.ConfigService.get('api'),
       {
         spaceUri: CHAIN_SPACE_ID as `space:cord:${string}`,
-        schemaUri: schema?.identifier,
+        schemaUri: schema.identifier,
         needSDR: true,
-        needStatementProof: true
+        needStatementProof: true,
       }
     );
+
     console.dir(vc, {
       depth: null,
       colors: true,
@@ -103,27 +112,30 @@ export async function issueVC(req: express.Request, res: express.Response) {
       })
     );
 
-    console.log(`✅ Statement element registered - ${statement}`);
+    if (!statement) {
+      return res.status(400).json({ error: 'Credential not issued' });
+    }
 
     const cred = new Cred();
-    cred.schemaId = data.schemaId;
+    cred.schemaId = processedData.schemaId;
     cred.identifier = statement;
     cred.active = true;
     cred.fromDid = issuerDid.uri;
     cred.credHash = newCredContent.credentialHash;
     cred.vc = vc;
 
-    if (statement) {
-      await dataSource.manager.save(cred);
-      return res
-        .status(200)
-        .json({ result: 'success', identifier: cred.identifier, vc: vc });
-    } else {
-      return res.status(400).json({ error: 'Credential not issued' });
-    }
+    await dataSource.manager.save(cred);
+
+    return res.status(200).json({
+      result: 'success',
+      identifier: cred.identifier,
+      vc,
+    });
   } catch (err: any) {
-    console.log('Error: ', err);
-    return res.status(500).json({ error: err.message || 'Fields does not match schema' });
+    console.error('Error issuing VC:', err);
+    return res.status(500).json({
+      error: err.message || 'Fields do not match schema',
+    });
   }
 
   // TODO: If holder id is set vc will be sent to wallet
@@ -204,8 +216,9 @@ export async function updateCred(req: express.Request, res: express.Response) {
       async (data) => ({
         signature: await issuerKeysProperty.assertionMethod.sign(data),
         keyType: issuerKeysProperty.assertionMethod.type,
-        keyUri: `${issuerDid.uri}${issuerDid.assertionMethod![0].id
-          }` as Cord.DidResourceUri,
+        keyUri: `${issuerDid.uri}${
+          issuerDid.assertionMethod![0].id
+        }` as Cord.DidResourceUri,
       }),
       issuerDid,
       api,
@@ -269,12 +282,12 @@ export async function revokeCred(req: express.Request, res: express.Response) {
 
     await Cord.Statement.dispatchRevokeToChain(
       cred.vc.proof[1].elementUri as `stmt:cord:${string}`,
-      delegateDid.uri,
+      issuerDid.uri,
       authorIdentity,
-      delegateSpaceAuth as Cord.AuthorizationUri,
+      CHAIN_SPACE_AUTH as `auth:cord:${string}`,
       async ({ data }) => ({
-        signature: delegateKeysProperty.authentication.sign(data),
-        keyType: delegateKeysProperty.authentication.type,
+        signature: issuerKeysProperty.authentication.sign(data),
+        keyType: issuerKeysProperty.authentication.type,
       })
     );
 
