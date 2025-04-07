@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   version: 1.4.1
   title: Issuer Agent
-  description: API for managing schemas and verifiable credentials in a wallet agent.
+  description: API for managing schemas, verifiable credentials, decentralized identifiers (DIDs), and document hashes in a wallet agent.
   termsOfService: http://studio.dhiway.com/page/terms-and-conditions
   contact:
     name: Dhiway Networks
@@ -31,18 +31,33 @@ paths:
               $ref: '#/components/schemas/SchemaRequest'
         required: true
       responses:
-        '201':
-          description: New schema created successfully.
+        '200':
+          description: Schema created successfully and registered on the blockchain.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SchemaRes'
+                type: object
+                properties:
+                  result:
+                    type: string
+                    example: SUCCESS
+                    description: Indicates the operation was successful.
+                  schemaId:
+                    type: string
+                    example: schema:cord:s34ouTR2XCJprL48EbkyhNV4SSsbQU9JGN4KhJbAerz6wEVWC
+                    description: The unique identifier of the created schema.
         '400':
-          description: Invalid schema format or missing required fields.
+          description: Invalid schema format, missing required fields (e.g., title or properties), or schema creation failed.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SchemaError'
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error during schema creation, such as a failure in blockchain registration.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
       security:
         - bearerAuth: []
 
@@ -50,7 +65,7 @@ paths:
     get:
       tags:
         - Schema
-      description: Retrieve a schema by its unique identifier from the blockchain.
+      description: Retrieve a schema by its unique identifier from the database.
       operationId: getSchemaById
       parameters:
         - in: path
@@ -65,19 +80,46 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetSchemaRes'
+                type: object
+                properties:
+                  schema:
+                    type: object
+                    properties:
+                      identifier:
+                        type: string
+                        description: Unique identifier of the schema.
+                        example: schema:cord:s33Nap3uKe3A3DTuroTEXFUBbkG5P3WRE9RcJFJDxh5Ktc14v
+                      title:
+                        type: string
+                        description: Title of the schema.
+                        example: Event XYZ Participation
+                      description:
+                        type: string
+                        description: Description of the schema.
+                        example: Description of the title
+                      schemaProperties:
+                        type: object
+                        description: Properties of the schema.
+                      cordSchema:
+                        type: string
+                        description: JSON string of the Cord-specific schema details.
+                      requiredFields:
+                        type: array
+                        description: List of required fields in the schema.
+                        items:
+                          type: string
         '400':
-          description: Invalid schema ID format.
+          description: Schema not found for the given identifier.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SchemaError'
-        '404':
-          description: Schema with the specified ID not found.
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error during schema retrieval.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SchemaNotFound'
+                $ref: '#/components/schemas/ErrorResponse'
       security:
         - bearerAuth: []
 
@@ -85,28 +127,46 @@ paths:
     post:
       tags:
         - Verifiable Credential
-      description: Issue a new verifiable credential (VC) to a specified holder using a predefined schema.
+      description: Issue a new verifiable credential (VC) to a specified holder using a predefined schema. The VC is created based on the schema and includes properties such as the holder DID and optional validity timestamps (validFrom and validUntil). The credential is registered on the blockchain and stored in the database.
       operationId: issueCred
       requestBody:
-        description: Details required to issue the VC, including the schema ID, credential properties such as holder DID, and validity timestamps.
+        description: Details required to issue the VC, including the schema ID, credential properties (e.g., holder DID), and optional validity timestamps.
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/RecordRequest'
         required: true
       responses:
-        '201':
-          description: New verifiable credential issued successfully.
+        '200':
+          description: Verifiable credential issued successfully.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CredRes'
+                type: object
+                properties:
+                  result:
+                    type: string
+                    example: success
+                    description: Indicates the operation was successful.
+                  identifier:
+                    type: string
+                    example: stmt:cord:s3dgvtunhXyxg5oBb1QNaqR9NvhF3tnQoLj2jmNBHiW4cYzby:d528de06ecb92d68b33c77c627c2dac6f08ed2507e4bd1ca00456f9635c94af6
+                    description: The unique identifier of the issued credential.
+                  vc:
+                    type: object
+                    description: The full verifiable credential object, including proof and content.
         '400':
-          description: Invalid request data or missing required fields (e.g., schemaId or holderDid).
+          description: Invalid request data, missing required fields (e.g., schemaId), or credential issuance failed.
           content:
             application/json:
-              example:
-                result: VC not issued
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error during credential issuance, such as a schema mismatch or blockchain registration failure.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
       security:
         - bearerAuth: []
 
@@ -114,7 +174,7 @@ paths:
     get:
       tags:
         - Verifiable Credential
-      description: Retrieve a verifiable credential by its unique identifier.
+      description: Retrieve a verifiable credential by its unique identifier from the database.
       operationId: getCredById
       parameters:
         - in: path
@@ -122,26 +182,30 @@ paths:
           schema:
             type: string
           required: true
-          description: Unique identifier of the credential (e.g., c0aa3623b-903f-4ae1-ab0f-ed65eb6b5e77).
+          description: Unique identifier of the credential (e.g., stmt:cord:s3dgvtunhXyxg5oBb1QNaqR9NvhF3tnQoLj2jmNBHiW4cYzby:d528de06ecb92d68b33c77c627c2dac6f08ed2507e4bd1ca00456f9635c94af6).
       responses:
         '200':
           description: Credential retrieved successfully.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/GetCredRes'
+                type: object
+                properties:
+                  credential:
+                    type: object
+                    description: The stored credential object, including schemaId, identifier, fromDid, credHash, vc, and active status.
         '400':
-          description: Invalid credential ID format.
+          description: Credential not found for the given identifier.
           content:
             application/json:
-              example:
-                status: Invalid credential ID
-        '404':
-          description: Credential with the specified ID not found.
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error during credential retrieval.
           content:
             application/json:
-              example:
-                status: Credential not found
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
       security:
         - bearerAuth: []
 
@@ -149,7 +213,7 @@ paths:
     put:
       tags:
         - Verifiable Credential
-      description: Update the properties of an existing verifiable credential identified by its unique identifier.
+      description: Update the properties of an existing verifiable credential identified by its unique identifier. Only the credential's properties are updated, and the updated credential is registered on the blockchain. Other fields (e.g., schema, issuer) remain unchanged.
       operationId: updateCred
       parameters:
         - in: path
@@ -159,7 +223,7 @@ paths:
           required: true
           description: Unique identifier of the credential to update.
       requestBody:
-        description: Updated properties for the credential, such as name, email, or age.
+        description: Updated properties for the credential (e.g., name, email, or other attributes).
         content:
           application/json:
             schema:
@@ -171,19 +235,31 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CredUpdateRes'
+                type: object
+                properties:
+                  result:
+                    type: string
+                    example: Updated successfully
+                    description: Indicates the operation was successful.
+                  identifier:
+                    type: string
+                    example: stmt:cord:s3dgvtunhXyxg5oBb1QNaqR9NvhF3tnQoLj2jmNBHiW4cYzby:de689c81fae40362f8f6a9ca228e9d3389e15d0ba8199066366264b017454066
+                    description: The updated identifier of the credential.
+                  vc:
+                    type: object
+                    description: The updated verifiable credential object, including the new proof and content.
         '400':
-          description: Invalid update request or missing required fields.
+          description: Invalid update request (e.g., missing properties field or credential not found).
           content:
             application/json:
-              example:
-                error: Statement not updated
-        '404':
-          description: Credential with the specified ID not found.
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error during credential update, such as a blockchain registration failure.
           content:
             application/json:
-              example:
-                error: Credential not found
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
       security:
         - bearerAuth: []
 
@@ -191,7 +267,7 @@ paths:
     post:
       tags:
         - Verifiable Credential
-      description: Revoke a previously issued verifiable credential by its identifier.
+      description: Revoke a previously issued verifiable credential by its identifier. The revocation is dispatched to the blockchain, marking the credential as inactive.
       operationId: revokeCred
       parameters:
         - in: path
@@ -201,20 +277,248 @@ paths:
           required: true
           description: Unique identifier of the credential to revoke.
       responses:
-        '204':
-          description: Credential revoked successfully. No content returned.
+        '200':
+          description: Credential revoked successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: string
+                    example: Statement revoked successfully
+                    description: Indicates the revocation was successful.
         '400':
-          description: Invalid credential ID format.
+          description: Invalid credential identifier or credential not found.
           content:
             application/json:
-              example:
-                error: Invalid credential ID
-        '404':
-          description: Credential with the specified ID not found.
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
+
+  /api/v1/did/create:
+    post:
+      tags:
+        - DID
+      description: Generate a new decentralized identifier (DID) with optional service endpoints. The DID is created using the provided service data, and a mnemonic and delegate keys are generated.
+      operationId: generateDid
+      requestBody:
+        description: Service data for the DID, including service endpoints (optional).
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                services:
+                  type: array
+                  description: Array of service endpoints for the DID (optional, only the first item is processed).
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        description: Service ID.
+                        example: service1
+                      type:
+                        type: string
+                        description: Service type.
+                        example: VerifiableCredentialService
+                      serviceEndpoint:
+                        type: string
+                        description: Service endpoint URL.
+                        example: https://example.com/credentials
+      responses:
+        '200':
+          description: DID generated successfully.
           content:
             application/json:
-              example:
-                error: Credential not found
+              schema:
+                type: object
+                properties:
+                  mnemonic:
+                    type: string
+                    description: Mnemonic phrase for the DID.
+                    example: 'word1 word2 word3 ...'
+                  delegateKeys:
+                    type: object
+                    description: Delegate keys for the DID.
+                    additionalProperties:
+                      type: string
+                  document:
+                    type: object
+                    description: DID document containing the DID details.
+                    additionalProperties: true
+        '500':
+          description: Server error during DID generation (e.g., failure to add delegate or process service data).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Did not created
+                    description: Error message describing the issue.
+      security:
+        - bearerAuth: []
+
+  /api/v1/doc-hash/issue:
+    post:
+      tags:
+        - Document Hash
+      description: Issue a new document hash on the blockchain. The document hash is registered, and a proof is generated and stored on the blockchain.
+      operationId: documentHashOnChain
+      requestBody:
+        description: The hash of the document to be issued.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                filehash:
+                  type: string
+                  description: The hash of the document (must start with '0x').
+                  example: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef'
+              required:
+                - filehash
+      responses:
+        '200':
+          description: Document hash issued successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: object
+                    properties:
+                      identifier:
+                        type: string
+                        description: The identifier of the issued document hash.
+                        example: stmt:cord:s3dgvtunhXyxg5oBb1QNaqR9NvhF3tnQoLj2jmNBHiW4cYzby:1234567890abcdef
+                      blockHash:
+                        type: string
+                        description: The block hash where the document hash was registered.
+                        example: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890'
+        '400':
+          description: Invalid request data (e.g., missing or invalid filehash).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  err:
+                    type: string
+                    description: Error message describing the issue.
+                    example: No file uploaded
+      security:
+        - bearerAuth: []
+
+  /api/v1/doc-hash/revoke:
+    post:
+      tags:
+        - Document Hash
+      description: Revoke a previously issued document hash on the blockchain. The document hash can be revoked using either the filehash or the identifier.
+      operationId: revokeDocumentHashOnChain
+      requestBody:
+        description: The filehash or identifier of the document hash to revoke (at least one is required).
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                filehash:
+                  type: string
+                  description: The hash of the document (optional if identifier is provided, must start with '0x').
+                  example: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef'
+                identifier:
+                  type: string
+                  description: The identifier of the document hash (optional if filehash is provided).
+                  example: stmt:cord:s3dgvtunhXyxg5oBb1QNaqR9NvhF3tnQoLj2jmNBHiW4cYzby:1234567890abcdef
+      responses:
+        '200':
+          description: Document hash revoked successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: object
+                    properties:
+                      msg:
+                        type: string
+                        example: Successfully revoked
+                        description: Indicates the revocation was successful.
+        '400':
+          description: Invalid request data (e.g., missing filehash or identifier, document already revoked, or document not revoked successfully).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  err:
+                    type: string
+                    description: Error message describing the issue.
+                    example: File hash or identifier is required for revoke
+      security:
+        - bearerAuth: []
+
+  /api/v1/doc-hash/update:
+    put:
+      tags:
+        - Document Hash
+      description: Update an existing document hash on the blockchain. The update requires both the new filehash and the identifier of the existing document hash.
+      operationId: updateDocumentHashOnChain
+      requestBody:
+        description: The new filehash and the identifier of the document hash to update.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                filehash:
+                  type: string
+                  description: The new hash of the document (must start with '0x').
+                  example: '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890'
+                identifier:
+                  type: string
+                  description: The identifier of the document hash to update.
+                  example: stmt:cord:s3dgvtunhXyxg5oBb1QNaqR9NvhF3tnQoLj2jmNBHiW4cYzby:1234567890abcdef
+              required:
+                - filehash
+                - identifier
+      responses:
+        '200':
+          description: Document hash updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: object
+                    properties:
+                      identifier:
+                        type: string
+                        description: The identifier of the updated document hash.
+                        example: stmt:cord:s3dgvtunhXyxg5oBb1QNaqR9NvhF3tnQoLj2jmNBHiW4cYzby:abcdef1234567890
+                      blockHash:
+                        type: string
+                        description: The block hash where the update was registered.
+                        example: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef'
+        '400':
+          description: Invalid request data (e.g., missing filehash or identifier, invalid document, or unable to find the digest).
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  err:
+                    type: string
+                    description: Error message describing the issue.
+                    example: Please enter valid identifier
       security:
         - bearerAuth: []
 
@@ -225,20 +529,6 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
-    SchemaError:
-      type: object
-      properties:
-        result:
-          type: string
-          description: Error message detailing why the schema operation failed.
-          example: Schema not created
-    SchemaNotFound:
-      type: object
-      properties:
-        status:
-          type: string
-          description: Error message indicating the schema was not found.
-          example: Schema not found
     SchemaRequest:
       type: object
       properties:
@@ -247,80 +537,35 @@ components:
           properties:
             title:
               type: string
-              description: Title of the schema.
+              description: Title of the schema (required).
               example: Event XYZ Participation
             description:
               type: string
-              description: Description of the schema.
+              description: Description of the schema (optional).
               example: Description of the title
             properties:
               type: object
-              description: Schema properties defining the structure of the credential.
+              description: Schema properties defining the structure of the credential (required).
               additionalProperties:
                 type: object
                 properties:
                   type:
                     type: string
                     example: string
+            required:
+              type: array
+              description: List of required fields in the schema (optional).
+              items:
+                type: string
       required:
         - schema
-    SchemaRes:
+    ErrorResponse:
       type: object
       properties:
-        result:
+        error:
           type: string
-          description: Status of the schema creation.
-          example: SUCCESS
-        schemaId:
-          type: string
-          description: Unique identifier of the created schema.
-          example: schema:cord:s34ouTR2XCJprL48EbkyhNV4SSsbQU9JGN4KhJbAerz6wEVWC
-    GetSchemaRes:
-      type: object
-      properties:
-        schema:
-          type: object
-          properties:
-            id:
-              type: string
-              description: Unique identifier of the schema.
-              example: schema:cord:s33Nap3uKe3A3DTuroTEXFUBbkG5P3WRE9RcJFJDxh5Ktc14v
-            identifier:
-              type: string
-              description: Alternative schema identifier.
-              example: s1f1b9b3d-c07d-4c8e-901f-6445aa6aef8e
-            title:
-              type: string
-              description: Title of the schema.
-              example: Event XYZ Participation
-            description:
-              type: string
-              description: Description of the schema.
-              example: Description of the title
-            cordSchema:
-              type: object
-              description: Cord-specific schema details.
-              properties:
-                $id:
-                  type: string
-                  example: schema:cord:m3xcC65uSJmyoeciGiKmpF4zKiCq8F2Qz1npCmitXMZbJXqBV
-                additionalProperties:
-                  type: boolean
-                  example: false
-                properties:
-                  type: object
-                  additionalProperties:
-                    type: object
-                    properties:
-                      type:
-                        type: string
-                        example: string
-                title:
-                  type: string
-                  example: Event XYZ Participation
-                type:
-                  type: string
-                  example: object
+          description: Error message describing the issue.
+          example: Invalid request data
     RecordRequest:
       type: object
       properties:
@@ -349,78 +594,15 @@ components:
           type: string
           format: date-time
           description: The date and time from which the credential is valid.
-          example: "2025-03-24T09:02:56.793Z"
+          example: '2025-03-24T09:02:56.793Z'
         validUntil:
           type: string
           format: date-time
           description: The date and time until which the credential is valid.
-          example: "2025-03-26T09:02:56.793Z"
+          example: '2025-03-26T09:02:56.793Z'
       required:
         - schemaId
         - properties
-    CredRes:
-      type: object
-      properties:
-        result:
-          type: string
-          description: Status of the credential issuance.
-          example: SUCCESS
-        identifier:
-          type: string
-          description: Unique identifier of the issued credential.
-          example: stmt:cord:s3dgvtunhXyxg5oBb1QNaqR9NvhF3tnQoLj2jmNBHiW4cYzby:d528de06ecb92d68b33c77c627c2dac6f08ed2507e4bd1ca00456f9635c94af6
-    GetCredRes:
-      type: object
-      properties:
-        credential:
-          allOf:
-            - $ref: '#/components/schemas/CredProp'
-            - type: object
-              description: Detailed credential content.
-        details:
-          allOf:
-            - $ref: '#/components/schemas/MetaDetails'
-            - type: object
-              description: Metadata about the credential.
-        id:
-          type: string
-          description: Unique identifier of the credential.
-          example: c0aa3623b-903f-4ae1-ab0f-ed65eb6b5e77
-        active:
-          type: boolean
-          description: Indicates if the credential is currently active.
-          example: true
-        identifier:
-          type: string
-          description: Alternative identifier for the credential.
-          example: stmt:cord:s3dgvtunhXyxg5oBb1QNaqR9NvhF3tnQoLj2jmNBHiW4cYzby:d528de06ecb92d68b33c77c627c2dac6f08ed2507e4bd1ca00456f9635c94af6
-        fromDid:
-          type: string
-          description: DID of the issuer.
-          example: did:cord:3wCdDiKx3GdRM8p79QYL5EE7NbaiwrL7T2C46QMBfadr9nre
-        credHash:
-          type: string
-          description: Hash of the credential content.
-          example: 0x12a3d334a35bc389cff37fddf36ba7f7a4aa476b2c671e5abc657bcbb7ef0792
-        createdAt:
-          type: string
-          description: Timestamp of credential creation.
-          example: '2023-05-05T18:01:09.109Z'
-        updatedAt:
-          type: string
-          description: Timestamp of the last update.
-          example: '2023-05-05T18:01:09.109Z'
-    CredUpdateRes:
-      type: object
-      properties:
-        result:
-          type: string
-          description: Status of the update operation.
-          example: Updated successfully
-        identifier:
-          type: string
-          description: Updated credential identifier.
-          example: stmt:cord:s3dgvtunhXyxg5oBb1QNaqR9NvhF3tnQoLj2jmNBHiW4cYzby:de689c81fae40362f8f6a9ca228e9d3389e15d0ba8199066366264b017454066
     UpdateRequest:
       type: object
       properties:
@@ -437,26 +619,3 @@ components:
             age:
               type: number
               example: 23
-    CredProp:
-      type: object
-      properties:
-        identifier:
-          type: string
-          example: stream:cord:s3hB4khxYv6rKf4T47zXzeqBT4dQoaowSeiTfHYA1B8ucVKE3
-        content:
-          type: object
-          description: Core content of the credential.
-          example:
-            {
-              'schemaId': 'schema:cord:m3tdRqo3NeTGnR7t5K2qgx1723nVEwj5b6b122stndyfA1gum',
-              'contents': { 'name': 'alex', 'email': 'alex@dhiway', 'age': 23 },
-              'holder': 'did:cord:3wCdDiKx3GdRM8p79QYL5EE7NbaiwrL7T2C46QMBfadr9nre',
-              'issuer': 'did:cord:3yzW2BjxDwgzZJ6adJ2Ueg758dmxL3gRJi6FqYy66FQMSsvy',
-            }
-    MetaDetails:
-      type: object
-      properties:
-        meta:
-          type: string
-          description: Metadata description.
-          example: endpoint-received

@@ -1,6 +1,7 @@
+import 'reflect-metadata';
 import * as Cord from '@cord.network/sdk';
 import express from 'express';
-import 'reflect-metadata';
+
 import { validateSchema } from '../utils/SchemaValidationUtils';
 import { extractSchemaFields } from '../utils/SchemaUtils';
 import { Schema } from '../entity/Schema';
