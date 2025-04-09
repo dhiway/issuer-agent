@@ -74,17 +74,18 @@ export async function issueVC(req: express.Request, res: express.Response) {
         spaceUri: CHAIN_SPACE_ID as `space:cord:${string}`,
         schemaUri: schema.identifier,
         ...vcValidityObj,
+        metadata: {...data.metadata}
       }
     );
+
 
     const vc: any = await Vc.addProof(
       newCredContent,
       async (data) => ({
         signature: await issuerKeysProperty.assertionMethod.sign(data),
         keyType: issuerKeysProperty.assertionMethod.type,
-        keyUri: `${issuerDid.uri}${
-          issuerDid.assertionMethod![0].id
-        }` as Cord.DidResourceUri,
+        keyUri: `${issuerDid.uri}${issuerDid.assertionMethod![0].id
+          }` as Cord.DidResourceUri,
       }),
       issuerDid,
       Cord.ConfigService.get('api'),
@@ -207,7 +208,8 @@ export async function updateCred(req: express.Request, res: express.Response) {
     const updatedCredContent = await Vc.updateVcFromContent(
       data.properties,
       cred.vc,
-      undefined
+      undefined,
+      null
     );
 
     let updatedVc: any = await Vc.updateAddProof(
@@ -216,9 +218,8 @@ export async function updateCred(req: express.Request, res: express.Response) {
       async (data) => ({
         signature: await issuerKeysProperty.assertionMethod.sign(data),
         keyType: issuerKeysProperty.assertionMethod.type,
-        keyUri: `${issuerDid.uri}${
-          issuerDid.assertionMethod![0].id
-        }` as Cord.DidResourceUri,
+        keyUri: `${issuerDid.uri}${issuerDid.assertionMethod![0].id
+          }` as Cord.DidResourceUri,
       }),
       issuerDid,
       api,
