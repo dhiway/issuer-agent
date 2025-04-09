@@ -1,6 +1,5 @@
 import express from 'express';
 import { dataSource } from './dbconfig';
-import { addDelegateAsRegistryDelegate } from './init';
 import { createSchema, getSchemaById } from './controller/schema_controller';
 import {
   getCredById,
@@ -14,8 +13,17 @@ import {
 import { generateDid, resolveDid } from './controller/did_controller';
 import app from './server';
 import { authMiddleware } from './controller/auth_controller';
+import { cordConnect } from './utils/cordConfig';
+import { accountCreate } from './controller/account_controller';
 
 const { PORT } = process.env;
+
+const accountRouter = express.Router({ mergeParams: true });
+app.use('/api/v1/account', accountRouter);
+
+accountRouter.post('/create', async (req, res) => {
+  return await accountCreate(req, res);
+});
 
 app.use(authMiddleware);
 
@@ -82,7 +90,10 @@ app.get('/*', async (req, res) => {
 async function main() {
   try {
     await dataSource.initialize();
-    addDelegateAsRegistryDelegate();
+    cordConnect();
+
+    console.log('Cord Connect has been initialized!');
+    console.log('Data Source has been initialized!');
   } catch (error) {
     console.log('error: ', error);
     throw new Error('Main error');

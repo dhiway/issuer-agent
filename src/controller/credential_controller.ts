@@ -3,32 +3,36 @@ import * as Vc from '@cord.network/vc-export';
 import * as Cord from '@cord.network/sdk';
 import { validateCredential } from '../utils/CredentialValidationUtils';
 import { parseAndFormatDate } from '../utils/DateUtils';
-import {
-  issuerDid,
-  authorIdentity,
-  addDelegateAsRegistryDelegate,
-  issuerKeysProperty,
-  delegateDid,
-  delegateSpaceAuth,
-  delegateKeysProperty,
-} from '../init';
 
 import { Cred } from '../entity/Cred';
 import { Schema } from '../entity/Schema';
 import { dataSource } from '../dbconfig';
 import { extractCredentialFields } from '../utils/CredentialUtils';
-const { CHAIN_SPACE_ID, CHAIN_SPACE_AUTH } = process.env;
+import { authorIdentity } from '../utils/cordConfig';
+import { getDidAndKeys } from '../utils/helper';
+
+const { CHAIN_SPACE_ID } = process.env;
 
 export async function issueVC(req: express.Request, res: express.Response) {
   try {
+    const account = req.account;
+
+    if (!account) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const { issuerDid, issuerKeysProperty } = await getDidAndKeys(
+      account.mnemonic,
+      account.didDocument
+    );
+    if (!issuerDid) {
+      return res.status(400).json({ error: 'Issuer DID not found' });
+    }
+
     const data = req.body;
     const validationError = validateCredential(data);
     if (validationError) {
       return res.status(400).json({ error: validationError });
-    }
-
-    if (!authorIdentity) {
-      await addDelegateAsRegistryDelegate();
     }
 
     const processedData = extractCredentialFields(data);
@@ -105,7 +109,7 @@ export async function issueVC(req: express.Request, res: express.Response) {
       vc.proof[1],
       issuerDid.uri,
       authorIdentity,
-      CHAIN_SPACE_AUTH as `auth:cord:${string}`,
+      account.authorizationId as `auth:cord:${string}`,
       async ({ data }) => ({
         signature: issuerKeysProperty.authentication.sign(data),
         keyType: issuerKeysProperty.authentication.type,
@@ -185,15 +189,29 @@ export async function getCredById(req: express.Request, res: express.Response) {
 }
 
 export async function updateCred(req: express.Request, res: express.Response) {
-  const data = req.body;
-  const api = Cord.ConfigService.get('api');
-  if (!data.properties || typeof data.properties !== 'object') {
-    return res.status(400).json({
-      error: '"property" is a required field and should be an object',
-    });
-  }
-
   try {
+    const account = req.account;
+
+    if (!account) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const { issuerDid, issuerKeysProperty } = await getDidAndKeys(
+      account.mnemonic,
+      account.didDocument
+    );
+    if (!issuerDid) {
+      return res.status(400).json({ error: 'Issuer DID not found' });
+    }
+
+    const data = req.body;
+    const api = Cord.ConfigService.get('api');
+    if (!data.properties || typeof data.properties !== 'object') {
+      return res.status(400).json({
+        error: '"property" is a required field and should be an object',
+      });
+    }
+
     const cred = await dataSource
       .getRepository(Cred)
       .findOne({ where: { identifier: req.params.id } });
@@ -214,7 +232,7 @@ export async function updateCred(req: express.Request, res: express.Response) {
       cred.identifier as `stmt:cord:${string}`,
       updatedCredContent,
       async (data) => ({
-        signature: await issuerKeysProperty.assertionMethod.sign(data),
+        signature: issuerKeysProperty.assertionMethod.sign(data),
         keyType: issuerKeysProperty.assertionMethod.type,
         keyUri: `${issuerDid.uri}${
           issuerDid.assertionMethod![0].id
@@ -239,7 +257,7 @@ export async function updateCred(req: express.Request, res: express.Response) {
       updatedVc.proof[1],
       issuerDid.uri,
       authorIdentity,
-      CHAIN_SPACE_AUTH as `auth:cord:${string}`,
+      account.authorizationId as `auth:cord:${string}`,
       async ({ data }) => ({
         signature: issuerKeysProperty.authentication.sign(data),
         keyType: issuerKeysProperty.authentication.type,
@@ -272,6 +290,20 @@ export async function updateCred(req: express.Request, res: express.Response) {
 
 export async function revokeCred(req: express.Request, res: express.Response) {
   try {
+    const account = req.account;
+
+    if (!account) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const { issuerDid, issuerKeysProperty } = await getDidAndKeys(
+      account.mnemonic,
+      account.didDocument
+    );
+    if (!issuerDid) {
+      return res.status(400).json({ error: 'Issuer DID not found' });
+    }
+
     const cred = await dataSource
       .getRepository(Cred)
       .findOne({ where: { identifier: req.params.id } });
@@ -284,7 +316,7 @@ export async function revokeCred(req: express.Request, res: express.Response) {
       cred.vc.proof[1].elementUri as `stmt:cord:${string}`,
       issuerDid.uri,
       authorIdentity,
-      CHAIN_SPACE_AUTH as `auth:cord:${string}`,
+      account.authorizationId as `auth:cord:${string}`,
       async ({ data }) => ({
         signature: issuerKeysProperty.authentication.sign(data),
         keyType: issuerKeysProperty.authentication.type,
@@ -305,6 +337,20 @@ export async function documentHashOnChain(
   res: express.Response
 ) {
   try {
+    const account = req.account;
+
+    if (!account) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const { issuerDid, issuerKeysProperty } = await getDidAndKeys(
+      account.mnemonic,
+      account.didDocument
+    );
+    if (!issuerDid) {
+      return res.status(400).json({ error: 'Issuer DID not found' });
+    }
+
     const fileHash = req?.body.filehash;
     if (!fileHash) {
       return res.status(400).json({ err: 'No file uploaded' });
@@ -324,7 +370,7 @@ export async function documentHashOnChain(
       docProof,
       issuerDid.uri,
       authorIdentity,
-      CHAIN_SPACE_AUTH as `auth:cord:${string}`,
+      account.authorizationId as `auth:cord:${string}`,
       async ({ data }) => ({
         signature: issuerKeysProperty.authentication.sign(data),
         keyType: issuerKeysProperty.authentication.type,
@@ -351,6 +397,20 @@ export async function revokeDocumentHashOnChain(
   res: express.Response
 ) {
   try {
+    const account = req.account;
+
+    if (!account) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const { issuerDid, issuerKeysProperty } = await getDidAndKeys(
+      account.mnemonic,
+      account.didDocument
+    );
+    if (!issuerDid) {
+      return res.status(400).json({ error: 'Issuer DID not found' });
+    }
+
     const fileHash = req?.body.filehash;
     const identifierReq = req?.body.identifier;
     let statementUri = ``;
@@ -387,7 +447,7 @@ export async function revokeDocumentHashOnChain(
       statementUri as `stmt:cord:${string}`,
       issuerDid.uri,
       authorIdentity,
-      CHAIN_SPACE_AUTH as `auth:cord:${string}`,
+      account.authorizationId as `auth:cord:${string}`,
       async ({ data }) => ({
         signature: issuerKeysProperty.authentication.sign(data),
         keyType: issuerKeysProperty.authentication.type,
@@ -414,6 +474,20 @@ export async function updateDocumentHashOnChain(
   res: express.Response
 ) {
   try {
+    const account = req.account;
+
+    if (!account) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const { issuerDid, issuerKeysProperty } = await getDidAndKeys(
+      account.mnemonic,
+      account.didDocument
+    );
+    if (!issuerDid) {
+      return res.status(400).json({ error: 'Issuer DID not found' });
+    }
+
     const fileHash = req?.body.filehash;
     const identifierReq = req?.body.identifier;
     if (!fileHash) {
@@ -447,7 +521,7 @@ export async function updateDocumentHashOnChain(
         updatedStatementEntry,
         issuerDid.uri,
         authorIdentity,
-        CHAIN_SPACE_AUTH as `auth:cord:${string}`,
+        account.authorizationId as `auth:cord:${string}`,
         async ({ data }) => ({
           signature: issuerKeysProperty.authentication.sign(data),
           keyType: issuerKeysProperty.authentication.type,

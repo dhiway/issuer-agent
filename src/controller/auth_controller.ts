@@ -1,23 +1,32 @@
 import express from 'express';
-
-const { REQUEST_URL_TOKEN } = process.env;
+import { dataSource } from '../dbconfig';
+import { Account } from '../entity/Account';
+import { hash } from '../utils/helper';
 
 export async function authMiddleware(
-    req: express.Request,
-    res: express.Response,
-    next: express.NextFunction
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction
 ) {
-    const authHeader = req.header('Authorization');
+  const authHeader = req.header('Authorization');
 
-    if (!authHeader) {
-        return res.status(401).json({ error: 'Unauthorized' });
-    }
+  if (!authHeader) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
 
-    const [authType, authToken] = authHeader.split(' ');
+  const [authType, authToken] = authHeader.split(' ');
 
-    if (authType === 'Bearer' && authToken === REQUEST_URL_TOKEN) {
-        next();
-    } else {
-        return res.status(401).json({ error: 'Unauthorized' });
-    }
+  const account = await dataSource.manager.findOne(Account, {
+    where: {
+      token: hash(authToken),
+      active: true,
+    },
+  });
+
+  if (authType === 'Bearer' && account) {
+    req.account = account;
+    next();
+  } else {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
 }

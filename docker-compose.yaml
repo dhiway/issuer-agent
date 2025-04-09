@@ -22,6 +22,7 @@ services:
             - CORD_WSS_URL=${CORD_WSS_URL}
             - AUTHOR_URI=${AUTHOR_URI}
             - MNEMONIC=${MNEMONIC}
+            - ENCRYPTION_PASSWORD=${ENCRYPTION_PASSWORD}
             - WALLET_URL=${WALLET_URL}
             - AGENT_DID_NAME=${AGENT_DID_NAME}
             - CHAIN_SPACE_ID=${CHAIN_SPACE_ID}
