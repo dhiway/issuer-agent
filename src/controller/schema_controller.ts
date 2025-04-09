@@ -5,25 +5,25 @@ import express from 'express';
 import { validateSchema } from '../utils/SchemaValidationUtils';
 import { extractSchemaFields } from '../utils/SchemaUtils';
 import { Schema } from '../entity/Schema';
-
-import {
-  addDelegateAsRegistryDelegate,
-  authorIdentity,
-  issuerDid,
-  issuerKeysProperty,
-} from '../init';
 import { dataSource } from '../dbconfig';
+import { authorIdentity } from '../utils/cordConfig';
+import { checkDidAndIdentities } from '../cord';
 
-const { CHAIN_SPACE_ID, CHAIN_SPACE_AUTH } = process.env;
+const { CHAIN_SPACE_ID, CHAIN_SPACE_AUTH, MNEMONIC } = process.env;
 
 export async function createSchema(
   req: express.Request,
   res: express.Response
 ) {
   try {
-    if (!authorIdentity) {
-      await addDelegateAsRegistryDelegate();
+    const account = req.account;
+
+    if (!account) {
+      return res.status(401).json({ error: 'Unauthorized' });
     }
+
+    const { issuerKeys: issuerKeysProperty, document: issuerDid } =
+      await checkDidAndIdentities(MNEMONIC as string);
 
     let data = req.body.schema?.schema || req.body.schema || null;
 
