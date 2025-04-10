@@ -36,6 +36,25 @@ services:
             - local
         command: node dist/index.js
 
+    vc-verify:
+        image: dhiway/vc-verify-ui:latest
+        container_name: vc-verify
+        environment:
+            - PORT=${VERIFY_PORT}
+            - TYPEORM_HOST=${STUDIO_TYPEORM_HOST}
+            - TYPEORM_PORT=${TYPEORM_PORT}
+            - TYPEORM_USERNAME=${STUDIO_TYPEORM_USERNAME}
+            - TYPEORM_PASSWORD=${STUDIO_TYPEORM_PASSWORD}
+            - TYPEORM_DATABASE=${STUDIO_TYPEORM_DATABASE}
+        ports:
+            - ${VERIFY_PORT}:${VERIFY_PORT}
+        depends_on:
+            - postgres42
+            - dhiagent
+        networks:
+            - local
+        command: node dist/index.js
+
     postgres42:
         image: postgres:14.5-alpine
         container_name: postgres42
