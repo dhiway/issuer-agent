@@ -17,7 +17,7 @@ import { authMiddleware } from './controller/auth_controller';
 
 const { PORT } = process.env;
 
-app.use(authMiddleware);
+// app.use(authMiddleware);
 
 const credentialRouter = express.Router({ mergeParams: true });
 const schemaRouter = express.Router({ mergeParams: true });

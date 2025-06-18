@@ -1,80 +1,61 @@
 version: '3.8'
 
 services:
-    dhiagent:
-        image: dhiway/issuer-agent:latest
-        container_name: dhiagent
-        environment:
-            - PORT=${AGENT_PORT}
-            - TYPEORM_HOST=${STUDIO_TYPEORM_HOST}
-            - TYPEORM_PORT=${TYPEORM_PORT}
-            - TYPEORM_USERNAME=${STUDIO_TYPEORM_USERNAME}
-            - TYPEORM_PASSWORD=${STUDIO_TYPEORM_PASSWORD}
-            - TYPEORM_DATABASE=${STUDIO_TYPEORM_DATABASE}
-            - TYPEORM_AUTO_SCHEMA_SYNC=${STUDIO_TYPEORM_AUTO_SCHEMA_SYNC}
-            - TYPEORM_ENTITIES=${STUDIO_TYPEORM_ENTITIES}
-            - TYPEORM_SUBSCRIBERS=${STUDIO_TYPEORM_SUBSCRIBERS}
-            - TYPEORM_MIGRATIONS=${STUDIO_TYPEORM_MIGRATIONS}
-            - TYPEORM_ENTITIES_DIR=${STUDIO_TYPEORM_ENTITIES_DIR}
-            - TYPEORM_MIGRATIONS_DIR=${STUDIO_TYPEORM_MIGRATIONS_DIR}
-            - TYPEORM_SUBSCRIBERS_DIR=${STUDIO_TYPEORM_SUBSCRIBERS_DIR}
-            - TYPEORM_LOGGING=${STUDIO_TYPEORM_LOGGING}
-            - CORD_WSS_URL=${CORD_WSS_URL}
-            - AUTHOR_URI=${AUTHOR_URI}
-            - MNEMONIC=${MNEMONIC}
-            - WALLET_URL=${WALLET_URL}
-            - AGENT_DID_NAME=${AGENT_DID_NAME}
-            - CHAIN_SPACE_ID=${CHAIN_SPACE_ID}
-            - CHAIN_SPACE_AUTH=${CHAIN_SPACE_AUTH}
-            - WEB_URL=${WEB_URL}
-            - REQUEST_URL_TOKEN=${REQUEST_URL_TOKEN}
-        ports:
-            - ${AGENT_PORT}:${AGENT_PORT}
-        depends_on:
-            - postgres42
-        networks:
-            - local
-        command: node dist/index.js
+  dhiagent:
+    image: dhiway/issuer-agent:latest
+    container_name: dhiagent
+    environment:
+      - PORT=${AGENT_PORT}
+      - TYPEORM_HOST=${STUDIO_TYPEORM_HOST}
+      - TYPEORM_PORT=${TYPEORM_PORT}
+      - TYPEORM_USERNAME=${STUDIO_TYPEORM_USERNAME}
+      - TYPEORM_PASSWORD=${STUDIO_TYPEORM_PASSWORD}
+      - TYPEORM_DATABASE=${STUDIO_TYPEORM_DATABASE}
+      - TYPEORM_AUTO_SCHEMA_SYNC=${STUDIO_TYPEORM_AUTO_SCHEMA_SYNC}
+      - TYPEORM_ENTITIES=${STUDIO_TYPEORM_ENTITIES}
+      - TYPEORM_SUBSCRIBERS=${STUDIO_TYPEORM_SUBSCRIBERS}
+      - TYPEORM_MIGRATIONS=${STUDIO_TYPEORM_MIGRATIONS}
+      - TYPEORM_ENTITIES_DIR=${STUDIO_TYPEORM_ENTITIES_DIR}
+      - TYPEORM_MIGRATIONS_DIR=${STUDIO_TYPEORM_MIGRATIONS_DIR}
+      - TYPEORM_SUBSCRIBERS_DIR=${STUDIO_TYPEORM_SUBSCRIBERS_DIR}
+      - TYPEORM_LOGGING=${STUDIO_TYPEORM_LOGGING}
+      - CORD_WSS_URL=${CORD_WSS_URL}
+      - AUTHOR_URI=${AUTHOR_URI}
+      - MNEMONIC=${MNEMONIC}
+      - WALLET_URL=${WALLET_URL}
+      - AGENT_DID_NAME=${AGENT_DID_NAME}
+      - CHAIN_SPACE_ID=${CHAIN_SPACE_ID}
+      - CHAIN_SPACE_AUTH=${CHAIN_SPACE_AUTH}
+      - WEB_URL=${WEB_URL}
+      - REQUEST_URL_TOKEN=${REQUEST_URL_TOKEN}
+    ports:
+      - ${AGENT_PORT}:${AGENT_PORT}
+    depends_on:
+      - postgres42
+    networks:
+      - local
+    command: node dist/index.js
 
-    vc-verify:
-        image: dhiway/vc-verify-ui:latest
-        container_name: vc-verify
-        environment:
-            - PORT=${VERIFY_PORT}
-            - TYPEORM_HOST=${STUDIO_TYPEORM_HOST}
-            - TYPEORM_PORT=${TYPEORM_PORT}
-            - TYPEORM_USERNAME=${STUDIO_TYPEORM_USERNAME}
-            - TYPEORM_PASSWORD=${STUDIO_TYPEORM_PASSWORD}
-            - TYPEORM_DATABASE=${STUDIO_TYPEORM_DATABASE}
-        ports:
-            - ${VERIFY_PORT}:${VERIFY_PORT}
-        depends_on:
-            - postgres42
-            - dhiagent
-        networks:
-            - local
-        command: node dist/index.js
-
-    postgres42:
-        image: postgres:14.5-alpine
-        container_name: postgres42
-        environment:
-            POSTGRES_USER: ${STUDIO_TYPEORM_USERNAME}
-            POSTGRES_PASSWORD: ${STUDIO_TYPEORM_PASSWORD}
-            POSTGRES_DB: ${STUDIO_TYPEORM_DATABASE}
-            PGDATA: /var/lib/postgresql/data/pgdata
-        ports:
-            - ${STUDIO_TYPEORM_PORT}:${TYPEORM_PORT}
-        restart: always
-        volumes:
-            - postgres-data42:/var/lib/postgresql/data
-        networks:
-            - local
+  postgres42:
+    image: postgres:14.5-alpine
+    container_name: postgres42
+    environment:
+      POSTGRES_USER: ${STUDIO_TYPEORM_USERNAME}
+      POSTGRES_PASSWORD: ${STUDIO_TYPEORM_PASSWORD}
+      POSTGRES_DB: ${STUDIO_TYPEORM_DATABASE}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - ${STUDIO_TYPEORM_PORT}:${TYPEORM_PORT}
+    restart: always
+    volumes:
+      - postgres-data42:/var/lib/postgresql/data
+    networks:
+      - local
 
 volumes:
-    postgres-data42:
-        name: postgres-data42
+  postgres-data42:
+    name: postgres-data42
 
 networks:
-    local:
-        name: local
+  local:
+    name: local
