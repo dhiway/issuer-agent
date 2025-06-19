@@ -140,11 +140,14 @@ export async function getProfile(
     // Fund account
     await fundAccount(api, account.address, TRANSFER_AMOUNT);
 
-    // Create profile
+    // This is optional, you can pass any raw profile data you want
+    // For example, you can use the issuer's name or any other identifier
+    // Here we are using a simple example with a public name
     const rawProfileData: RawProfileData = {
       pub_name: 'Issuer',
     };
 
+    // Create profile
     const profileId = await createProfileOnChain(api, account, rawProfileData);
 
     // Return success response
