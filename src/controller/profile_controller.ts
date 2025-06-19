@@ -17,9 +17,6 @@ interface RawProfileData {
   pub_name: string;
 }
 
-/**
- * Funds an account with the specified amount
- */
 async function fundAccount(
   api: any,
   accountAddress: string,
@@ -67,9 +64,6 @@ async function fundAccount(
   });
 }
 
-/**
- * Creates a profile on the blockchain
- */
 async function createProfileOnChain(
   api: any,
   account: any,
