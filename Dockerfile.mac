@@ -11,6 +11,6 @@ RUN yarn build
 
 EXPOSE 5001
 
-CMD ["npm", "run", "prod"]
+CMD ["yarn", "run", "prod"]
 
 #CMD ["tail", "-f", "/dev/null"]

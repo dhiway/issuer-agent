@@ -1,9 +1,9 @@
 import * as Cord from '@cord.network/sdk';
 import { Request, Response } from 'express';
-import { createAccount } from '@cord.network/vc-export';
+// import { createAccount } from '@cord.network/vc-export';
 import { blake2AsHex } from '@polkadot/util-crypto';
 
-const { STASH_ACC_ADDRESS } = process.env;
+const { STASH_ACC_MNEMONIC } = process.env;
 const TRANSFER_AMOUNT = 100 * 10 ** 12; // 100 WAY for transactions
 
 interface ProfileResponse {
@@ -17,16 +17,33 @@ interface RawProfileData {
   pub_name: string;
 }
 
+export function createAccount(
+  mnemonic = Cord.Utils.Crypto.mnemonicGenerate(24)
+): {
+  account: Cord.CordKeyringPair;
+  mnemonic: string;
+} {
+  const keyring = new Cord.Utils.Keyring({
+    ss58Format: 29,
+    type: 'sr25519',
+  });
+  return {
+    account: keyring.addFromMnemonic(mnemonic) as Cord.CordKeyringPair,
+    mnemonic,
+  };
+}
+
 async function fundAccount(
   api: any,
   accountAddress: string,
   amount: number
 ): Promise<void> {
-  if (!STASH_ACC_ADDRESS) {
-    throw new Error('STASH_ACC_ADDRESS environment variable is not set');
-  }
+  console.log(`💸 Funding account ${accountAddress}... `);
 
-  console.log(`💸 Funding account ${accountAddress}...`);
+  const stashAccount = createAccount(STASH_ACC_MNEMONIC);
+  if (!stashAccount || !stashAccount.account) {
+    throw new Error('Failed to create stash account');
+  }
 
   return new Promise<void>((resolve, reject) => {
     const timeout = setTimeout(() => {
@@ -35,7 +52,7 @@ async function fundAccount(
 
     api.tx.balances
       .transferKeepAlive(accountAddress, amount)
-      .signAndSend(STASH_ACC_ADDRESS, (result: any) => {
+      .signAndSend(stashAccount.account, (result: any) => {
         try {
           if (result.status.isInBlock || result.status.isFinalized) {
             clearTimeout(timeout);

@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   dhiagent:
     image: dhiway/issuer-agent:latest
@@ -28,6 +26,8 @@ services:
       - CHAIN_SPACE_AUTH=${CHAIN_SPACE_AUTH}
       - WEB_URL=${WEB_URL}
       - REQUEST_URL_TOKEN=${REQUEST_URL_TOKEN}
+      - NETWORK_ADDRESS=${NETWORK_ADDRESS}
+      - STASH_ACC_MNEMONIC=${STASH_ACC_MNEMONIC}
     ports:
       - ${AGENT_PORT}:${AGENT_PORT}
     depends_on:
@@ -37,7 +37,7 @@ services:
     command: node dist/index.js
 
   postgres42:
-    image: postgres:14.5-alpine
+    image: postgres:16-alpine
     container_name: postgres42
     environment:
       POSTGRES_USER: ${STUDIO_TYPEORM_USERNAME}
