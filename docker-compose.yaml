@@ -4,6 +4,8 @@ services:
     container_name: dhiagent
     environment:
       - PORT=${AGENT_PORT}
+      - REDIS_URL=${REDIS_URL}
+      - REDIS_TIMEOUT=${REDIS_TIMEOUT}
       - TYPEORM_HOST=${STUDIO_TYPEORM_HOST}
       - TYPEORM_PORT=${TYPEORM_PORT}
       - TYPEORM_USERNAME=${STUDIO_TYPEORM_USERNAME}
@@ -32,6 +34,7 @@ services:
       - ${AGENT_PORT}:${AGENT_PORT}
     depends_on:
       - postgres42
+      - redis
     networks:
       - local
     command: node dist/index.js
@@ -49,6 +52,15 @@ services:
     restart: always
     volumes:
       - postgres-data42:/var/lib/postgresql/data
+    networks:
+      - local
+
+  redis:
+    image: redis:latest
+    container_name: redis_container
+    ports:
+      - '6379:6379'
+    restart: always
     networks:
       - local
 
