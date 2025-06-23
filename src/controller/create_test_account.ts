@@ -1,11 +1,13 @@
 import { createAccount } from '@cord.network/vc-export';
-import { mnemonicGenerate, cryptoWaitReady } from '@polkadot/util-crypto';
+import { cryptoWaitReady } from '@polkadot/util-crypto';
+
+const { STASH_ACC_MNEMONIC } = process.env;
 
 async function main() {
   // Create new account with mnemonic
-  console.log('\n:bust_in_silhouette: Creating new account...');
+  console.log(' Creating new account...');
   await cryptoWaitReady();
-  const mnemonic = 'couple virtual next lottery state danger tent flame finger salad task material';
+  const mnemonic = STASH_ACC_MNEMONIC;
   const { account } = createAccount(mnemonic);
 
   console.log(`✅ New account created:`);

@@ -99,34 +99,21 @@ async function getProfileWithFallback(address: string): Promise<{
     console.log(
       `⚠️ No profile found on chain for ${address}, trying database fallback...`
     );
-    const dbProfileId = await getProfileFromDatabase(address);
 
+    const dbProfileId = await getProfileFromDatabase(address);
     return {
       profileId: dbProfileId,
       source: 'database',
     };
-  } catch (chainError) {
-    console.warn(
-      `⚠️ Chain fetch failed for ${address}, trying database fallback:`,
-      chainError
-    );
+  } catch (dbError) {
+    console.error(`❌ Both chain and database fetch failed for ${address}:`, {
+      dbError: dbError instanceof Error ? dbError.message : dbError,
+    });
 
-    try {
-      const dbProfileId = await getProfileFromDatabase(address);
-      return {
-        profileId: dbProfileId,
-        source: 'database',
-      };
-    } catch (dbError) {
-      console.error(`❌ Both chain and database fetch failed for ${address}:`, {
-        chainError:
-          chainError instanceof Error ? chainError.message : chainError,
-        dbError: dbError instanceof Error ? dbError.message : dbError,
-      });
-
-      // Re-throw the original chain error as it's the primary source
-      throw chainError;
-    }
+    return {
+      profileId: null,
+      source: 'database',
+    };
   }
 }
 
