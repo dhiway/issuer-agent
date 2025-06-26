@@ -1,18 +1,12 @@
 import * as Cord from '@cord.network/sdk';
+import { createAccount } from '@cord.network/vc-export';
 import { Request, Response } from 'express';
 import { CordKeyringPair } from '@cord.network/types';
 
 import { Profile } from '../entity/Profile';
-import { createAccount } from './profile_controller';
 import { dataSource } from '../dbconfig';
 import { Registry } from '../entity/Registry';
-
-interface RegistryCreatedEventData {
-  registry_: string;
-  creator: string;
-  profileId: string;
-  [key: string]: any;
-}
+import { waitForEvent } from '../utils/Events';
 
 export async function createRegistry(req: Request, res: Response) {
   try {
@@ -52,7 +46,7 @@ export async function createRegistry(req: Request, res: Response) {
       schema: JSON.stringify(schema),
       date: new Date().toISOString(),
     };
-    
+
     const registryStringifiedBlob = JSON.stringify(registryBlob);
     const registryTxHash = await Cord.Registry.getDigestFromRawData(
       registryStringifiedBlob
@@ -68,36 +62,9 @@ export async function createRegistry(req: Request, res: Response) {
       account as CordKeyringPair
     );
 
-    const eventData = await new Promise<RegistryCreatedEventData>(
-      (resolve, reject) => {
-        let unsubscribe: () => void;
-        api.query.system
-          .events((events) => {
-            events.forEach(({ phase, event }) => {
-              if (
-                phase.isApplyExtrinsic &&
-                api.events.registry.RegistryCreated.is(event)
-              ) {
-                console.log(
-                  "'Registry Created' Event Data",
-                  event.data.toHuman()
-                );
-                const eventObj = event.data.toHuman();
-                resolve(eventObj as RegistryCreatedEventData);
-                if (unsubscribe) unsubscribe();
-              }
-            });
-          })
-          .then((unsub) => {
-            unsubscribe = unsub;
-          });
-
-        setTimeout(() => {
-          if (unsubscribe) unsubscribe();
-          reject(new Error('Timeout: RegistryCreated event not found'));
-        }, 10_000); // 10s
-      }
-    );
+    const eventData: any = (await waitForEvent(api, (event: any) =>
+      api.events.registry.RegistryCreated.is(event)
+    )) as string;
 
     const registry = new Registry();
     registry.registryId = eventData.registry_;
@@ -118,5 +85,24 @@ export async function createRegistry(req: Request, res: Response) {
   } catch (error) {
     console.error('Error creating registry:', error);
     res.status(500).json({ error: 'Failed to create registry' });
+  }
+}
+
+export async function getRegistry(req: Request, res: Response) {
+  try {
+    const { address } = req.params;
+
+    const registry = await dataSource
+      .getRepository(Registry)
+      .findOne({ where: { address } });
+
+    if (!registry) {
+      return res.status(404).json({ error: 'Registry not found' });
+    }
+
+    return res.status(200).json(registry);
+  } catch (error) {
+    console.error('Error fetching registry:', error);
+    return res.status(500).json({ error: 'Failed to fetch registry' });
   }
 }

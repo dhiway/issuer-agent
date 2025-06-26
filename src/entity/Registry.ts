@@ -5,11 +5,13 @@ import {
   BeforeInsert,
   CreateDateColumn,
   UpdateDateColumn,
+  Unique,
 } from 'typeorm';
 import 'reflect-metadata';
 import { v4 as uuidv4 } from 'uuid';
 
 @Entity()
+@Unique(['registryId'])
 export class Registry {
   @BeforeInsert()
   generateId() {
@@ -23,14 +25,14 @@ export class Registry {
   @Column()
   registryId?: string;
 
-  @Column('simple-json', { nullable: true, default: null })
-  schema?: any;
-
   @Column()
   address?: string;
 
   @Column()
   profileId?: string;
+
+  @Column('simple-json', { nullable: true, default: null })
+  schema?: any;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt?: Date;

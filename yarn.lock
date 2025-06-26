@@ -32,104 +32,104 @@
   resolved "https://registry.yarnpkg.com/@cbor-extract/cbor-extract-win32-x64/-/cbor-extract-win32-x64-2.2.0.tgz#4b3f07af047f984c082de34b116e765cb9af975f"
   integrity sha512-l2M+Z8DO2vbvADOBNLbbh9y5ST1RY5sqkWOg/58GkUPBYou/cuNZ68SGQ644f1CvZ8kcOxyZtw06+dxWHIoN/w==
 
-"@cord.network/augment-api@0.9.6-4":
-  version "0.9.6-4"
-  resolved "https://registry.yarnpkg.com/@cord.network/augment-api/-/augment-api-0.9.6-4.tgz#7acc42e699e6c22725683618fd3b7151a30eac61"
-  integrity sha512-jSl6pVA4b7+UullXMVLbllxJqHLSbwL+dhh3sr5WGlaGsVgmA96/yxPdYeER45Ll63oHiTo2C0aiHmQEAOlSKw==
+"@cord.network/augment-api@0.9.6-5":
+  version "0.9.6-5"
+  resolved "https://registry.yarnpkg.com/@cord.network/augment-api/-/augment-api-0.9.6-5.tgz#97550f504b52a3804237c908befaac420666f453"
+  integrity sha512-x7FHKLo4ggm/m8rwXD3qKTMZp16/13URSgvgEFDnnb8KJ3VNyrIOKsfJqwI2MGoRHsOH2AZHxYK5/koxz79ppQ==
   dependencies:
-    "@cord.network/type-definitions" "0.9.6-4"
+    "@cord.network/type-definitions" "0.9.6-5"
     "@polkadot/rpc-augment" "^15.9.1"
     "@polkadot/rpc-core" "^15.9.1"
     "@polkadot/rpc-provider" "^15.9.1"
 
-"@cord.network/config@0.9.6-4":
-  version "0.9.6-4"
-  resolved "https://registry.yarnpkg.com/@cord.network/config/-/config-0.9.6-4.tgz#26bdb3ff33cfe60342df113f91e6413a94b7a8fc"
-  integrity sha512-y+9di3QLOvQiNvacrTzdJJ++qUo+EhHor18Oew7/JjgAH4KfkNw716PC5qDhZT/rZPDZ1YMaCI96zwbTRHVkUw==
+"@cord.network/config@0.9.6-5":
+  version "0.9.6-5"
+  resolved "https://registry.yarnpkg.com/@cord.network/config/-/config-0.9.6-5.tgz#6d31cd9d67375cb1b1a04c4a89091367ca798d34"
+  integrity sha512-fEa3NDgD2zARFYEMYGs4i5g7VRE8xtQIC0a+Ewqis7gHS0ZLlA6fKI9a3wH6ESLAA+DS3MEz2BvAcEuDIT4RnA==
   dependencies:
-    "@cord.network/type-definitions" "0.9.6-4"
-    "@cord.network/types" "0.9.6-4"
-    "@cord.network/utils" "0.9.6-4"
+    "@cord.network/type-definitions" "0.9.6-5"
+    "@cord.network/types" "0.9.6-5"
+    "@cord.network/utils" "0.9.6-5"
 
-"@cord.network/entry@0.9.6-4":
-  version "0.9.6-4"
-  resolved "https://registry.yarnpkg.com/@cord.network/entry/-/entry-0.9.6-4.tgz#e14c285d03b68d66a4be351f43fa18c71e46d0e6"
-  integrity sha512-SrVSPFGGglzssc6PuQVXr0t9xKum2viRfg+3NtCc+7qWxQ+3KUYufn4oj0M4DDn5yrw/wrQXz9hULLtIh953zg==
+"@cord.network/entry@0.9.6-5":
+  version "0.9.6-5"
+  resolved "https://registry.yarnpkg.com/@cord.network/entry/-/entry-0.9.6-5.tgz#3626c4e3e95180f315499fe06ebb40e0aab57e0a"
+  integrity sha512-hKWuWsC98+2n17g8/4Zwf7TOnzjq+O/DvAbq4A36MmmJmUFKzgsYX9uvzeEe3rAz9byg305W0xllLpS0Oyb+9g==
   dependencies:
-    "@cord.network/config" "0.9.6-4"
-    "@cord.network/identifier" "0.9.6-4"
-    "@cord.network/network" "0.9.6-4"
-    "@cord.network/profile" "0.9.6-4"
-    "@cord.network/registry" "0.9.6-4"
-    "@cord.network/types" "0.9.6-4"
-    "@cord.network/utils" "0.9.6-4"
+    "@cord.network/config" "0.9.6-5"
+    "@cord.network/identifier" "0.9.6-5"
+    "@cord.network/network" "0.9.6-5"
+    "@cord.network/profile" "0.9.6-5"
+    "@cord.network/registry" "0.9.6-5"
+    "@cord.network/types" "0.9.6-5"
+    "@cord.network/utils" "0.9.6-5"
 
-"@cord.network/identifier@0.9.6-4":
-  version "0.9.6-4"
-  resolved "https://registry.yarnpkg.com/@cord.network/identifier/-/identifier-0.9.6-4.tgz#0b11987d190098a6213ec67d44826984fe741dd2"
-  integrity sha512-cbn19exbY9TpB2sfebOSP9JPo87iushNx7YtpGJphyVmt0Y7lJ8T3Ow10KmC2EVjcspktuWbD55d46b0HKogxA==
+"@cord.network/identifier@0.9.6-5":
+  version "0.9.6-5"
+  resolved "https://registry.yarnpkg.com/@cord.network/identifier/-/identifier-0.9.6-5.tgz#e8c75367259d4fc5b2bd0f5a7a0714373a480006"
+  integrity sha512-1u8ALjI50EitM78iWrPPKtu2J7nxVkJM3F8fRq2LbaphncyALGWddjFXjK67Q+818d8uJHbWeTiPO6eX73f36A==
   dependencies:
-    "@cord.network/types" "0.9.6-4"
-    "@cord.network/utils" "0.9.6-4"
+    "@cord.network/types" "0.9.6-5"
+    "@cord.network/utils" "0.9.6-5"
 
-"@cord.network/network@0.9.6-4":
-  version "0.9.6-4"
-  resolved "https://registry.yarnpkg.com/@cord.network/network/-/network-0.9.6-4.tgz#5f58ba09b21a28ebb5c5eca104f6e7c13ba8e379"
-  integrity sha512-abPgYjuOpa/kOV2yWSJCULppndr8Sb+npw7PAmSSgZEcIFHnW1CNQUvg1KtjIdu5Pgrrd3hwnBRcqYa7jFN8RA==
+"@cord.network/network@0.9.6-5":
+  version "0.9.6-5"
+  resolved "https://registry.yarnpkg.com/@cord.network/network/-/network-0.9.6-5.tgz#281487425479b80a2ea6bf3a38eec666c203ca11"
+  integrity sha512-nLtan+9eFmF1L8t2H5BzV4kMI8R63EuXxjR0P7m9Ylt/EPVqOhuvpA58MHxdAVqCjxJeT72rcIoNQI6qzIPQQA==
   dependencies:
-    "@cord.network/config" "0.9.6-4"
-    "@cord.network/types" "0.9.6-4"
-    "@cord.network/utils" "0.9.6-4"
+    "@cord.network/config" "0.9.6-5"
+    "@cord.network/types" "0.9.6-5"
+    "@cord.network/utils" "0.9.6-5"
     "@polkadot/api" "^15.9.1"
     "@polkadot/types" "^15.9.1"
 
-"@cord.network/profile@0.9.6-4":
-  version "0.9.6-4"
-  resolved "https://registry.yarnpkg.com/@cord.network/profile/-/profile-0.9.6-4.tgz#869511f99efdfb0104f7eb5c675f65b4eeb1c10a"
-  integrity sha512-vgysHv5+p1CbADMwfySc9KDyhcBfoAY4GoMWjzRbTT+pFEImvR3erBjJnXARk1hVkDWvaKdeGunsTan/reIEYQ==
+"@cord.network/profile@0.9.6-5":
+  version "0.9.6-5"
+  resolved "https://registry.yarnpkg.com/@cord.network/profile/-/profile-0.9.6-5.tgz#21650b12cfc0d2a53c101ab800bd16b11abe6634"
+  integrity sha512-ObuYJsPoV3zW2hzsBZRbtD/a16+p4GD3lNh5y5eIebqX/WchsYu7O319GtOI+aqdVNwv9dCMbZ6+Q1tovnRfTg==
   dependencies:
-    "@cord.network/config" "0.9.6-4"
-    "@cord.network/identifier" "0.9.6-4"
-    "@cord.network/network" "0.9.6-4"
-    "@cord.network/types" "0.9.6-4"
-    "@cord.network/utils" "0.9.6-4"
+    "@cord.network/config" "0.9.6-5"
+    "@cord.network/identifier" "0.9.6-5"
+    "@cord.network/network" "0.9.6-5"
+    "@cord.network/types" "0.9.6-5"
+    "@cord.network/utils" "0.9.6-5"
 
-"@cord.network/registry@0.9.6-4":
-  version "0.9.6-4"
-  resolved "https://registry.yarnpkg.com/@cord.network/registry/-/registry-0.9.6-4.tgz#5402b0f23b0a7e90baddcf871ccca99a3f969289"
-  integrity sha512-/DNqLKP9CwsdtE17Nayuwl/azf2Xw4YfGivsHOTrOEDPQbE/3kRt+8UA5zMXwiXRxx+4oWWM4F+oB7Y53NnQgA==
+"@cord.network/registry@0.9.6-5":
+  version "0.9.6-5"
+  resolved "https://registry.yarnpkg.com/@cord.network/registry/-/registry-0.9.6-5.tgz#d478c378b09e01b00dfaaae0fae20738582a4996"
+  integrity sha512-CbS2R2b4o3cXBLKEQcZSMOWJR3XDWqdN+3GWYJ148cYu1UgVm50pcxRv2R8NxG30a6/wWWLROksbrnPFZ51F6Q==
   dependencies:
-    "@cord.network/config" "0.9.6-4"
-    "@cord.network/identifier" "0.9.6-4"
-    "@cord.network/network" "0.9.6-4"
-    "@cord.network/types" "0.9.6-4"
-    "@cord.network/utils" "0.9.6-4"
+    "@cord.network/config" "0.9.6-5"
+    "@cord.network/identifier" "0.9.6-5"
+    "@cord.network/network" "0.9.6-5"
+    "@cord.network/types" "0.9.6-5"
+    "@cord.network/utils" "0.9.6-5"
 
-"@cord.network/sdk@0.9.6-4":
-  version "0.9.6-4"
-  resolved "https://registry.yarnpkg.com/@cord.network/sdk/-/sdk-0.9.6-4.tgz#bc1232216f6a84f807f144c0f60e5b6e979da88d"
-  integrity sha512-Is7hUYs+XhhIR1upOKVpwuEGPY4SDyl8mFXIliZ+0+heTL7vhWATwU8OgO10qIHaclIYpujSwYkmKWDS7K7KTA==
+"@cord.network/sdk@0.9.6-5":
+  version "0.9.6-5"
+  resolved "https://registry.yarnpkg.com/@cord.network/sdk/-/sdk-0.9.6-5.tgz#b1de9563189ba3e0483f690d7b2fc4ef7ad75236"
+  integrity sha512-y3neq+1UqGqEpHnFkGGiFgrRYv2t6X8tap6vUS6/eupjqll+3N9oELWwlySBRdI4PNv4qOR0ffCN7xnvMWfFRQ==
   dependencies:
-    "@cord.network/config" "0.9.6-4"
-    "@cord.network/entry" "0.9.6-4"
-    "@cord.network/identifier" "0.9.6-4"
-    "@cord.network/network" "0.9.6-4"
-    "@cord.network/profile" "0.9.6-4"
-    "@cord.network/registry" "0.9.6-4"
-    "@cord.network/types" "0.9.6-4"
-    "@cord.network/utils" "0.9.6-4"
+    "@cord.network/config" "0.9.6-5"
+    "@cord.network/entry" "0.9.6-5"
+    "@cord.network/identifier" "0.9.6-5"
+    "@cord.network/network" "0.9.6-5"
+    "@cord.network/profile" "0.9.6-5"
+    "@cord.network/registry" "0.9.6-5"
+    "@cord.network/types" "0.9.6-5"
+    "@cord.network/utils" "0.9.6-5"
 
-"@cord.network/type-definitions@0.9.6-4":
-  version "0.9.6-4"
-  resolved "https://registry.yarnpkg.com/@cord.network/type-definitions/-/type-definitions-0.9.6-4.tgz#9423328e7a0346b50ac9f1ef4139bbcca8743242"
-  integrity sha512-K6IbjlubrGsTNfqtJcbD1oK3Gngmu+BUpcA4ccUM9FVtS5d3KEp/H5PTNdDPzxkWQ8JdtvTTM8jyQkdxkNV37w==
+"@cord.network/type-definitions@0.9.6-5":
+  version "0.9.6-5"
+  resolved "https://registry.yarnpkg.com/@cord.network/type-definitions/-/type-definitions-0.9.6-5.tgz#b82a8c0b4dece60f900323d088d46db8a00164f2"
+  integrity sha512-M0v58uIChOv41KNXI+ETsKvI6gimCqbRU5L5Qw16EAwobhW9+v4v2QgnC/dqwYKNVKYUVwDuKLUc7UIW3+FwuQ==
   dependencies:
     "@polkadot/types" "^15.9.1"
 
-"@cord.network/types@0.9.6-4":
-  version "0.9.6-4"
-  resolved "https://registry.yarnpkg.com/@cord.network/types/-/types-0.9.6-4.tgz#0630559d5d42b4e8f195f51e09b1fbb093a83d09"
-  integrity sha512-bFEapca1V7mKFt1IvmtZ5HwFBEAHPQ+81jH8GWpPBMi69TzJ3ogfr4lwCWKsuyoEBIjj60aV2Zkq6ZrRfolwcw==
+"@cord.network/types@0.9.6-5":
+  version "0.9.6-5"
+  resolved "https://registry.yarnpkg.com/@cord.network/types/-/types-0.9.6-5.tgz#cc9501db7afa86fbb93e5f5a0b7dd3a1641b0dce"
+  integrity sha512-EkGS5ifPLa3aZKPzcMXmSeXhwxAw5Axpezk/92VPt0Ugf2Dz7WTkxEniFO2wyMQzyXboSYooQwIrOhDPKjcpaQ==
   dependencies:
     "@polkadot/api" "^15.9.1"
     "@polkadot/keyring" "^13.4.3"
@@ -137,33 +137,34 @@
     "@polkadot/util" "^13.4.3"
     "@polkadot/util-crypto" "^13.4.3"
 
-"@cord.network/utils@0.9.6-4":
-  version "0.9.6-4"
-  resolved "https://registry.yarnpkg.com/@cord.network/utils/-/utils-0.9.6-4.tgz#a6a37aece2fdeb280bc8913de4d0ba1b461580e6"
-  integrity sha512-zDyab1culxe1LIRTExjz97TtBGy6x/q8/bqaR+/aUgbdOqQS6xg4Sp8vi6s2XfvCCXXLt/6MEV7NQkljDbd6rw==
+"@cord.network/utils@0.9.6-5":
+  version "0.9.6-5"
+  resolved "https://registry.yarnpkg.com/@cord.network/utils/-/utils-0.9.6-5.tgz#9095cb2565914fb5ef7c612f5fe22e7540b1e4f7"
+  integrity sha512-aeeFg6oWkTPZPP3eIYnmcUlVQBSvvSDBc3QV5SKTXd3ndKkpPUy2lVOzKUtuV1WM6KB6+c5ocsDx1BYZZgaW9A==
   dependencies:
-    "@cord.network/augment-api" "0.9.6-4"
-    "@cord.network/types" "0.9.6-4"
+    "@cord.network/augment-api" "0.9.6-5"
+    "@cord.network/types" "0.9.6-5"
     "@polkadot/api" "^15.9.1"
     "@polkadot/keyring" "^13.4.3"
     "@polkadot/util" "^13.4.3"
     "@polkadot/util-crypto" "^13.4.3"
     cbor-x "^1.5.8"
+    multiformats "^9.0.0"
     tweetnacl "^1.0.3"
     uuid "^9.0.1"
 
-"@cord.network/vc-export@0.9.6-alpha7":
-  version "0.9.6-alpha7"
-  resolved "https://registry.yarnpkg.com/@cord.network/vc-export/-/vc-export-0.9.6-alpha7.tgz#979b1c47588be27400ebca8ff1826760d82a1683"
-  integrity sha512-v90deBUfcFLdWyqkJO74U4FRVqBZqAETJartAxcdQcnAsOqybxV795+ReedxhCk3ol7AAIgcJGteD1F4nlOm+A==
+"@cord.network/vc-export@0.9.6-alpha9":
+  version "0.9.6-alpha9"
+  resolved "https://registry.yarnpkg.com/@cord.network/vc-export/-/vc-export-0.9.6-alpha9.tgz#5cc99e75274ff4d4a08a7f55d835ed0b11356083"
+  integrity sha512-ZBPYQpmoGHZPR6kSROD6TD5drlaAtNmAUq8c5KyRkH3JECoTvDGMEiCOy2c5PsuXIWX9/rWg1/hcNp4qUX7Srg==
   dependencies:
-    "@cord.network/sdk" "0.9.6-4"
+    "@cord.network/sdk" "0.9.6-5"
     bs58 "^6.0.0"
     express "^4.21.1"
     jsonld "^8.3.2"
     moment "^2.29.4"
     ts-node "^10.9.1"
-    uuidv4 "^6.2.13"
+    uuid "^11.1.0"
 
 "@cspotcode/source-map-support@^0.8.0":
   version "0.8.1"
@@ -635,11 +636,6 @@
   resolved "https://registry.yarnpkg.com/@redis/time-series/-/time-series-5.5.6.tgz#f04af4719638a852ff09267b43a8b1c250a5bb4c"
   integrity sha512-jkpcgq3NOI3TX7xEAJ3JgesJTxAx7k0m6lNxNsYdEM8KOl+xj7GaB/0CbLkoricZDmFSEAz7ClA1iK9XkGHf+Q==
 
-"@scarf/scarf@=1.4.0":
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/@scarf/scarf/-/scarf-1.4.0.tgz#3bbb984085dbd6d982494538b523be1ce6562972"
-  integrity sha512-xxeapPiUXdZAE3che6f3xogoJPeZgig6omHEy1rIY5WVsB3H2BHNnZH+gHG6x91SCWyQCzWGsuL2Hh3ClO5/qQ==
-
 "@scure/base@^1.1.1", "@scure/base@^1.1.7":
   version "1.2.6"
   resolved "https://registry.yarnpkg.com/@scure/base/-/base-1.2.6.tgz#ca917184b8231394dd8847509c67a0be522e59f6"
@@ -747,25 +743,6 @@
     "@types/range-parser" "*"
     "@types/send" "*"
 
-"@types/express-serve-static-core@^5.0.0":
-  version "5.0.6"
-  resolved "https://registry.yarnpkg.com/@types/express-serve-static-core/-/express-serve-static-core-5.0.6.tgz#41fec4ea20e9c7b22f024ab88a95c6bb288f51b8"
-  integrity sha512-3xhRnjJPkULekpSzgtoNYYcTWgEZkp4myc+Saevii5JPnHNvHMRlBSHDbs7Bh1iPPoVTERHEZXyhyLbMEsExsA==
-  dependencies:
-    "@types/node" "*"
-    "@types/qs" "*"
-    "@types/range-parser" "*"
-    "@types/send" "*"
-
-"@types/express@*":
-  version "5.0.3"
-  resolved "https://registry.yarnpkg.com/@types/express/-/express-5.0.3.tgz#6c4bc6acddc2e2a587142e1d8be0bce20757e956"
-  integrity sha512-wGA0NX93b19/dZC1J18tKWVIYWyyF2ZjT9vin/NRu0qzzvfVzWjs04iq2rQ3H65vCTQYlRqs3YHfY7zjdV+9Kw==
-  dependencies:
-    "@types/body-parser" "*"
-    "@types/express-serve-static-core" "^5.0.0"
-    "@types/serve-static" "*"
-
 "@types/express@^4.17.17":
   version "4.17.23"
   resolved "https://registry.yarnpkg.com/@types/express/-/express-4.17.23.tgz#35af3193c640bfd4d7fe77191cd0ed411a433bef"
@@ -787,16 +764,16 @@
   integrity sha512-/pyBZWSLD2n0dcHE3hq8s8ZvcETHtEuF+3E7XVt0Ig2nvsVQXdghHVcEkIWjy9A0wKfTn97a/PSDYohKIlnP/w==
 
 "@types/node@*":
-  version "24.0.3"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-24.0.3.tgz#f935910f3eece3a3a2f8be86b96ba833dc286cab"
-  integrity sha512-R4I/kzCYAdRLzfiCabn9hxWfbuHS573x+r0dJMkkzThEa7pbrcDWK+9zu3e7aBOouf+rQAciqPFMnxwr0aWgKg==
+  version "24.0.4"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-24.0.4.tgz#dbae889912bda33a7f57669fb8587c1a56bc0c1f"
+  integrity sha512-ulyqAkrhnuNq9pB76DRBTkcS6YsmDALy6Ua63V8OhrOBgbcYt6IOdzpw5P1+dyRIyMerzLkeYWBeOXPpA9GMAA==
   dependencies:
     undici-types "~7.8.0"
 
 "@types/node@^22.7.3":
-  version "22.15.32"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-22.15.32.tgz#c301cc2275b535a5e54bb81d516b1d2e9afe06e5"
-  integrity sha512-3jigKqgSjsH6gYZv2nEsqdXfZqIFGAV36XYYjf9KGZ3PSG+IhLecqPnI310RvjutyMwifE2hhhNEklOUrvx/wA==
+  version "22.15.33"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-22.15.33.tgz#5722ba32042fd547c113bc35ea92c1cc59ef68b1"
+  integrity sha512-wzoocdnnpSxZ+6CjW4ADCK1jVmd1S/J3ArNWfn8FDDQtRm8dkDg7TA+mvek2wNrfCgwuZxqEOiB9B1XCJ6+dbw==
   dependencies:
     undici-types "~6.21.0"
 
@@ -826,19 +803,6 @@
     "@types/http-errors" "*"
     "@types/node" "*"
     "@types/send" "*"
-
-"@types/swagger-ui-express@^4.1.3":
-  version "4.1.8"
-  resolved "https://registry.yarnpkg.com/@types/swagger-ui-express/-/swagger-ui-express-4.1.8.tgz#3c0e0bf2543c7efb500eaa081bfde6d92f88096c"
-  integrity sha512-AhZV8/EIreHFmBV5wAs0gzJUNq9JbbSXgJLQubCC0jtIo6prnI9MIRRxnU4MZX9RB9yXxF1V4R7jtLl/Wcj31g==
-  dependencies:
-    "@types/express" "*"
-    "@types/serve-static" "*"
-
-"@types/uuid@8.3.4":
-  version "8.3.4"
-  resolved "https://registry.yarnpkg.com/@types/uuid/-/uuid-8.3.4.tgz#bd86a43617df0594787d38b735f55c805becf1bc"
-  integrity sha512-c/I8ZRb51j+pYGAu5CrFMRxqZ2ke4y2grEBO5AUjgSkSk+qT2Ea+OdWElz/OiMf5MNpn2b17kuVBwZLQJXzihw==
 
 "@types/uuid@^10.0.0":
   version "10.0.0"
@@ -1846,10 +1810,10 @@ pg-pool@^3.10.1:
   resolved "https://registry.yarnpkg.com/pg-pool/-/pg-pool-3.10.1.tgz#481047c720be2d624792100cac1816f8850d31b2"
   integrity sha512-Tu8jMlcX+9d8+QVzKIvM/uJtp07PKr82IUOYEphaWcoBhIYkoHpLXN3qO59nAI11ripznDsEzEv8nUxBVWajGg==
 
-pg-protocol@^1.10.1:
-  version "1.10.1"
-  resolved "https://registry.yarnpkg.com/pg-protocol/-/pg-protocol-1.10.1.tgz#fabc892e8d00b9c6f2c4a8f48358f5a53b49d830"
-  integrity sha512-9YS3ZonDj0Lxny//aF0ITPdfrEPgKWCJvONsSXAaIUhgpzlzl5JgaZNlbTFxvYNfm2terGEnHeOSUlF6qRGBzw==
+pg-protocol@^1.10.2:
+  version "1.10.2"
+  resolved "https://registry.yarnpkg.com/pg-protocol/-/pg-protocol-1.10.2.tgz#76a07dd7f13ce67d7f9cf162dca181923b6641fa"
+  integrity sha512-Ci7jy8PbaWxfsck2dwZdERcDG2A0MG8JoQILs+uZNjABFuBuItAZCWUNz8sXRDMoui24rJw7WlXqgpMdBSN/vQ==
 
 pg-types@2.2.0:
   version "2.2.0"
@@ -1863,13 +1827,13 @@ pg-types@2.2.0:
     postgres-interval "^1.1.0"
 
 pg@^8.16.0:
-  version "8.16.1"
-  resolved "https://registry.yarnpkg.com/pg/-/pg-8.16.1.tgz#06a0a300852a061df2fc2011dd83742fd1b6afb7"
-  integrity sha512-5n6e7MgF5ABRsssOsX9xC95p+NUuhgDQDBSsrKSZJjYVqZHGyrmJuknym2IbVhGtzV9siBdzH9SEIQAuWF+sdg==
+  version "8.16.2"
+  resolved "https://registry.yarnpkg.com/pg/-/pg-8.16.2.tgz#1b3744531abe86ce80209ac560fb6f0e8e15f943"
+  integrity sha512-OtLWF0mKLmpxelOt9BqVq83QV6bTfsS0XLegIeAKqKjurRnRKie1Dc1iL89MugmSLhftxw6NNCyZhm1yQFLMEQ==
   dependencies:
     pg-connection-string "^2.9.1"
     pg-pool "^3.10.1"
-    pg-protocol "^1.10.1"
+    pg-protocol "^1.10.2"
     pg-types "2.2.0"
     pgpass "1.0.5"
   optionalDependencies:
@@ -2228,20 +2192,6 @@ strip-ansi@^7.0.1:
   dependencies:
     ansi-regex "^6.0.1"
 
-swagger-ui-dist@>=5.0.0:
-  version "5.25.2"
-  resolved "https://registry.yarnpkg.com/swagger-ui-dist/-/swagger-ui-dist-5.25.2.tgz#2e07608b44031a6bbb6ceb790165ca05980bd423"
-  integrity sha512-V4JyoygUe5nCbn7bAD0fVKSC0yNcL3ROIQtGC7M0NATKuyosCSmMU6T0yDZIIuGpSxjsjZh/D2Ejb8lnF2jjxw==
-  dependencies:
-    "@scarf/scarf" "=1.4.0"
-
-swagger-ui-express@^5.0.1:
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/swagger-ui-express/-/swagger-ui-express-5.0.1.tgz#fb8c1b781d2793a6bd2f8a205a3f4bd6fa020dd8"
-  integrity sha512-SrNU3RiBGTLLmFU8GIJdOdanJTl4TOmT27tt3bWWHppqYmAZ6IDuEuBvMU6nZq0zLEe6b/1rACXCgLZqO6ZfrA==
-  dependencies:
-    swagger-ui-dist ">=5.0.0"
-
 toidentifier@1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/toidentifier/-/toidentifier-1.0.1.tgz#3be34321a88a820ed1bd80dfaa33e479fbb8dd35"
@@ -2294,9 +2244,9 @@ type-is@~1.6.18:
     mime-types "~2.1.24"
 
 typeorm@^0.3.24:
-  version "0.3.24"
-  resolved "https://registry.yarnpkg.com/typeorm/-/typeorm-0.3.24.tgz#e05ab51d60036d2beb35f942783c37f2af02b4ef"
-  integrity sha512-4IrHG7A0tY8l5gEGXfW56VOMfUVWEkWlH/h5wmcyZ+V8oCiLj7iTPp0lEjMEZVrxEkGSdP9ErgTKHKXQApl/oA==
+  version "0.3.25"
+  resolved "https://registry.yarnpkg.com/typeorm/-/typeorm-0.3.25.tgz#9a416f93cda0f612b20f8450e03d6b0e11b467fb"
+  integrity sha512-fTKDFzWXKwAaBdEMU4k661seZewbNYET4r1J/z3Jwf+eAvlzMVpTLKAVcAzg75WwQk7GDmtsmkZ5MfkmXCiFWg==
   dependencies:
     "@sqltools/formatter" "^1.2.5"
     ansis "^3.17.0"
@@ -2345,11 +2295,6 @@ utils-merge@1.0.1:
   resolved "https://registry.yarnpkg.com/utils-merge/-/utils-merge-1.0.1.tgz#9f95710f50a267947b2ccc124741c1028427e713"
   integrity sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA==
 
-uuid@8.3.2:
-  version "8.3.2"
-  resolved "https://registry.yarnpkg.com/uuid/-/uuid-8.3.2.tgz#80d5b5ced271bb9af6c445f21a1a04c606cefbe2"
-  integrity sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==
-
 uuid@^11.1.0:
   version "11.1.0"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-11.1.0.tgz#9549028be1753bb934fc96e2bca09bb4105ae912"
@@ -2359,14 +2304,6 @@ uuid@^9.0.1:
   version "9.0.1"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-9.0.1.tgz#e188d4c8853cc722220392c424cd637f32293f30"
   integrity sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==
-
-uuidv4@^6.2.13:
-  version "6.2.13"
-  resolved "https://registry.yarnpkg.com/uuidv4/-/uuidv4-6.2.13.tgz#8f95ec5ef22d1f92c8e5d4c70b735d1c89572cb7"
-  integrity sha512-AXyzMjazYB3ovL3q051VLH06Ixj//Knx7QnUSi1T//Ie3io6CpsPu9nVMOx5MoLWh6xV0B9J0hIaxungxXUbPQ==
-  dependencies:
-    "@types/uuid" "8.3.4"
-    uuid "8.3.2"
 
 v8-compile-cache-lib@^3.0.1:
   version "3.0.1"

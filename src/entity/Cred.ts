@@ -10,7 +10,7 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 
 @Entity()
-@Unique(['identifier', 'credHash'])
+@Unique(['credId', 'credHash'])
 export class Cred {
   @BeforeInsert()
   generateId() {
@@ -23,16 +23,25 @@ export class Cred {
   id?: string;
 
   @Column()
+  credId?: string;
+
+  @Column()
+  address?: string;
+
+  @Column()
+  profileId?: string;
+
+  @Column()
+  registryId?: string;
+
+  @Column({ default: true })
   active?: boolean;
 
   @Column()
-  schemaId?: string;
+  issuerDid?: string;
 
   @Column()
-  identifier?: string;
-
-  @Column()
-  fromDid?: string;
+  holderDid?: string;
 
   @Column()
   credHash?: string;

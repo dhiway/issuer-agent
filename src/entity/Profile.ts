@@ -5,11 +5,13 @@ import {
   BeforeInsert,
   CreateDateColumn,
   UpdateDateColumn,
+  Unique,
 } from 'typeorm';
 import 'reflect-metadata';
 import { v4 as uuidv4 } from 'uuid';
 
 @Entity()
+@Unique(['profileId', 'mnemonic'])
 export class Profile {
   @BeforeInsert()
   generateId() {

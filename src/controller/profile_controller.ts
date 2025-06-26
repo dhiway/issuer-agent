@@ -1,4 +1,5 @@
 import * as Cord from '@cord.network/sdk';
+import { createAccount } from '@cord.network/vc-export';
 import { Request, Response } from 'express';
 import { blake2AsHex } from '@polkadot/util-crypto';
 import { cacheUserData } from './redis_controller'; // Your Redis functions
@@ -8,7 +9,8 @@ import { dataSource } from '../dbconfig';
 const { STASH_ACC_MNEMONIC } = process.env;
 const TRANSFER_AMOUNT = 100 * 10 ** 12; // 100 WAY for transactions
 
-interface ProfileResponse {
+interface CreateProfileResponse {
+  message: string;
   profileId: string;
   address: string;
   publicKey: string;
@@ -26,22 +28,6 @@ interface GetProfileResponse {
 
 interface RawProfileData {
   pub_name: string;
-}
-
-export function createAccount(
-  mnemonic = Cord.Utils.Crypto.mnemonicGenerate(24)
-): {
-  account: Cord.CordKeyringPair;
-  mnemonic: string;
-} {
-  const keyring = new Cord.Utils.Keyring({
-    ss58Format: 29,
-    type: 'sr25519',
-  });
-  return {
-    account: keyring.addFromMnemonic(mnemonic) as Cord.CordKeyringPair,
-    mnemonic,
-  };
 }
 
 async function getExistingProfile(address: string): Promise<string | null> {
@@ -236,13 +222,6 @@ export async function getProfile(
       });
     }
 
-    const api = Cord.ConfigService.get('api');
-    if (!api) {
-      return res.status(500).json({
-        error: 'Failed to initialize Cord API',
-      });
-    }
-
     // Use fallback strategy to get profile
     const { profileId, source } = await getProfileWithFallback(address);
 
@@ -315,7 +294,8 @@ export async function createProfile(
     await dataSource.manager.save(profile);
     console.log(`✅ Profile saved to database with ID: ${profileId}`);
 
-    const profileResponse: ProfileResponse = {
+    const profileResponse: CreateProfileResponse = {
+      message: 'Profile created successfully',
       profileId,
       address: account.address,
       publicKey: `0x${Buffer.from(account.publicKey).toString('hex')}`,
