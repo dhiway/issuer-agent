@@ -10,7 +10,7 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 
 @Entity()
-@Unique(['credId', 'credHash'])
+@Unique(['credId'])
 export class Cred {
   @BeforeInsert()
   generateId() {
@@ -42,9 +42,6 @@ export class Cred {
 
   @Column()
   holderDid?: string;
-
-  @Column()
-  credHash?: string;
 
   @Column('simple-json', { nullable: true, default: null })
   vc?: any;

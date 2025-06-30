@@ -1,5 +1,4 @@
 import * as Cord from '@cord.network/sdk';
-import { createAccount } from '@cord.network/vc-export';
 import { Request, Response } from 'express';
 import { CordKeyringPair } from '@cord.network/types';
 
@@ -7,6 +6,7 @@ import { Profile } from '../entity/Profile';
 import { dataSource } from '../dbconfig';
 import { Registry } from '../entity/Registry';
 import { waitForEvent } from '../utils/Events';
+import { getAccount } from '../helper';
 
 export async function createRegistry(req: Request, res: Response) {
   try {
@@ -16,30 +16,10 @@ export async function createRegistry(req: Request, res: Response) {
     // 🔄 Create Registry
     console.log('\n🔄 Creating registry...');
 
-    const profile = await dataSource.getRepository(Profile).findOne({
-      where: { address: address },
-    });
-
-    if (!profile) {
-      return res.status(400).json({
-        error: 'Profile not found for the provided address',
-      });
+    const issuerAccount = await getAccount(address);
+    if (!issuerAccount) {
+      return res.status(400).json({ error: 'Invalid issuer account' });
     }
-
-    const { mnemonic } = profile;
-    if (!mnemonic) {
-      return res.status(400).json({
-        error: 'Mnemonic not found for the profile',
-      });
-    }
-
-    const { account } = createAccount(mnemonic);
-    if (!account) {
-      return res.status(500).json({
-        error: 'Failed to create account. Please try again.',
-      });
-    }
-    console.log('account: ', account.address);
 
     const registryBlob = {
       title: 'Issuer_agent registry',
@@ -59,7 +39,7 @@ export async function createRegistry(req: Request, res: Response) {
 
     await Cord.Registry.dispatchCreateToChain(
       registryProperties,
-      account as CordKeyringPair
+      issuerAccount as CordKeyringPair
     );
 
     const eventData: any = (await waitForEvent(api, (event: any) =>
@@ -79,8 +59,6 @@ export async function createRegistry(req: Request, res: Response) {
       message: 'Registry created successfully',
       registryId: registry.registryId,
       schema: registry.schema,
-      address: registry.address,
-      profileId: registry.profileId,
     });
   } catch (error) {
     console.error('Error creating registry:', error);
@@ -90,11 +68,12 @@ export async function createRegistry(req: Request, res: Response) {
 
 export async function getRegistry(req: Request, res: Response) {
   try {
-    const { address } = req.params;
-
+    if (!req.params.id) {
+      return res.status(400).json({ error: 'Registry ID is required' });
+    }
     const registry = await dataSource
       .getRepository(Registry)
-      .findOne({ where: { address } });
+      .findOne({ where: { registryId: req.params.id } });
 
     if (!registry) {
       return res.status(404).json({ error: 'Registry not found' });

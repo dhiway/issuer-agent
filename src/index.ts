@@ -1,27 +1,15 @@
 import express from 'express';
 import { dataSource } from './dbconfig';
-
-// import { addDelegateAsRegistryDelegate } from './init';
-// import { createSchema, getSchemaById } from './controller/schema_controller';
-// import {
-//   getCredById,
-//   issueVC,
-//   revokeCred,
-//   updateCred,
-//   documentHashOnChain,
-//   updateDocumentHashOnChain,
-//   revokeDocumentHashOnChain,
-// } from './controller/credential_controller';
-// import { generateDid, resolveDid } from './controller/did_controller';
 import app from './server';
+
 import {
   createProfile,
   getCacheStats,
   getProfile,
 } from './controller/profile_controller';
-import { checkDidAndIdentities } from './init';
-import { createRegistry } from './controller/registry_controller';
-import { issueVC } from './controller/credential_controller';
+import { checkDidAndIdentities } from './cord';
+import { createRegistry, getRegistry } from './controller/registry_controller';
+import { getCredById, issueVC, updateCred } from './controller/credential_controller';
 
 const { PORT } = process.env;
 
@@ -35,13 +23,13 @@ credentialRouter.post('/', async (req, res) => {
   return await issueVC(req, res);
 });
 
-// credentialRouter.get('/:id', async (req, res) => {
-//   return await getCredById(req, res);
-// });
+credentialRouter.get('/:id', async (req, res) => {
+  return await getCredById(req, res);
+});
 
-// credentialRouter.put('/update/:id', async (req, res) => {
-//   return await updateCred(req, res);
-// });
+credentialRouter.put('/update', async (req, res) => {
+  return await updateCred(req, res);
+});
 
 // credentialRouter.post('/revoke/:id', async (req, res) => {
 //   return await revokeCred(req, res);
@@ -77,6 +65,10 @@ profileRouter.get('/cache/stats', async (req, res) => {
 
 registryRouter.post('/create', async (req, res) => {
   return await createRegistry(req, res);
+});
+
+registryRouter.get('/:id', async (req, res) => {
+  return await getRegistry(req, res);
 });
 
 // app.use('/api/v1/did', didRouter);

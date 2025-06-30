@@ -18,81 +18,55 @@ import { parseAndFormatDate } from '../utils/DateUtils';
 // import { Cred } from '../entity/Cred';
 // import { Schema } from '../entity/Schema';
 // import { dataSource } from '../dbconfig';
-import { extractCredentialFields } from '../utils/CredentialUtils';
-import { Profile } from '../entity/Profile';
-import { getRegistry } from './registry_controller';
+import {
+  extractCredentialFields,
+  getVCValidity,
+} from '../utils/CredentialUtils';
 import { Registry } from '../entity/Registry';
 import { waitForEvent } from '../utils/Events';
 import { Cred } from '../entity/Cred';
-// const { CHAIN_SPACE_ID, CHAIN_SPACE_AUTH } = process.env;
+import { getAccount } from '../helper';
 
 export async function issueVC(req: Request, res: Response) {
   try {
     const api = Cord.ConfigService.get('api');
-
     const data = req.body;
+
     const validationError = validateCredential(data);
     if (validationError) {
       return res.status(400).json({ error: validationError });
     }
 
-    const processedData: any = extractCredentialFields(data);
+    const processedData = extractCredentialFields(data);
+    const vcValidityObj = getVCValidity(processedData);
 
-    const vcValidityObj: Record<string, string> = {};
-    if (processedData.validFrom) {
-      const formattedDate = parseAndFormatDate(processedData.validFrom);
-      vcValidityObj.validFrom = formattedDate
-        ? formattedDate.toISOString()
-        : '';
-    }
-    if (processedData.validUntil) {
-      const formattedDate = parseAndFormatDate(processedData.validUntil);
-      vcValidityObj.validUntil = formattedDate
-        ? formattedDate.toISOString()
-        : '';
-    }
-
-    const profile = await dataSource.getRepository(Profile).findOne({
-      where: { address: processedData.address },
-      select: ['mnemonic', 'profileId'],
-    });
-
-    if (!profile) {
-      return res.status(400).json({
-        error: 'Profile not found for the provided address',
-      });
-    }
-
-    const { account } = Vc.createAccount(profile.mnemonic);
-    if (!account) {
-      return res.status(500).json({
-        error: 'Failed to create account. Please try again.',
-      });
+    const issuerAccount = await getAccount(processedData.address);
+    if (!issuerAccount) {
+      return res.status(400).json({ error: 'Invalid issuerAccount' });
     }
 
     const registry = await dataSource.getRepository(Registry).findOne({
-      where: { address: account.address },
-      select: ['registryId'],
+      where: { address: issuerAccount.address },
+      select: ['registryId', 'profileId'],
     });
-
+    console.log('\n🔄 Registry: ', registry);
     if (!registry) {
       return res.status(400).json({
         error: 'Registry not found for the provided address',
       });
     }
 
-    // TODO: Replace with actual logic to get issuer DID (DID resolver)
-    const issuerDid = 'did:cord:' + profile.profileId;
+    const issuerDid = 'did:web:did.myn.social:' + registry.profileId;
     const holderDid = processedData.holder ?? issuerDid; // Assuming holder is the same as issuer for this example
 
     const newCredContent = await Vc.buildVcFromContent(
-      processedData.schema,
+      processedData.schema as any,
       processedData.properties,
       issuerDid,
       holderDid,
       {
         ...vcValidityObj,
-        metadata: { ...data.metadata },
+        metadata: data.metadata ?? {},
       }
     );
 
@@ -100,12 +74,12 @@ export async function issueVC(req: Request, res: Response) {
     const vc = await Vc.addProof(
       newCredContent,
       async (data) => ({
-        signature: account.sign(data),
-        keyType: account.type,
+        signature: issuerAccount.sign(data),
+        keyType: issuerAccount.type,
         keyUri: issuerDid,
       }),
       registry.registryId as string,
-      account.address,
+      issuerAccount.address,
       issuerDid,
       api,
       {
@@ -120,36 +94,39 @@ export async function issueVC(req: Request, res: Response) {
       colors: true,
     });
 
+    // Dispatch the VC to the chain
     const proof = Array.isArray(vc.proof) ? vc.proof[1] : vc.proof || {};
 
     await Cord.Entry.dispatchCreateEntryToChain(
       proof as unknown as Cord.IRegistryEntry,
-      account
+      issuerAccount
     );
 
     const entryObj: any = (await waitForEvent(api, (event: any) =>
       api.events.entry.RegistryEntryCreated.is(event)
     )) as string;
 
-    const cred = dataSource.getRepository(Cred).create({
-      id: vc.id,
-      credId: entryObj.registryEntryId,
-      address: entryObj.creator,
-      profileId: entryObj.creatorProfileId,
-      registryId: entryObj.registryId,
-      issuerDid,
-      holderDid,
-      credHash: newCredContent.credentialHash,
-      vc,
-    });
+    if (entryObj && entryObj.registryEntryId) {
+      // Save to DB
+      const cred = await dataSource.getRepository(Cred).create({
+        id: vc.id,
+        credId: entryObj.registryEntryId,
+        address: entryObj.creator,
+        profileId: entryObj.creatorProfileId,
+        registryId: entryObj.registryId,
+        issuerDid,
+        holderDid,
+        vc,
+      });
 
-    await dataSource.manager.save(cred);
+      await dataSource.manager.save(cred);
 
-    return res.status(200).json({
-      result: 'success',
-      credId: cred.credId,
-      vc,
-    });
+      return res.status(200).json({
+        result: 'success',
+        credId: cred.credId,
+        vc,
+      });
+    }
   } catch (err: any) {
     console.error('Error issuing VC:', err);
     return res.status(500).json({
@@ -186,109 +163,120 @@ export async function issueVC(req: Request, res: Response) {
   // return res.status(200).json({ result: 'SUCCESS' });
 }
 
-// export async function getCredById(req: express.Request, res: express.Response) {
-//   try {
-//     const cred = await dataSource
-//       .getRepository(Cred)
-//       .findOne({ where: { identifier: req.params.id } });
+export async function getCredById(req: Request, res: Response) {
+  try {
+    if (!req.params.id) {
+      return res.status(400).json({ error: 'Credential ID is required' });
+    }
 
-//     if (!cred) {
-//       return res.status(400).json({ error: 'Cred not found' });
-//     }
+    const cred = await dataSource
+      .getRepository(Cred)
+      .findOne({ where: { credId: req.params.id } });
 
-//     return res.status(200).json({ credential: cred });
-//   } catch (error) {
-//     console.log('Error: ', error);
-//     return res.status(500).json({ error: 'Error in cred fetch' });
-//   }
-// }
+    if (!cred) {
+      return res.status(400).json({ error: 'Cred not found' });
+    }
 
-// export async function updateCred(req: express.Request, res: express.Response) {
-//   const data = req.body;
-//   const api = Cord.ConfigService.get('api');
-//   if (!data.properties || typeof data.properties !== 'object') {
-//     return res.status(400).json({
-//       error: '"property" is a required field and should be an object',
-//     });
-//   }
+    return res.status(200).json({ credential: cred });
+  } catch (error) {
+    console.log('Error: ', error);
+    return res.status(500).json({ error: 'Error in cred fetch' });
+  }
+}
 
-//   try {
-//     const cred = await dataSource
-//       .getRepository(Cred)
-//       .findOne({ where: { identifier: req.params.id } });
+export async function updateCred(req: Request, res: Response) {
+  try {
+    const { credId, properties } = req.body;
 
-//     if (!cred) {
-//       return res.status(400).json({ error: 'Cred not found' });
-//     }
+    const api = Cord.ConfigService.get('api');
+    if (!properties || typeof properties !== 'object') {
+      return res.status(400).json({
+        error: '"property" is a required field and should be an object',
+      });
+    }
 
-//     console.log(`\n❄️  Statement Updation `);
+    const cred = await dataSource
+      .getRepository(Cred)
+      .findOne({ where: { credId } });
 
-//     const updatedCredContent = await Vc.updateVcFromContent(
-//       data.properties,
-//       cred.vc,
-//       undefined,
-//       null
-//     );
+    if (!cred) {
+      return res.status(400).json({ error: 'Cred not found' });
+    }
 
-//     let updatedVc: any = await Vc.updateAddProof(
-//       cred.identifier as `stmt:cord:${string}`,
-//       updatedCredContent,
-//       async (data) => ({
-//         signature: await issuerKeysProperty.assertionMethod.sign(data),
-//         keyType: issuerKeysProperty.assertionMethod.type,
-//         keyUri: `${issuerDid.uri}${
-//           issuerDid.assertionMethod![0].id
-//         }` as Cord.DidResourceUri,
-//       }),
-//       issuerDid,
-//       api,
-//       {
-//         spaceUri: CHAIN_SPACE_ID as `space:cord:${string}`,
-//         schemaUri: cred.schemaId,
-//         needSDR: true,
-//         needStatementProof: true,
-//       }
-//     );
+    const issuerAccount = await getAccount(cred.address as string);
+    if (!issuerAccount) {
+      return res.status(400).json({ error: 'Invalid issuerAccount' });
+    }
 
-//     console.dir(updatedVc, {
-//       depth: null,
-//       colors: true,
-//     });
+    console.log(`\n❄️  Statement Updation `);
 
-//     const updatedStatement = await Cord.Statement.dispatchUpdateToChain(
-//       updatedVc.proof[1],
-//       issuerDid.uri,
-//       authorIdentity,
-//       CHAIN_SPACE_AUTH as `auth:cord:${string}`,
-//       async ({ data }) => ({
-//         signature: issuerKeysProperty.authentication.sign(data),
-//         keyType: issuerKeysProperty.authentication.type,
-//       })
-//     );
+    const updatedCredContent = await Vc.updateVcFromContent(
+      properties,
+      cred.vc,
+      undefined, // validUntil takes from existing VC
+      {
+        metadata: req.body.metadata ?? {},
+      }
+    );
 
-//     console.log(`✅ UpdatedStatement element registered - ${updatedStatement}`);
+    const issuerDid = cred.issuerDid;
+    if (!issuerDid) {
+      return res
+        .status(400)
+        .json({ error: 'Issuer DID not found in credential' });
+    }
 
-//     if (updatedStatement) {
-//       cred.identifier = updatedStatement;
-//       cred.credHash = updatedCredContent.credentialHash;
-//       cred.vc = updatedVc;
+    let updatedVc: any = await Vc.updateAddProof(
+      cred.registryId as string,
+      cred.credId as string,
+      updatedCredContent,
+      async (data) => ({
+        signature: await issuerAccount.sign(data),
+        keyType: issuerAccount.type,
+        keyUri: issuerDid,
+      }),
+      issuerAccount.address,
+      api,
+      {
+        needSDR: true,
+        needEntryProof: true,
+      }
+    );
 
-//       await dataSource.manager.save(cred);
+    console.dir(updatedVc, {
+      depth: null,
+      colors: true,
+    });
 
-//       console.log('\n✅ Statement updated!');
+    const updatedProof = updatedVc.proof ? updatedVc.proof[1] : {};
+    /* TODO: Check on ideal way to pass entry-id */
+    // This is required to know which entry to update
+    updatedProof.registryEntryId = cred.credId;
 
-//       return res.status(200).json({
-//         result: 'Updated successufully',
-//         identifier: cred.identifier,
-//         vc: updatedVc,
-//       });
-//     }
-//     return res.status(400).json({ error: 'Document not updated' });
-//   } catch (error) {
-//     console.log('error: ', error);
-//     return res.status(500).json({ error: 'Error in updating document' });
-//   }
-// }
+    await Cord.Entry.dispatchUpdateEntryToChain(updatedProof, issuerAccount);
+
+    // Update the credential in the database
+    await dataSource.getRepository(Cred).update(
+      {
+        credId: cred.credId,
+      },
+      {
+        vc: updatedVc,
+      }
+    );
+
+    console.log('\n✅ Statement updated!');
+
+    return res.status(200).json({
+      result: 'Updated successufully',
+      credId: cred.credId,
+      vc: updatedVc,
+    });
+  } catch (error) {
+    console.log('error: ', error);
+    return res.status(500).json({ error: 'Error in updating document' });
+  }
+}
 
 // export async function revokeCred(req: express.Request, res: express.Response) {
 //   try {
