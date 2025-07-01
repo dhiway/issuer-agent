@@ -21,12 +21,16 @@ export function validateCredential(data: any): string | null {
     }
   } else {
     // If 'credential' is not present, validate the 'schemaId' and 'properties' directly
-    if (!data.schemaId || typeof data.schemaId !== 'string') {
-      return "'schemaId' is required and must be a string.";
+    if (!data.schema || typeof data.schema !== 'object') {
+      return "'schema' is required and must be an object.";
     }
 
     if (!data.properties || typeof data.properties !== 'object') {
       return "'properties' is required and must be an object.";
+    }
+
+    if (!data.address || typeof data.address !== 'string') {
+      return "'address' is required and must be a string.";
     }
 
     if (Object.keys(data.properties).length === 0) {

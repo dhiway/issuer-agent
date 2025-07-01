@@ -7,44 +7,32 @@ import {
   UpdateDateColumn,
   Unique,
 } from 'typeorm';
+import 'reflect-metadata';
 import { v4 as uuidv4 } from 'uuid';
 
 @Entity()
-@Unique(['credId'])
-export class Cred {
+@Unique(['profileId', 'mnemonic'])
+export class Profile {
   @BeforeInsert()
   generateId() {
     if (!this.id) {
-      // Add "c" prefix to identify this ID as a credential ID
-      this.id = 'c' + uuidv4();
+      this.id = 'p' + uuidv4();
     }
   }
   @PrimaryColumn()
   id?: string;
 
   @Column()
-  credId?: string;
+  profileId?: string;
 
   @Column()
   address?: string;
 
   @Column()
-  profileId?: string;
+  publicKey?: string;
 
   @Column()
-  registryId?: string;
-
-  @Column({ default: true })
-  active?: boolean;
-
-  @Column()
-  issuerDid?: string;
-
-  @Column()
-  holderDid?: string;
-
-  @Column('simple-json', { nullable: true, default: null })
-  vc?: any;
+  mnemonic?: string;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt?: Date;
