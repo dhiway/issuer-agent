@@ -76,7 +76,7 @@ export async function issueVC(req: Request, res: Response) {
       async (data) => ({
         signature: issuerAccount.sign(data),
         keyType: issuerAccount.type,
-        keyUri: issuerDid,
+        keyUri: issuerDid + '#' + issuerAccount.address,
       }),
       registry.registryId as string,
       issuerAccount.address,
@@ -233,7 +233,7 @@ export async function updateCred(req: Request, res: Response) {
       async (data) => ({
         signature: await issuerAccount.sign(data),
         keyType: issuerAccount.type,
-        keyUri: issuerDid,
+        keyUri: issuerDid + '#' + issuerAccount.address,
       }),
       issuerAccount.address,
       api,
