@@ -80,7 +80,6 @@ export async function issueVC(req: Request, res: Response) {
       }),
       registry.registryId as string,
       issuerAccount.address,
-      issuerDid,
       api,
       {
         needSDR: true,
