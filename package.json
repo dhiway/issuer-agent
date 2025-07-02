@@ -12,7 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@cord.network/vc-export": "0.9.6-alpha9",
+    "@cord.network/vc-export": "0.9.6-alpha10",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
     "dayjs": "^1.11.13",
@@ -32,6 +32,6 @@
     "@types/uuid": "^10.0.0",
     "@types/yamljs": "^0.2.34",
     "ts-node": "^10.9.1",
-    "typescript": "^5.6.2"
+    "typescript": "^5.8.3"
   }
 }

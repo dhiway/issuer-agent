@@ -153,10 +153,10 @@
     tweetnacl "^1.0.3"
     uuid "^9.0.1"
 
-"@cord.network/vc-export@0.9.6-alpha9":
-  version "0.9.6-alpha9"
-  resolved "https://registry.yarnpkg.com/@cord.network/vc-export/-/vc-export-0.9.6-alpha9.tgz#5cc99e75274ff4d4a08a7f55d835ed0b11356083"
-  integrity sha512-ZBPYQpmoGHZPR6kSROD6TD5drlaAtNmAUq8c5KyRkH3JECoTvDGMEiCOy2c5PsuXIWX9/rWg1/hcNp4qUX7Srg==
+"@cord.network/vc-export@0.9.6-alpha10":
+  version "0.9.6-alpha10"
+  resolved "https://registry.yarnpkg.com/@cord.network/vc-export/-/vc-export-0.9.6-alpha10.tgz#092fed4640f326dcd0df2f785a01954197ee785f"
+  integrity sha512-eGl3hL2RofSjewophvxFVmOhWsZud2MnatlX/cyXEiUSNXavgikHQ17RiILWYg8xPxSvJnQ8JjmorRLDbQYKrQ==
   dependencies:
     "@cord.network/sdk" "0.9.6-5"
     bs58 "^6.0.0"
@@ -2263,7 +2263,7 @@ typeorm@^0.3.24:
     uuid "^11.1.0"
     yargs "^17.7.2"
 
-typescript@^5.6.2:
+typescript@^5.8.3:
   version "5.8.3"
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.8.3.tgz#92f8a3e5e3cf497356f4178c34cd65a7f5e8440e"
   integrity sha512-p1diW6TqL9L07nNxvRMM7hMMw4c5XOo/1ibL4aAIGmSAt9slTE1Xgw5KWuof2uTOvCg9BY7ZRi+GaF+7sfgPeQ==
