@@ -9,7 +9,12 @@ import {
 } from './controller/profile_controller';
 import { checkDidAndIdentities } from './cord';
 import { createRegistry, getRegistry } from './controller/registry_controller';
-import { getCredById, issueVC, updateCred } from './controller/credential_controller';
+import {
+  issueVC,
+  getCredById,
+  updateCred,
+  revokeCred,
+} from './controller/credential_controller';
 
 const { PORT } = process.env;
 
@@ -31,9 +36,9 @@ credentialRouter.put('/update', async (req, res) => {
   return await updateCred(req, res);
 });
 
-// credentialRouter.post('/revoke/:id', async (req, res) => {
-//   return await revokeCred(req, res);
-// });
+credentialRouter.post('/revoke', async (req, res) => {
+  return await revokeCred(req, res);
+});
 
 // didRouter.post('/create', async (req, res) => {
 //   return await generateDid(req, res);

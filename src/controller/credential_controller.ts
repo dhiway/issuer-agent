@@ -278,35 +278,37 @@ export async function updateCred(req: Request, res: Response) {
   }
 }
 
-// export async function revokeCred(req: express.Request, res: express.Response) {
-//   try {
-//     const cred = await dataSource
-//       .getRepository(Cred)
-//       .findOne({ where: { identifier: req.params.id } });
+export async function revokeCred(req: Request, res: Response) {
+  try {
+    const { credId } = req.body;
 
-//     if (!cred) {
-//       return res.status(400).json({ error: 'Invalid identifier' });
-//     }
+    const cred = await dataSource
+      .getRepository(Cred)
+      .findOne({ where: { credId } });
 
-//     await Cord.Statement.dispatchRevokeToChain(
-//       cred.vc.proof[1].elementUri as `stmt:cord:${string}`,
-//       issuerDid.uri,
-//       authorIdentity,
-//       CHAIN_SPACE_AUTH as `auth:cord:${string}`,
-//       async ({ data }) => ({
-//         signature: issuerKeysProperty.authentication.sign(data),
-//         keyType: issuerKeysProperty.authentication.type,
-//       })
-//     );
+    if (!cred) {
+      return res.status(400).json({ error: 'Cred not found' });
+    }
 
-//     console.log(`✅ Statement revoked!`);
+    const issuerAccount = await getAccount(cred.address as string);
+    if (!issuerAccount) {
+      return res.status(400).json({ error: 'Invalid issuerAccount' });
+    }
 
-//     return res.status(200).json({ result: 'Statement revoked successfully' });
-//   } catch (error) {
-//     console.log('err: ', error);
-//     return res.status(400).json({ err: error });
-//   }
-// }
+    await Cord.Entry.dispatchRevokeEntryToChain(
+      cred.registryId as string,
+      cred.credId as string,
+      issuerAccount
+    );
+
+    console.log(`✅ Statement revoked!`);
+
+    return res.status(200).json({ result: 'Statement revoked successfully' });
+  } catch (error) {
+    console.log('err: ', error);
+    return res.status(400).json({ err: error });
+  }
+}
 
 // export async function documentHashOnChain(
 //   req: express.Request,
