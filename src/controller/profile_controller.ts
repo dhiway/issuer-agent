@@ -2,7 +2,8 @@ import * as Cord from '@cord.network/sdk';
 import { createAccount } from '@cord.network/vc-export';
 import { Request, Response } from 'express';
 import { blake2AsHex } from '@polkadot/util-crypto';
-import { cacheUserData } from './redis_controller'; // Your Redis functions
+
+import { cacheUserData } from './redis_controller';
 import { Profile } from '../entity/Profile';
 import { dataSource } from '../dbconfig';
 

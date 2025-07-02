@@ -4,20 +4,6 @@ import * as Cord from '@cord.network/sdk';
 
 import { dataSource } from '../dbconfig';
 import { validateCredential } from '../utils/CredentialValidationUtils';
-import { parseAndFormatDate } from '../utils/DateUtils';
-// import {
-//   issuerDid,
-//   authorIdentity,
-//   addDelegateAsRegistryDelegate,
-//   issuerKeysProperty,
-//   delegateDid,
-//   delegateSpaceAuth,
-//   delegateKeysProperty,
-// } from '../init';
-
-// import { Cred } from '../entity/Cred';
-// import { Schema } from '../entity/Schema';
-// import { dataSource } from '../dbconfig';
 import {
   extractCredentialFields,
   getVCValidity,

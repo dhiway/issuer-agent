@@ -2,7 +2,6 @@ import * as Cord from '@cord.network/sdk';
 import { Request, Response } from 'express';
 import { CordKeyringPair } from '@cord.network/types';
 
-import { Profile } from '../entity/Profile';
 import { dataSource } from '../dbconfig';
 import { Registry } from '../entity/Registry';
 import { waitForEvent } from '../utils/Events';
