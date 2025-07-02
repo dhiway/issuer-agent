@@ -17,4 +17,4 @@ echo "$CRON_JOB" >> /tmp/current_cron
 crontab /tmp/current_cron
 rm /tmp/current_cron
 
-echo "✅ Cron job installed to run every 30 days."
+echo "✅ Cron job installed"
