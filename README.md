@@ -88,7 +88,7 @@ yarn dev
 Access interactive documentation at:
 
 ```
-https://issuer-agent.demo.dhiway.com/docs
+ https://dhiway.github.io/dhiway-api-docs/issuer-agent
 ```
 
 ### Postman:
