@@ -20,6 +20,8 @@ import { extractCredentialFields } from '../utils/CredentialUtils';
 const { CHAIN_SPACE_ID, CHAIN_SPACE_AUTH } = process.env;
 
 export async function issueVC(req: express.Request, res: express.Response) {
+  const authHeader = req.headers.authorization || '';
+  const bearerToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
   try {
     const data = req.body;
     const validationError = validateCredential(data);
@@ -124,6 +126,7 @@ export async function issueVC(req: express.Request, res: express.Response) {
     cred.fromDid = issuerDid.uri;
     cred.credHash = newCredContent.credentialHash;
     cred.vc = vc;
+    cred.token = typeof bearerToken === 'string' && bearerToken.length > 0 ? bearerToken : undefined;
 
     await dataSource.manager.save(cred);
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
-SCRIPT_PATH="/home/developer/issuer-agent/scripts/send_activity.sh"
-CRON_JOB="0 9 1 * * $SCRIPT_PATH >> /home/developer/issuer-agent/send.log 2>&1"
+SCRIPT_PATH="/home/ubuntu/wallet-backend-workspace/issuer-agent/scripts/send_activity.sh"
+CRON_JOB="0 9 1 * * $SCRIPT_PATH >> /home/ubuntu/wallet-backend-workspace/issuer-agent/scripts/send.log 2>&1"
 
 # Ensure script is executable
 if [ ! -x "$SCRIPT_PATH" ]; then
