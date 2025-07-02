@@ -1,54 +1,164 @@
 # Issuer-Agent: Verifiable Credentials on CORD Blockchain
 
-This project demonstrates the APIs for creation and issuance of verifiable credentials in compliance with the W3C standards, using the CORD blockchain. The issuer-agent provides functionality for schema creation, credential issuance, and the anchoring of hashes on-chain, ensuring tamper-evident and verifiable data.
+The Issuer-Agent is a backend service that enables the creation, issuance, and on-chain anchoring of Verifiable Credentials (VCs) using the CORD blockchain. It follows the W3C Verifiable Credentials standards to ensure security, interoperability, and decentralization. This service is built using Node.js and exposes a set of APIs to interact with credentials and registries.
 
-The primary objective of the project is to issue digital credentials that are cryptographically verifiable and anchored on the CORD blockchain. This offers trust and transparency, enabling entities to issue and manage verifiable credentials while adhering to decentralized identity standards.
+## ✨ Key Features
 
-## Key Features
+- **Credential Issuance**: Issue cryptographically signed Verifiable Credentials compliant with W3C standards.
+- **Blockchain Anchoring**: Anchor credential hashes on the CORD blockchain for tamper-evidence.
+- **Decentralized Identity Support**: Built-in DID management and integration with the CORD identity layer.
+- **Swagger Docs**: Explore and test API endpoints via an interactive Swagger UI.
 
-- **Schema Creation**: Design and define credential schemas, forming the structure for verifiable credentials.
-- **Verifiable Credential Issuance**: Issue credentials that are cryptographically signed and aligned with the W3C Verifiable Credentials standard.
-- **CORD Blockchain Integration**: Anchor the issued credentials hash on the CORD blockchain to ensure tamper-evidence and verifiability.
-- **Compliance**: Built to adhere to globally recognized standards for decentralized identity and credentialing, promoting interoperability and trust.
+---
 
-## Getting Started
+## 📅 Prerequisites
 
-To get the project up and running locally, follow the instructions below.
+Make sure the following are installed on your system:
 
-### Prerequisites
+- [Node.js](https://nodejs.org/) (v18+ recommended)
+- [Yarn](https://classic.yarnpkg.com/en/docs/install)
+- [Docker](https://www.docker.com/products/docker-desktop)
+- [Docker Compose](https://docs.docker.com/compose/install/)
 
-Ensure that you have Docker installed on your system to run the issuer-agent locally. Docker Compose is also required for managing multiple containers efficiently.
+---
 
-### Running Locally Using Docker
+## 📚 Getting Started
 
-1. **Build the Docker image**  
-   Build the Docker image for the issuer-agent using the following command:
+### 1. Clone the Repository
 
-   ```bash
-   docker build . -t dhiway/issuer-agent:latest -f Dockerfile.mac
-   ```
+```bash
+git clone https://github.com/dhiway/issuer-agent.git
+cd issuer-agent
+```
 
-2. **Run the Docker container**  
-   After building the image, use Docker Compose to bring up the necessary services in detached mode:
+### 2. Install Dependencies
 
-   ```bash
-   docker compose up -d
-   ```
+```bash
+yarn install
+```
 
-The service will now be running locally, and you can access the API documentation through the Swagger interface. Alternatively, you can also test the APIs by importing the Postman collection.
+### 3. Create a Stash Account
 
-## API Documentation
+```bash
+yarn create:stash-account
+```
 
-- [Swagger_Documentation](https://issuer-agent.demo.dhiway.com/docs)
+This will generate a stash account with a mnemonic phrase. Save the phrase securely and add it to your environment variables.
 
-You can explore the API and interact with the service using Swagger. The Swagger documentation provides detailed information about available endpoints, request/response formats, and the overall workflow.
-Swagger Documentation
+### 4. Configure Environment Variables
 
-- [Postman_Collection]
-  Alternatively, the `postman_collection.json` file mentioned in the repository can be imported into Postman to test out the APIs directly. This collection contains pre-configured API requests, making it easier to interact with the issuer-agent.
+Create a `.env` file in the root directory:
 
-# Further Implementation: CORD.js SDK (https://github.com/dhiway/cord.js)
+```env
+STASH_ACC_MNEMONIC="your twelve word mnemonic phrase"
+```
 
-For more advanced interactions with the CORD blockchain, you can use the cord.js SDK, which provides developers with tools to build on the CORD blockchain. This SDK is essential for managing identity, verifiable credentials, and interacting with CORD-based decentralized networks.
+Ensure your stash account is funded. You can contact Dhiway for testnet funds if needed.
 
-The cord.js repository offers comprehensive utilities for handling blockchain transactions, creating and managing decentralized identifiers (DIDs), and managing credentials programmatically.
+---
+
+## 🚀 Running the Project
+
+### Option 1: Using Docker (Recommended)
+
+1. **Build the Docker image**
+
+```bash
+docker build . -t dhiway/issuer-agent:latest -f Dockerfile.mac
+```
+
+2. **Start the service**
+
+```bash
+docker compose up -d
+```
+
+### Option 2: Running Locally with Node.js
+
+```bash
+yarn dev
+```
+
+---
+
+## 🔍 API Documentation
+
+### Swagger UI:
+
+Access interactive documentation at:
+
+```
+ https://dhiway.github.io/dhiway-api-docs/issuer-agent
+```
+
+### Postman:
+
+Import the `postman_collection.json` file provided in the repo to quickly test APIs with pre-configured requests.
+
+#### Available APIs:
+
+- `POST /profile` → Create and link a profile
+- `POST /registry` → Anchor the credential hash and schema to the blockchain
+- `POST /credential/issue` → Issue a Verifiable Credential
+
+> Note: There is no standalone schema creation API. Schemas are passed as part of the registry creation or credential issuance payload.
+
+---
+
+## 💡 Development Workflow
+
+1. **Create Profile**: Register an entity (person/org) to issue credentials.
+2. **Create Registry**: Define and anchor the credential structure and metadata to the blockchain.
+3. **Issue Credential**: Generate a VC using the created profile and registry.
+4. **Verify**: Use public chain data and cryptographic signatures to validate.
+
+---
+
+## 🎓 CORD.js SDK
+
+For advanced use cases or integrating directly with the blockchain:
+
+- GitHub: [https://github.com/dhiway/cord.js]
+- Features:
+
+  - DID management
+  - Credential creation & verification
+  - On-chain registry access
+  - Signing utilities
+
+---
+
+## 🛠️ Architecture Overview
+
+```
+┌──────────────┐     ┌───────────────┐     ┌────────────────────┐
+│  Client App  ├────>│ Issuer-Agent  ├────>│  CORD Blockchain    │
+└──────────────┘     └───────────────┘     └────────────────────┘
+                           │
+                           ▼
+                    ┌───────────────┐
+                    │  VC Storage   │
+                    └───────────────┘
+```
+
+---
+
+## 🌟 Contributing
+
+We welcome contributions to the Issuer-Agent! Follow these steps:
+
+1. Fork the repo
+2. Create a new feature branch
+3. Commit and push your changes
+4. Submit a pull request with a clear description
+
+---
+
+## 🌐 Support & Contact
+
+For technical support or help funding your stash account:
+
+- Website: [https://dhiway.com](https://dhiway.com)
+- GitHub: [https://github.com/dhiway](https://github.com/dhiway)
+
+---

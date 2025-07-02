@@ -1,19 +1,21 @@
-FROM node:22-slim as prod
-
-#ENV NODE_ENV=production
+FROM node:22-slim AS build
 
 WORKDIR /app
 
-COPY package.json  yarn.lock /app/
-RUN yarn
+COPY package.json yarn.lock ./
+RUN yarn install --frozen-lockfile
 
 COPY . .
 RUN yarn build
 
-RUN mkdir -p /tmp/templates
+FROM node:22-slim
+
+WORKDIR /app
+
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/package.json ./package.json
+COPY --from=build /app/node_modules ./node_modules
 
 EXPOSE 5001
 
-CMD ["node", "dist/index.js"]
-
-#CMD ["tail", "-f", "/dev/null"]
+CMD ["yarn", "run", "prod"]
