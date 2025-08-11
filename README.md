@@ -64,7 +64,7 @@ Ensure your stash account is funded. You can contact Dhiway for testnet funds if
 1. **Build the Docker image**
 
 ```bash
-docker build . -t dhiway/issuer-agent:latest -f Dockerfile.mac
+docker build . -t dhiway/issuer-agent:latest -f Dockerfile
 ```
 
 2. **Start the service**
