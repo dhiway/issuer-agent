@@ -51,4 +51,7 @@ export class Cred {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt?: Date;
+
+  @Column({ nullable: true })
+  token?: string;
 }
