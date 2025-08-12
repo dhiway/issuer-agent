@@ -3,6 +3,7 @@ services:
     image: dhiway/issuer-agent:latest
     container_name: dhiagent
     environment:
+      - AGENT_MNEMONIC=${AGENT_MNEMONIC}
       - PORT=${AGENT_PORT}
       - REDIS_URL=${REDIS_URL}
       - REDIS_TIMEOUT=${REDIS_TIMEOUT}

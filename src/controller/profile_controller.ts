@@ -6,6 +6,7 @@ import { blake2AsHex } from '@polkadot/util-crypto';
 import { cacheUserData } from './redis_controller';
 import { Profile } from '../entity/Profile';
 import { dataSource } from '../dbconfig';
+import { studio_encrypt } from '../identity/org';
 
 const { STASH_ACC_MNEMONIC } = process.env;
 const TRANSFER_AMOUNT = 100 * 10 ** 12; // 100 WAY for transactions
@@ -15,7 +16,6 @@ interface CreateProfileResponse {
   profileId: string;
   address: string;
   publicKey: string;
-  mnemonic: string;
   createdAt?: number;
 }
 
@@ -272,6 +272,7 @@ export async function createProfile(
       });
     }
 
+    const encryptedMnemonic = JSON.stringify(await studio_encrypt(mnemonic));
     console.log(`🚀 Creating new profile for ${account.address}`);
 
     // Fund account
@@ -286,11 +287,12 @@ export async function createProfile(
     console.log(`✅ Profile created with ID: ${profileId}`);
 
     // Save profile to database
-    const profile = new Profile();
-    profile.profileId = profileId;
-    profile.address = account.address;
-    profile.publicKey = `0x${Buffer.from(account.publicKey).toString('hex')}`;
-    profile.mnemonic = mnemonic;
+    const profile = await dataSource.getRepository(Profile).create({
+      profileId,
+      address: account.address,
+      publicKey: `0x${Buffer.from(account.publicKey).toString('hex')}`,
+      mnemonic: encryptedMnemonic,
+    });
 
     await dataSource.manager.save(profile);
     console.log(`✅ Profile saved to database with ID: ${profileId}`);
@@ -300,7 +302,6 @@ export async function createProfile(
       profileId,
       address: account.address,
       publicKey: `0x${Buffer.from(account.publicKey).toString('hex')}`,
-      mnemonic,
       createdAt: Date.now(),
     };
 

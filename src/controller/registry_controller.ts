@@ -12,7 +12,6 @@ export async function createRegistry(req: Request, res: Response) {
     const { schema, address } = req.body;
     const api = Cord.ConfigService.get('api');
 
-    // 🔄 Create Registry
     console.log('\n🔄 Creating registry...');
 
     const issuerAccount = await getAccount(address);
@@ -45,11 +44,13 @@ export async function createRegistry(req: Request, res: Response) {
       api.events.registry.RegistryCreated.is(event)
     )) as string;
 
-    const registry = new Registry();
-    registry.registryId = eventData.registry_;
-    registry.schema = schema;
-    registry.address = eventData.creator;
-    registry.profileId = eventData.profileId;
+    const registryRepository = dataSource.getRepository(Registry);
+    const registry = await registryRepository.create({
+      registryId: eventData.registry_,
+      schema: JSON.stringify(schema),
+      address: eventData.creator,
+      profileId: eventData.profileId,
+    });
 
     await dataSource.manager.save(registry);
     console.log(`✅ Registry created with URI: ${registry.registryId}`);
