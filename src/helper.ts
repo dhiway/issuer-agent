@@ -32,5 +32,5 @@ export async function getAccount(address: string) {
     throw new Error('Failed to create account. Please try again.');
   }
 
-  return account;
+  return { account, profileId: profile.profileId };
 }

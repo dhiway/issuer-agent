@@ -2,6 +2,7 @@ import * as Cord from '@cord.network/sdk';
 import { createAccount } from '@cord.network/vc-export';
 import { Request, Response } from 'express';
 import { blake2AsHex } from '@polkadot/util-crypto';
+import { computeProfileDokenId } from 'doken-precomputer';
 
 import { cacheUserData } from './redis_controller';
 import { Profile } from '../entity/Profile';
@@ -35,15 +36,14 @@ async function getExistingProfile(address: string): Promise<string | null> {
   return await cacheUserData(`profile_${address}`, async () => {
     console.log(`🔍 Fetching profile from chain for ${address}...`);
     const api = Cord.ConfigService.get('api');
-    const profileData = await api.query.profile.accountProfiles(address);
+    const profileDokenId = await computeProfileDokenId(api, address);
 
-    if (profileData.isNone) {
+    if (!profileDokenId) {
       return null;
     }
 
-    const profileId = profileData.unwrap().toHuman()?.toString();
-    console.log(`✅ Profile found: ${profileId}`);
-    return profileId;
+    console.log(`✅ Profile found: ${profileDokenId}`);
+    return profileDokenId;
   });
 }
 

@@ -1,10 +1,10 @@
 import * as Cord from '@cord.network/sdk';
 import { Request, Response } from 'express';
 import { CordKeyringPair } from '@cord.network/types';
+import { computeRegistryDokenId } from 'doken-precomputer';
 
 import { dataSource } from '../dbconfig';
 import { Registry } from '../entity/Registry';
-import { waitForEvent } from '../utils/Events';
 import { getAccount } from '../helper';
 
 export async function createRegistry(req: Request, res: Response) {
@@ -14,7 +14,7 @@ export async function createRegistry(req: Request, res: Response) {
 
     console.log('\n🔄 Creating registry...');
 
-    const issuerAccount = await getAccount(address);
+    const { account: issuerAccount } = await getAccount(address);
     if (!issuerAccount) {
       return res.status(400).json({ error: 'Invalid issuer account' });
     }
@@ -35,21 +35,25 @@ export async function createRegistry(req: Request, res: Response) {
       null // no blob
     );
 
+    const registryDokenId = await computeRegistryDokenId(
+      api,
+      registryTxHash,
+      issuerAccount.address
+    );
+    if (!registryDokenId) {
+      return res.status(400).json({ error: 'Failed to create registry' });
+    }
+
     await Cord.Registry.dispatchCreateToChain(
       registryProperties,
       issuerAccount as CordKeyringPair
     );
 
-    const eventData: any = (await waitForEvent(api, (event: any) =>
-      api.events.registry.RegistryCreated.is(event)
-    )) as string;
-
     const registryRepository = dataSource.getRepository(Registry);
     const registry = await registryRepository.create({
-      registryId: eventData.registry_,
+      registryId: registryDokenId,
       schema: JSON.stringify(schema),
-      address: eventData.creator,
-      profileId: eventData.profileId,
+      address: issuerAccount.address,
     });
 
     await dataSource.manager.save(registry);

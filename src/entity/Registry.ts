@@ -28,9 +28,6 @@ export class Registry {
   @Column()
   address?: string;
 
-  @Column()
-  profileId?: string;
-
   @Column('simple-json', { nullable: true, default: null })
   schema?: any;
 

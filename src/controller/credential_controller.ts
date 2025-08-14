@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import * as Vc from '@cord.network/vc-export';
 import * as Cord from '@cord.network/sdk';
+import { computeEntryDokenId } from 'doken-precomputer';
 
 import { dataSource } from '../dbconfig';
 import { validateCredential } from '../utils/CredentialValidationUtils';
@@ -9,7 +10,6 @@ import {
   getVCValidity,
 } from '../utils/CredentialUtils';
 import { Registry } from '../entity/Registry';
-import { waitForEvent } from '../utils/Events';
 import { Cred } from '../entity/Cred';
 import { getAccount } from '../helper';
 
@@ -26,23 +26,24 @@ export async function issueVC(req: Request, res: Response) {
     const processedData = extractCredentialFields(data);
     const vcValidityObj = getVCValidity(processedData);
 
-    const issuerAccount = await getAccount(processedData.address);
+    const { account: issuerAccount, profileId } = await getAccount(
+      processedData.address
+    );
     if (!issuerAccount) {
       return res.status(400).json({ error: 'Invalid issuerAccount' });
     }
 
     const registry = await dataSource.getRepository(Registry).findOne({
       where: { address: issuerAccount.address },
-      select: ['registryId', 'profileId'],
+      select: ['registryId'],
     });
-    console.log('\n🔄 Registry: ', registry);
     if (!registry) {
       return res.status(400).json({
         error: 'Registry not found for the provided address',
       });
     }
 
-    const issuerDid = 'did:web:did.myn.social:' + registry.profileId;
+    const issuerDid = 'did:web:did.myn.social:' + profileId;
     const holderDid = processedData.holder ?? issuerDid; // Assuming holder is the same as issuer for this example
 
     const newCredContent = await Vc.buildVcFromContent(
@@ -87,18 +88,21 @@ export async function issueVC(req: Request, res: Response) {
       issuerAccount
     );
 
-    const entryObj: any = (await waitForEvent(api, (event: any) =>
-      api.events.entry.RegistryEntryCreated.is(event)
-    )) as string;
+    const entry = await computeEntryDokenId(
+      api,
+      (proof as any).tx_hash,
+      registry.registryId as string,
+      issuerAccount.address
+    );
 
-    if (entryObj && entryObj.registryEntryId) {
+    if (entry) {
       // Save to DB
       const cred = await dataSource.getRepository(Cred).create({
         id: vc.id,
-        credId: entryObj.registryEntryId,
-        address: entryObj.creator,
-        profileId: entryObj.creatorProfileId,
-        registryId: entryObj.registryId,
+        credId: entry,
+        address: issuerAccount.address,
+        profileId,
+        registryId: registry.registryId,
         issuerDid,
         holderDid,
         vc,
@@ -188,7 +192,7 @@ export async function updateCred(req: Request, res: Response) {
       return res.status(400).json({ error: 'Cred not found' });
     }
 
-    const issuerAccount = await getAccount(cred.address as string);
+    const { account: issuerAccount } = await getAccount(cred.address as string);
     if (!issuerAccount) {
       return res.status(400).json({ error: 'Invalid issuerAccount' });
     }
@@ -275,7 +279,7 @@ export async function revokeCred(req: Request, res: Response) {
       return res.status(400).json({ error: 'Cred not found' });
     }
 
-    const issuerAccount = await getAccount(cred.address as string);
+    const { account: issuerAccount } = await getAccount(cred.address as string);
     if (!issuerAccount) {
       return res.status(400).json({ error: 'Invalid issuerAccount' });
     }

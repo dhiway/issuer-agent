@@ -126,6 +126,17 @@
   dependencies:
     "@polkadot/types" "^15.9.1"
 
+"@cord.network/types@0.9.6-4":
+  version "0.9.6-4"
+  resolved "https://registry.yarnpkg.com/@cord.network/types/-/types-0.9.6-4.tgz#0630559d5d42b4e8f195f51e09b1fbb093a83d09"
+  integrity sha512-bFEapca1V7mKFt1IvmtZ5HwFBEAHPQ+81jH8GWpPBMi69TzJ3ogfr4lwCWKsuyoEBIjj60aV2Zkq6ZrRfolwcw==
+  dependencies:
+    "@polkadot/api" "^15.9.1"
+    "@polkadot/keyring" "^13.4.3"
+    "@polkadot/types" "^15.9.1"
+    "@polkadot/util" "^13.4.3"
+    "@polkadot/util-crypto" "^13.4.3"
+
 "@cord.network/types@0.9.6-6":
   version "0.9.6-6"
   resolved "https://registry.yarnpkg.com/@cord.network/types/-/types-0.9.6-6.tgz#9896655e11655a8fa1c3c1c9568825b346b9dc87"
@@ -1194,6 +1205,17 @@ diff@^4.0.1:
   version "4.0.2"
   resolved "https://registry.yarnpkg.com/diff/-/diff-4.0.2.tgz#60f3aecb89d5fae520c11aa19efc2bb982aade7d"
   integrity sha512-58lmxKSA4BNyLz+HHMUzlOEpg09FV+ev6ZMe3vJihgdxzgcwZ8VoEEPmALCZG9LmqfVoNMMKpttIYTVG6uDY7A==
+
+doken-precomputer@0.0.4:
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/doken-precomputer/-/doken-precomputer-0.0.4.tgz#aedaddc2cc79588f8c51b4a84c55498a9d224404"
+  integrity sha512-NPkQvrBkaw8KS74xF38R33aT870IxMTZ7/g8nTUo/iuOMYMOD/Pa0chNl7BjJqUO+UXN+McUxlv/cpCQtuO/Xw==
+  dependencies:
+    "@cord.network/types" "0.9.6-4"
+    "@polkadot/api" "^15.9.1"
+    "@polkadot/types" "^15.9.1"
+    "@polkadot/util" "^13.4.3"
+    "@polkadot/util-crypto" "^13.4.3"
 
 dotenv@^16.4.7:
   version "16.6.1"
