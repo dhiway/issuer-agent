@@ -16,6 +16,7 @@ interface CreateProfileResponse {
   message: string;
   profileId: string;
   address: string;
+  mnemonic: string;
   publicKey: string;
   createdAt?: number;
 }
@@ -301,6 +302,7 @@ export async function createProfile(
       message: 'Profile created successfully',
       profileId,
       address: account.address,
+      mnemonic,
       publicKey: `0x${Buffer.from(account.publicKey).toString('hex')}`,
       createdAt: Date.now(),
     };
