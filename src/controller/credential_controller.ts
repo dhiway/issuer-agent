@@ -311,13 +311,16 @@ export async function createPresentation(req: Request, res: Response) {
 
     const profile = await dataSource.getRepository(Profile).findOne({
       where: { profileId },
+      select: ['address'],
     });
     if (!profile) {
       throw new Error('Profile not found for the provided address');
     }
 
     const api = Cord.ConfigService.get('api');
-    const { account: holderAccount } = await getAccount(profile.address);
+    const { account: holderAccount } = await getAccount(
+      profile.address as string
+    );
     if (!holderAccount) {
       return res.status(400).json({ error: 'Invalid holderAccount' });
     }
