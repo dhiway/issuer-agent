@@ -12,6 +12,7 @@ import {
 import { Registry } from '../entity/Registry';
 import { Cred } from '../entity/Cred';
 import { getAccount } from '../helper';
+import { Profile } from '../entity/Profile';
 
 export async function issueVC(req: Request, res: Response) {
   try {
@@ -301,13 +302,22 @@ export async function revokeCred(req: Request, res: Response) {
 
 export async function createPresentation(req: Request, res: Response) {
   try {
-    const { vc, holderDid, address, selectedFields } = req.body;
+    const { vc, holderDid, selectedFields } = req.body;
     if (!vc || !holderDid) {
       return res.status(400).json({ error: 'vc and holderDid are required' });
     }
 
+    const profileId = holderDid.split(':').pop();
+
+    const profile = await dataSource.getRepository(Profile).findOne({
+      where: { profileId },
+    });
+    if (!profile) {
+      throw new Error('Profile not found for the provided address');
+    }
+
     const api = Cord.ConfigService.get('api');
-    const { account: holderAccount } = await getAccount(address);
+    const { account: holderAccount } = await getAccount(profile.address);
     if (!holderAccount) {
       return res.status(400).json({ error: 'Invalid holderAccount' });
     }

@@ -56,7 +56,7 @@ if (cluster.isMaster) {
     return await revokeCred(req, res);
   });
 
-  credentialRouter.post('/present', async (req, res) => {
+  credentialRouter.post('/presentation', async (req, res) => {
     return await createPresentation(req, res);
   });
 
