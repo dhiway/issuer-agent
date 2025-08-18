@@ -16,6 +16,8 @@ import {
   getCredById,
   updateCred,
   revokeCred,
+  createPresentation,
+  // getHashFromFile,
 } from './controller/credential_controller';
 
 const { PORT } = process.env;
@@ -53,6 +55,14 @@ if (cluster.isMaster) {
   credentialRouter.post('/revoke', async (req, res) => {
     return await revokeCred(req, res);
   });
+
+  credentialRouter.post('/present', async (req, res) => {
+    return await createPresentation(req, res);
+  });
+
+  // credentialRouter.get('/hash', async (req, res) => {
+  //   return await getHashFromFile(req, res);
+  // });
 
   profileRouter.post('/create', async (req, res) => {
     return await createProfile(req, res);

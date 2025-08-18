@@ -299,6 +299,58 @@ export async function revokeCred(req: Request, res: Response) {
   }
 }
 
+export async function createPresentation(req: Request, res: Response) {
+  try {
+    const { vc, holderDid, address, selectedFields } = req.body;
+    if (!vc || !holderDid) {
+      return res.status(400).json({ error: 'vc and holderDid are required' });
+    }
+
+    const api = Cord.ConfigService.get('api');
+    const { account: holderAccount } = await getAccount(address);
+    if (!holderAccount) {
+      return res.status(400).json({ error: 'Invalid holderAccount' });
+    }
+
+    const challenge = Cord.Utils.UUID.generate();
+
+    const vp = await Vc.makePresentation(
+      [vc],
+      holderDid,
+      async (data) => ({
+        signature: holderAccount.sign(data),
+        keyType: holderAccount.type,
+        keyUri: holderDid,
+      }),
+      challenge,
+      api,
+      {
+        needSDR: true,
+        selectedFields: selectedFields || [],
+      }
+    );
+
+    return res.status(200).json({ presentation: vp });
+  } catch (error) {
+    console.error('Error creating presentation:', error);
+    return res.status(500).json({ error: 'Error creating presentation' });
+  }
+}
+
+// export async function getHashFromFile(req: Request, res: Response) {
+//   try {
+
+//     if (!req.file || !req.file.buffer) {
+//       return res.status(400).json({ error: 'No file uploaded' });
+//     }
+//     const hashHex = await Cord.Utils.Crypto.hashStr(req.file.buffer);
+//     return res.status(200).json({ hash: hashHex });
+//   } catch (error) {
+//     console.error('Error hashing file:', error);
+//     return res.status(500).json({ error: 'Error hashing file' });
+//   }
+// }
+
 // export async function documentHashOnChain(
 //   req: express.Request,
 //   res: express.Response
