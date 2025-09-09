@@ -7,57 +7,55 @@ import { dataSource } from '../dbconfig';
 import { Registry } from '../entity/Registry';
 import { getAccount } from '../helper';
 
+export async function createRegistryForIssuer(schema: any, address: string) {
+  const api = Cord.ConfigService.get('api');
+
+  const { account: issuerAccount } = await getAccount(address);
+  if (!issuerAccount) throw new Error('Invalid issuer account');
+
+  const registryBlob = {
+    title: 'Issuer_agent registry',
+    schema: JSON.stringify(schema),
+    date: new Date().toISOString(),
+  };
+
+  const registryStringifiedBlob = JSON.stringify(registryBlob);
+  const registryTxHash = await Cord.Registry.getDigestFromRawData(
+    registryStringifiedBlob
+  );
+
+  const registryProperties = await Cord.Registry.registryCreateProperties(
+    registryTxHash,
+    null
+  );
+
+  const registryDokenId = await computeRegistryDokenId(
+    api,
+    registryTxHash,
+    issuerAccount.address
+  );
+  if (!registryDokenId) throw new Error('Failed to create registry');
+
+  await Cord.Registry.dispatchCreateToChain(
+    registryProperties,
+    issuerAccount as CordKeyringPair
+  );
+
+  const registryRepository = dataSource.getRepository(Registry);
+  const registry = registryRepository.create({
+    registryId: registryDokenId,
+    schema: JSON.stringify(schema),
+    address: issuerAccount.address,
+  });
+
+  await dataSource.manager.save(registry);
+  return registry;
+}
+
 export async function createRegistry(req: Request, res: Response) {
   try {
     const { schema, address } = req.body;
-    const api = Cord.ConfigService.get('api');
-
-    console.log('\n🔄 Creating registry...');
-
-    const { account: issuerAccount } = await getAccount(address);
-    if (!issuerAccount) {
-      return res.status(400).json({ error: 'Invalid issuer account' });
-    }
-
-    const registryBlob = {
-      title: 'Issuer_agent registry',
-      schema: JSON.stringify(schema),
-      date: new Date().toISOString(),
-    };
-
-    const registryStringifiedBlob = JSON.stringify(registryBlob);
-    const registryTxHash = await Cord.Registry.getDigestFromRawData(
-      registryStringifiedBlob
-    );
-
-    const registryProperties = await Cord.Registry.registryCreateProperties(
-      registryTxHash,
-      null // no blob
-    );
-
-    const registryDokenId = await computeRegistryDokenId(
-      api,
-      registryTxHash,
-      issuerAccount.address
-    );
-    if (!registryDokenId) {
-      return res.status(400).json({ error: 'Failed to create registry' });
-    }
-
-    await Cord.Registry.dispatchCreateToChain(
-      registryProperties,
-      issuerAccount as CordKeyringPair
-    );
-
-    const registryRepository = dataSource.getRepository(Registry);
-    const registry = await registryRepository.create({
-      registryId: registryDokenId,
-      schema: JSON.stringify(schema),
-      address: issuerAccount.address,
-    });
-
-    await dataSource.manager.save(registry);
-    console.log(`✅ Registry created with URI: ${registry.registryId}`);
+    const registry = await createRegistryForIssuer(schema, address);
 
     return res.status(201).json({
       message: 'Registry created successfully',
