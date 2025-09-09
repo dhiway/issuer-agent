@@ -369,7 +369,7 @@ export async function documentHashOnChain(req: Request, res: Response) {
   try {
     const api = Cord.ConfigService.get('api');
 
-    const { fileHash, address, schema } = req.body;
+    const { fileHash, address } = req.body;
 
     if (!address) {
       return res.status(400).json({ err: 'Issuer address is required' });
@@ -384,10 +384,10 @@ export async function documentHashOnChain(req: Request, res: Response) {
       return res.status(400).json({ error: 'Invalid issuerAccount' });
     }
 
-    const registry = await createRegistryForIssuer(
-      schema,
-      issuerAccount.address
-    );
+    const registry = await dataSource.getRepository(Registry).findOne({
+      where: { address: issuerAccount.address },
+      select: ['registryId'],
+    });
 
     if (!registry) {
       return res.status(400).json({
@@ -395,7 +395,7 @@ export async function documentHashOnChain(req: Request, res: Response) {
       });
     }
 
-    let digest: Cord.HexString = Cord.blake2AsHex(fileHash);
+    let digest: Cord.HexString = await Cord.blake2AsHex(fileHash);
     console.log(`\n❄️  Document hash to be registered on chain - ${digest} `);
 
     let docProof: any = await Vc.constructCordProof2025(
