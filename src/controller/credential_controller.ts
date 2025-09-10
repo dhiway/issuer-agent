@@ -434,7 +434,7 @@ export async function updateDocumentHashOnChain(req: Request, res: Response) {
   try {
     const api = Cord.ConfigService.get('api');
 
-    const { fileHash, identifier, address } = req.body;
+    const { fileHash, address, identifier } = req.body;
 
     if (!fileHash || !identifier || !address) {
       return res.status(400).json({
@@ -473,22 +473,12 @@ export async function updateDocumentHashOnChain(req: Request, res: Response) {
       blob: null,
     };
 
+    docProof.registryEntryId = identifier;
+
     await Cord.Entry.dispatchUpdateEntryToChain(docProof, issuerAccount);
 
-    const entry = await computeEntryDokenId(
-      api,
-      (docProof as any).tx_hash,
-      registry.registryId as string,
-      issuerAccount.address
-    );
-    console.log(`✅ Document hash update registered on chain - ${entry}`);
-
-    console.log('identifier', identifier);
-
     return res.status(200).json({
-      result: {
-        identifier: entry,
-      },
+      result: { msg: 'Successfully updated hash' },
     });
   } catch (error: any) {
     console.log('errr: ', error);
@@ -524,7 +514,9 @@ export async function revokeDocumentHashOnChain(req: Request, res: Response) {
 
     console.log(`✅ Statement revoked!`);
 
-    return res.status(200).json({ result: { msg: 'Successfully revoked' } });
+    return res
+      .status(200)
+      .json({ result: { msg: 'Successfully revoked hash' } });
   } catch (error: any) {
     console.log('errr: ', error);
     return res.status(400).json({ err: error.message ? error.message : error });
