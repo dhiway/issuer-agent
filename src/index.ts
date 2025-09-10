@@ -19,6 +19,8 @@ import {
   createPresentation,
   // getHashFromFile,
   documentHashOnChain,
+  updateDocumentHashOnChain,
+  revokeDocumentHashOnChain,
 } from './controller/credential_controller';
 
 const { PORT } = process.env;
@@ -88,6 +90,14 @@ if (cluster.isPrimary) {
 
   docRouter.post('/issue', async (req, res) => {
     return await documentHashOnChain(req, res);
+  });
+
+  docRouter.put('/update', async (req, res) => {
+    return await updateDocumentHashOnChain(req, res);
+  });
+
+  docRouter.post('/revoke', async (req, res) => {
+    return await revokeDocumentHashOnChain(req, res);
   });
 
   app.use('/api/v1/profile', profileRouter);

@@ -100,7 +100,6 @@ export async function issueVC(req: Request, res: Response) {
     if (entry) {
       // Save to DB
       const cred = await dataSource.getRepository(Cred).create({
-        id: vc.id,
         credId: entry,
         address: issuerAccount.address,
         profileId,
@@ -420,33 +419,8 @@ export async function documentHashOnChain(req: Request, res: Response) {
     );
     console.log(`✅ Document hash registered on chain - ${entry}`);
 
-    // const docProof = await Vc.getCordProofForDigest(
-    //   fileHash as `0x${string}`,
-    //   issuerDid,
-    //   api,
-    //   {
-    //     spaceUri: CHAIN_SPACE_ID as `space:cord:${string}`,
-    //   }
-    // );
-
-    // const statement1 = await Cord.Statement.dispatchRegisterToChain(
-    //   docProof,
-    //   issuerDid.uri,
-    //   authorIdentity,
-    //   CHAIN_SPACE_AUTH as `auth:cord:${string}`,
-    //   async ({ data }) => ({
-    //     signature: issuerKeysProperty.authentication.sign(data),
-    //     keyType: issuerKeysProperty.authentication.type,
-    //   })
-    // );
-
-    // const statementDetails = await api.query.statement.statements(
-    //   docProof.identifier
-    // );
-
     return res.status(200).json({
       result: {
-        registryId: registry.registryId,
         identifier: entry,
       },
     });
@@ -456,126 +430,95 @@ export async function documentHashOnChain(req: Request, res: Response) {
   }
 }
 
-// export async function revokeDocumentHashOnChain(req: Request, res: Response) {
-//   try {
-//     const fileHash = req?.body.filehash;
-//     const identifierReq = req?.body.identifier;
-//     let statementUri = ``;
-//     const api = Cord.ConfigService.get('api');
-//     if (fileHash) {
-//       const space = Cord.Identifier.uriToIdentifier(CHAIN_SPACE_ID);
-//       const identifierencoded = await api.query.statement.identifierLookup(
-//         fileHash as `0x${string}`,
-//         space
-//       );
-//       const identifier = identifierencoded.toHuman();
-//       const digest = fileHash.replace(/^0x/, '');
-//       statementUri = `stmt:cord:${identifier}:${digest}`;
-//     } else if (identifierReq) {
-//       const statementDetails = await Cord.Statement.getDetailsfromChain(
-//         identifierReq
-//       );
-//       const digest = statementDetails?.digest.replace(/^0x/, '');
-//       statementUri = `${statementDetails?.uri}:${digest}`;
-//     } else {
-//       return res
-//         .status(400)
-//         .json({ err: 'File hash or identifier is required for revoke' });
-//     }
-//     const statementStatus = await Cord.Statement.fetchStatementDetailsfromChain(
-//       statementUri as `stmt:cord:${string}`
-//     );
-//     if (statementStatus?.revoked) {
-//       return res
-//         .status(400)
-//         .json({ err: 'Document is already revoked on chain' });
-//     }
-//     const revokeResponse = await Cord.Statement.dispatchRevokeToChain(
-//       statementUri as `stmt:cord:${string}`,
-//       issuerDid.uri,
-//       authorIdentity,
-//       CHAIN_SPACE_AUTH as `auth:cord:${string}`,
-//       async ({ data }) => ({
-//         signature: issuerKeysProperty.authentication.sign(data),
-//         keyType: issuerKeysProperty.authentication.type,
-//       })
-//     );
+export async function updateDocumentHashOnChain(req: Request, res: Response) {
+  try {
+    const api = Cord.ConfigService.get('api');
 
-//     const statementStatusRevoked =
-//       await Cord.Statement.fetchStatementDetailsfromChain(
-//         statementUri as `stmt:cord:${string}`
-//       );
-//     if (statementStatusRevoked?.revoked) {
-//       return res.status(200).json({ result: { msg: 'Successfully revoked' } });
-//     } else {
-//       return res.status(400).json({ err: 'Document not revoked' });
-//     }
-//   } catch (error: any) {
-//     console.log('errr: ', error);
-//     return res.status(400).json({ err: error.message ? error.message : error });
-//   }
-// }
+    const { fileHash, address, identifier } = req.body;
 
-// export async function updateDocumentHashOnChain(
-//   req: express.Request,
-//   res: express.Response
-// ) {
-//   try {
-//     const fileHash = req?.body.filehash;
-//     const identifierReq = req?.body.identifier;
-//     if (!fileHash) {
-//       return res.status(400).json({ err: 'Please enter valid document' });
-//     }
-//     if (!identifierReq) {
-//       return res.status(400).json({ err: 'Please enter valid identifier' });
-//     }
-//     const api = Cord.ConfigService.get('api');
-//     if (!CHAIN_SPACE_ID) {
-//       return res.status(400).json({ err: 'chain space id not' });
-//     }
-//     const statementDetails = await Cord.Statement.getDetailsfromChain(
-//       identifierReq
-//     );
-//     if (statementDetails?.digest) {
-//       const digest = statementDetails.digest.replace(/^0x/, '');
-//       const elementUri = `${statementDetails.uri}:{digest}`;
-//       const updatedStatementEntry = Cord.Statement.buildFromUpdateProperties(
-//         elementUri as `stmt:cord:${string}`,
-//         fileHash,
-//         CHAIN_SPACE_ID as `space:cord:${string}`,
-//         issuerDid.uri
-//       );
-//       console.dir(updatedStatementEntry, {
-//         depth: null,
-//         colors: true,
-//       });
+    if (!fileHash || !identifier || !address) {
+      return res.status(400).json({
+        err: 'fileHash, identifier and address are required',
+      });
+    }
 
-//       const updatedStatement = await Cord.Statement.dispatchUpdateToChain(
-//         updatedStatementEntry,
-//         issuerDid.uri,
-//         authorIdentity,
-//         CHAIN_SPACE_AUTH as `auth:cord:${string}`,
-//         async ({ data }) => ({
-//           signature: issuerKeysProperty.authentication.sign(data),
-//           keyType: issuerKeysProperty.authentication.type,
-//         })
-//       );
-//       console.log(`✅ Statement element registered - ${updatedStatement}`);
+    const { account: issuerAccount } = await getAccount(address);
+    if (!issuerAccount) {
+      return res.status(400).json({ error: 'Invalid issuerAccount' });
+    }
 
-//       const updatedStatementDetails = await api.query.statement.statements(
-//         updatedStatementEntry.elementUri
-//       );
-//       return res.status(200).json({
-//         result: {
-//           identifier: updatedStatementEntry.elementUri,
-//           blockHash: updatedStatementDetails.createdAtHash?.toString(),
-//         },
-//       });
-//     } else {
-//       return res.status(400).json({ err: 'Unable to find the digest' });
-//     }
-//   } catch (error: any) {
-//     console.log('errr: ', error);
-//     return res.status(400).json({ err: error.message ? error.message : error });
-//   }
-// }
+    const registry = await dataSource.getRepository(Registry).findOne({
+      where: { address: issuerAccount.address },
+      select: ['registryId'],
+    });
+
+    if (!registry) {
+      return res.status(400).json({
+        error: 'Registry not found for the provided address',
+      });
+    }
+
+    let digest: Cord.HexString = await Cord.blake2AsHex(fileHash);
+    console.log(`\n❄️  Document hash to be registered on chain - ${digest} `);
+
+    let docProof: any = await Vc.constructCordProof2025(
+      registry.registryId as string,
+      digest,
+      issuerAccount.address,
+      api
+    );
+
+    docProof = {
+      ...docProof,
+      blob: null,
+    };
+
+    docProof.registryEntryId = identifier;
+
+    await Cord.Entry.dispatchUpdateEntryToChain(docProof, issuerAccount);
+
+    return res.status(200).json({
+      result: { msg: 'Successfully updated hash' },
+    });
+  } catch (error: any) {
+    console.log('errr: ', error);
+    return res.status(400).json({ err: error.message ? error.message : error });
+  }
+}
+
+export async function revokeDocumentHashOnChain(req: Request, res: Response) {
+  try {
+    const { identifier, address } = req.body;
+
+    const { account: issuerAccount } = await getAccount(address as string);
+    if (!issuerAccount) {
+      return res.status(400).json({ error: 'Invalid issuerAccount' });
+    }
+
+    const registry = await dataSource.getRepository(Registry).findOne({
+      where: { address: issuerAccount.address },
+      select: ['registryId'],
+    });
+
+    if (!registry) {
+      return res.status(400).json({
+        error: 'Registry not found for the provided address',
+      });
+    }
+
+    await Cord.Entry.dispatchRevokeEntryToChain(
+      registry.registryId as string,
+      identifier as string,
+      issuerAccount
+    );
+
+    console.log(`✅ Statement revoked!`);
+
+    return res
+      .status(200)
+      .json({ result: { msg: 'Successfully revoked hash' } });
+  } catch (error: any) {
+    console.log('errr: ', error);
+    return res.status(400).json({ err: error.message ? error.message : error });
+  }
+}
