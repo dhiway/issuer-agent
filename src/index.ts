@@ -18,14 +18,15 @@ import {
   revokeCred,
   createPresentation,
   // getHashFromFile,
+  documentHashOnChain,
 } from './controller/credential_controller';
 
 const { PORT } = process.env;
 
 const numCPUs = os.cpus().length;
 
-if (cluster.isMaster) {
-  console.log(`Master process ${process.pid} is running`);
+if (cluster.isPrimary) {
+  console.log(`Primary process ${process.pid} is running`);
 
   for (let i = 0; i < numCPUs; i++) {
     cluster.fork();
@@ -39,6 +40,7 @@ if (cluster.isMaster) {
   const profileRouter = express.Router({ mergeParams: true });
   const registryRouter = express.Router({ mergeParams: true });
   const credentialRouter = express.Router({ mergeParams: true });
+  const docRouter = express.Router({ mergeParams: true });
 
   credentialRouter.post('/', async (req, res) => {
     return await issueVC(req, res);
@@ -84,9 +86,14 @@ if (cluster.isMaster) {
     return await getRegistry(req, res);
   });
 
+  docRouter.post('/issue', async (req, res) => {
+    return await documentHashOnChain(req, res);
+  });
+
   app.use('/api/v1/profile', profileRouter);
   app.use('/api/v1/registry', registryRouter);
   app.use('/api/v1/cred', credentialRouter);
+  app.use('/api/v1/doc-hash', docRouter);
 
   app.use((_req, res) => {
     return res.json({

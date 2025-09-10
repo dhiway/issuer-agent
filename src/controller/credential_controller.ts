@@ -13,6 +13,7 @@ import { Registry } from '../entity/Registry';
 import { Cred } from '../entity/Cred';
 import { getAccount } from '../helper';
 import { Profile } from '../entity/Profile';
+import { createRegistryForIssuer } from './registry_controller';
 
 export async function issueVC(req: Request, res: Response) {
   try {
@@ -352,68 +353,110 @@ export async function createPresentation(req: Request, res: Response) {
 
 // export async function getHashFromFile(req: Request, res: Response) {
 //   try {
-
 //     if (!req.file || !req.file.buffer) {
 //       return res.status(400).json({ error: 'No file uploaded' });
 //     }
-//     const hashHex = await Cord.Utils.Crypto.hashStr(req.file.buffer);
-//     return res.status(200).json({ hash: hashHex });
+//     // const hashHex = await Cord.Utils.Crypto.hashStr(req.file.buffer);
+//     let digest: Cord.HexString = Cord.blake2AsHex(req.file.buffer);
+//     return res.status(200).json({ hash: digest });
 //   } catch (error) {
 //     console.error('Error hashing file:', error);
 //     return res.status(500).json({ error: 'Error hashing file' });
 //   }
 // }
 
-// export async function documentHashOnChain(
-//   req: express.Request,
-//   res: express.Response
-// ) {
-//   try {
-//     const fileHash = req?.body.filehash;
-//     if (!fileHash) {
-//       return res.status(400).json({ err: 'No file uploaded' });
-//     }
-//     const api = Cord.ConfigService.get('api');
+export async function documentHashOnChain(req: Request, res: Response) {
+  try {
+    const api = Cord.ConfigService.get('api');
 
-//     const docProof = await Vc.getCordProofForDigest(
-//       fileHash as `0x${string}`,
-//       issuerDid,
-//       api,
-//       {
-//         spaceUri: CHAIN_SPACE_ID as `space:cord:${string}`,
-//       }
-//     );
+    const { fileHash, address } = req.body;
 
-//     const statement1 = await Cord.Statement.dispatchRegisterToChain(
-//       docProof,
-//       issuerDid.uri,
-//       authorIdentity,
-//       CHAIN_SPACE_AUTH as `auth:cord:${string}`,
-//       async ({ data }) => ({
-//         signature: issuerKeysProperty.authentication.sign(data),
-//         keyType: issuerKeysProperty.authentication.type,
-//       })
-//     );
+    if (!address) {
+      return res.status(400).json({ err: 'Issuer address is required' });
+    }
 
-//     const statementDetails = await api.query.statement.statements(
-//       docProof.identifier
-//     );
-//     return res.status(200).json({
-//       result: {
-//         identifier: docProof.identifier,
-//         blockHash: statementDetails.createdAtHash?.toString(),
-//       },
-//     });
-//   } catch (error: any) {
-//     console.log('errr: ', error);
-//     return res.status(400).json({ err: error.message ? error.message : error });
-//   }
-// }
+    if (!fileHash) {
+      return res.status(400).json({ err: 'No file uploaded' });
+    }
 
-// export async function revokeDocumentHashOnChain(
-//   req: express.Request,
-//   res: express.Response
-// ) {
+    const { account: issuerAccount } = await getAccount(address);
+    if (!issuerAccount) {
+      return res.status(400).json({ error: 'Invalid issuerAccount' });
+    }
+
+    const registry = await dataSource.getRepository(Registry).findOne({
+      where: { address: issuerAccount.address },
+      select: ['registryId'],
+    });
+
+    if (!registry) {
+      return res.status(400).json({
+        error: 'Registry not found for the provided address',
+      });
+    }
+
+    let digest: Cord.HexString = await Cord.blake2AsHex(fileHash);
+    console.log(`\n❄️  Document hash to be registered on chain - ${digest} `);
+
+    let docProof: any = await Vc.constructCordProof2025(
+      registry.registryId as string,
+      digest,
+      issuerAccount.address,
+      api
+    );
+
+    docProof = {
+      ...docProof,
+      blob: null,
+    };
+
+    await Cord.Entry.dispatchCreateEntryToChain(docProof, issuerAccount);
+
+    const entry = await computeEntryDokenId(
+      api,
+      (docProof as any).tx_hash,
+      registry.registryId as string,
+      issuerAccount.address
+    );
+    console.log(`✅ Document hash registered on chain - ${entry}`);
+
+    // const docProof = await Vc.getCordProofForDigest(
+    //   fileHash as `0x${string}`,
+    //   issuerDid,
+    //   api,
+    //   {
+    //     spaceUri: CHAIN_SPACE_ID as `space:cord:${string}`,
+    //   }
+    // );
+
+    // const statement1 = await Cord.Statement.dispatchRegisterToChain(
+    //   docProof,
+    //   issuerDid.uri,
+    //   authorIdentity,
+    //   CHAIN_SPACE_AUTH as `auth:cord:${string}`,
+    //   async ({ data }) => ({
+    //     signature: issuerKeysProperty.authentication.sign(data),
+    //     keyType: issuerKeysProperty.authentication.type,
+    //   })
+    // );
+
+    // const statementDetails = await api.query.statement.statements(
+    //   docProof.identifier
+    // );
+
+    return res.status(200).json({
+      result: {
+        registryId: registry.registryId,
+        identifier: entry,
+      },
+    });
+  } catch (error: any) {
+    console.log('errr: ', error);
+    return res.status(400).json({ err: error.message ? error.message : error });
+  }
+}
+
+// export async function revokeDocumentHashOnChain(req: Request, res: Response) {
 //   try {
 //     const fileHash = req?.body.filehash;
 //     const identifierReq = req?.body.identifier;
