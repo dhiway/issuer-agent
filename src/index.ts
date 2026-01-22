@@ -21,6 +21,7 @@ import {
   documentHashOnChain,
   updateDocumentHashOnChain,
   revokeDocumentHashOnChain,
+  getCredentialsByRegistry,
 } from './controller/credential_controller';
 
 const { PORT } = process.env;
@@ -63,6 +64,12 @@ if (cluster.isPrimary) {
   credentialRouter.post('/presentation', async (req, res) => {
     return await createPresentation(req, res);
   });
+
+   credentialRouter.post('/list/:registryId', async (req, res) => {
+    return await getCredentialsByRegistry(req, res);
+  });
+
+  
 
   // credentialRouter.get('/hash', async (req, res) => {
   //   return await getHashFromFile(req, res);
