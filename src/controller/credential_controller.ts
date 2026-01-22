@@ -36,8 +36,8 @@ export async function issueVC(req: Request, res: Response) {
     }
 
     const registry = await dataSource.getRepository(Registry).findOne({
-      where: { address: issuerAccount.address },
-      select: ['registryId'],
+      where: {registryId:data.registryId},
+      select: ['registryId']
     });
     if (!registry) {
       return res.status(400).json({

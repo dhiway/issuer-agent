@@ -65,7 +65,7 @@ if (cluster.isPrimary) {
     return await createPresentation(req, res);
   });
 
-   credentialRouter.post('/list/:registryId', async (req, res) => {
+   credentialRouter.get('/list/:registryId', async (req, res) => {
     return await getCredentialsByRegistry(req, res);
   });
 
