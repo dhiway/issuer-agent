@@ -10,7 +10,7 @@ import {
   getProfile,
 } from './controller/profile_controller';
 import { checkDidAndIdentities } from './cord';
-import { createRegistry, getRegistry } from './controller/registry_controller';
+import { createRegistry, getRegistry, listRegistriesByAddress } from './controller/registry_controller';
 import {
   issueVC,
   getCredById,
@@ -86,6 +86,10 @@ if (cluster.isPrimary) {
 
   registryRouter.get('/:id', async (req, res) => {
     return await getRegistry(req, res);
+  });
+
+  registryRouter.get('/list/:address', async (req, res) => {
+    return await listRegistriesByAddress(req, res);
   });
 
   docRouter.post('/issue', async (req, res) => {

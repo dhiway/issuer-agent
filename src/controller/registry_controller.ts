@@ -6,6 +6,7 @@ import { computeRegistryDokenId } from 'doken-precomputer';
 import { dataSource } from '../dbconfig';
 import { Registry } from '../entity/Registry';
 import { getAccount } from '../helper';
+import { validateJsonSchema } from '../utils/SchemaValidator';
 
 export async function createRegistryForIssuer(schema: any, address: string) {
   const api = Cord.ConfigService.get('api');
@@ -55,7 +56,23 @@ export async function createRegistryForIssuer(schema: any, address: string) {
 export async function createRegistry(req: Request, res: Response) {
   try {
     const { schema, address } = req.body;
-    const registry = await createRegistryForIssuer(schema, address);
+    let schemaRead = typeof schema === 'string' ? JSON.parse(schema) : schema;
+
+    if (!schemaRead || typeof schemaRead !== 'object') {
+      return res.status(400).json({ error: 'Schema must be a valid JSON object' });
+    }
+
+    // ✅ AJV validation
+    const { valid, errors } = validateJsonSchema(schemaRead);
+
+    if (!valid) {
+      return res.status(400).json({
+        error: 'Invalid JSON Schema',
+        details: errors,
+      });
+    }
+
+    const registry = await createRegistryForIssuer(schemaRead, address);
 
     return res.status(201).json({
       message: 'Registry created successfully',
@@ -67,6 +84,7 @@ export async function createRegistry(req: Request, res: Response) {
     res.status(500).json({ error: 'Failed to create registry' });
   }
 }
+
 
 export async function getRegistry(req: Request, res: Response) {
   try {
@@ -85,5 +103,34 @@ export async function getRegistry(req: Request, res: Response) {
   } catch (error) {
     console.error('Error fetching registry:', error);
     return res.status(500).json({ error: 'Failed to fetch registry' });
+  }
+}
+
+export async function listRegistriesByAddress(req: Request, res: Response) {
+  try {
+    const { address } = req.params;
+
+    if (!address) {
+      return res.status(400).json({
+        error: 'Address is required',
+      });
+    }
+
+    const registryRepository = dataSource.getRepository(Registry);
+
+    const registries = await registryRepository.find({
+      where: { address },
+      order: { createdAt: 'DESC' },
+    });
+
+    return res.status(200).json({
+      count: registries.length,
+      registries,
+    });
+  } catch (error) {
+    console.error('Error listing registries:', error);
+    return res.status(500).json({
+      error: 'Failed to list registries',
+    });
   }
 }
