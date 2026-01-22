@@ -365,6 +365,7 @@ export async function createPresentation(req: Request, res: Response) {
 // }
 
 export async function documentHashOnChain(req: Request, res: Response) {
+  console.log("Entered Doc Hashing")
   try {
     const api = Cord.ConfigService.get('api');
 

@@ -29,6 +29,7 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:5001',
   'http://localhost:5108',
+  'http://localhost:5173',
   'https://studio.dhiway.com',
   'https://markdemo.dhiway.com',
   'https://studiodemo.dhiway.com',
