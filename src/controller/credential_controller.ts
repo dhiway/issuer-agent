@@ -36,8 +36,8 @@ export async function issueVC(req: Request, res: Response) {
     }
 
     const registry = await dataSource.getRepository(Registry).findOne({
-      where: { address: issuerAccount.address },
-      select: ['registryId'],
+      where: {registryId:data.registryId},
+      select: ['registryId']
     });
     if (!registry) {
       return res.status(400).json({
@@ -365,6 +365,7 @@ export async function createPresentation(req: Request, res: Response) {
 // }
 
 export async function documentHashOnChain(req: Request, res: Response) {
+  console.log("Entered Doc Hashing")
   try {
     const api = Cord.ConfigService.get('api');
 
@@ -520,5 +521,47 @@ export async function revokeDocumentHashOnChain(req: Request, res: Response) {
   } catch (error: any) {
     console.log('errr: ', error);
     return res.status(400).json({ err: error.message ? error.message : error });
+  }
+}
+
+export async function getCredentialsByRegistry(
+  req: Request,
+  res: Response
+) {
+  try {
+    const { registryId } = req.params;
+
+    if (!registryId) {
+      return res.status(400).json({
+        error: 'registryId is required',
+      });
+    }
+
+    const credRepo = dataSource.getRepository(Cred);
+
+    const credentials = await credRepo.find({
+      where: { registryId },
+      order: {
+        createdAt: 'DESC',
+      },
+     select: [
+  'credId',
+  'registryId',
+  'issuerDid',
+  'holderDid',
+  'createdAt',
+],
+    });
+
+    return res.status(200).json({
+      result: 'success',
+      count: credentials.length,
+      credentials,
+    });
+  } catch (err: any) {
+    console.error('Error fetching credentials by registry:', err);
+    return res.status(500).json({
+      error: err.message || 'Failed to fetch credentials',
+    });
   }
 }

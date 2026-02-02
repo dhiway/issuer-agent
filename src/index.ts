@@ -10,7 +10,7 @@ import {
   getProfile,
 } from './controller/profile_controller';
 import { checkDidAndIdentities } from './cord';
-import { createRegistry, getRegistry } from './controller/registry_controller';
+import { createRegistry, getRegistry, listRegistriesByAddress } from './controller/registry_controller';
 import {
   issueVC,
   getCredById,
@@ -21,6 +21,7 @@ import {
   documentHashOnChain,
   updateDocumentHashOnChain,
   revokeDocumentHashOnChain,
+  getCredentialsByRegistry,
 } from './controller/credential_controller';
 
 const { PORT } = process.env;
@@ -64,6 +65,12 @@ if (cluster.isPrimary) {
     return await createPresentation(req, res);
   });
 
+   credentialRouter.get('/list/:registryId', async (req, res) => {
+    return await getCredentialsByRegistry(req, res);
+  });
+
+  
+
   // credentialRouter.get('/hash', async (req, res) => {
   //   return await getHashFromFile(req, res);
   // });
@@ -86,6 +93,10 @@ if (cluster.isPrimary) {
 
   registryRouter.get('/:id', async (req, res) => {
     return await getRegistry(req, res);
+  });
+
+  registryRouter.get('/list/:address', async (req, res) => {
+    return await listRegistriesByAddress(req, res);
   });
 
   docRouter.post('/issue', async (req, res) => {
