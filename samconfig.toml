@@ -1,0 +1,37 @@
+version = 0.1
+
+# ── Shared / global defaults ──────────────────────────────────────────────
+[default]
+[default.global.parameters]
+stack_name = "issuer-agent-service"
+
+# ── Build ─────────────────────────────────────────────────────────────────
+[default.build.parameters]
+# The Makefile handles TypeScript compilation.
+# For a true Lambda environment, uncomment and run: sam build --use-container
+# use_container = true
+
+# ── Deploy ────────────────────────────────────────────────────────────────
+[default.deploy.parameters]
+capabilities       = "CAPABILITY_IAM"
+confirm_changeset  = true
+resolve_s3         = true
+region             = "ap-south-1"
+
+# Sensitive values (AgentMnemonic, TypeormPassword, RedisUrl, RequestUrlToken)
+# should be passed on the command line or via AWS Systems Manager Parameter Store.
+#
+# Example (minimal, no custom domain):
+#   sam deploy \
+#     --parameter-overrides \
+#       "StudioEnv=demo" \
+#       "TypeormHost=<rds-host>" \
+#       "TypeormUsername=postgres" \
+#       "TypeormPassword=<password>" \
+#       "TypeormDatabase=issuer" \
+#       "NetworkAddress=wss://networkdemo.devnets.dhiway.com" \
+#       "AgentMnemonic=<mnemonic>" \
+#       "UseRedis=true" \
+#       "RedisUrl=rediss://<redis-host>:6379"
+#
+parameter_overrides = "TypeormHost=printing-service-dev.cluster-czalg7jdgei9.ap-south-1.rds.amazonaws.com TypeormUsername=postgres TypeormPassword=mark57ud10 TypeormDatabase=issuer RedisUrl=rediss://printing-service-dev-cache-ut2mco.serverless.aps1.cache.amazonaws.com:6379 UseRedis=true VpcSubnetIds=subnet-07922a3ddf0675233,subnet-0f28e4ad08f77deee VpcSecurityGroupIds=sg-0e223a705cba981de NetworkAddress=wss://networkdemo.devnets.dhiway.com AgentMnemonic=<FILL_IN> StashAccMnemonic=<FILL_IN> RequestUrlToken=<FILL_IN> CustomDomain=issuer-agent.dhiway.net HostedZoneId=Z05231961JBRWYVDP2L63 CloudFrontCertificateArn=arn:aws:acm:us-east-1:398701577843:certificate/<FILL_IN>"

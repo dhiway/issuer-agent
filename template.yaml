@@ -1,0 +1,283 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Issuer Agent Service on AWS Lambda
+
+Globals:
+  Function:
+    Timeout: 29          # HTTP API Gateway hard limit is 29 seconds
+    MemorySize: 512
+    Runtime: nodejs22.x
+    Architectures:
+      - arm64
+    Environment:
+      Variables:
+        NODE_ENV: production
+
+Parameters:
+  StudioEnv:
+    Type: String
+    Default: demo
+    Description: Deployment environment (demo, staging, prod, etc.)
+
+  # ── TypeORM / PostgreSQL ──────────────────────────────────────────────────
+  TypeormHost:
+    Type: String
+    Description: PostgreSQL host
+  TypeormPort:
+    Type: String
+    Default: "5432"
+    Description: PostgreSQL port
+  TypeormUsername:
+    Type: String
+    Description: PostgreSQL username
+  TypeormPassword:
+    Type: String
+    NoEcho: true
+    Description: PostgreSQL password (sensitive)
+  TypeormDatabase:
+    Type: String
+    Description: PostgreSQL database name
+  TypeormAutoSchemaSync:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+  TypeormLogging:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+  TypeormEntities:
+    Type: String
+    Default: "dist/entity/*.js"
+  TypeormMigrations:
+    Type: String
+    Default: "dist/migration/*.js"
+  TypeormSubscribers:
+    Type: String
+    Default: "dist/subscriber/*.js"
+  TypeormEntitiesDir:
+    Type: String
+    Default: "src/entity"
+  TypeormMigrationsDir:
+    Type: String
+    Default: "src/migration"
+  TypeormSubscribersDir:
+    Type: String
+    Default: "src/subscriber"
+
+  # ── Redis ─────────────────────────────────────────────────────────────────
+  UseRedis:
+    Type: String
+    Default: "false"
+    AllowedValues: ["true", "false"]
+    Description: Set to "true" to enable Redis caching
+  RedisUrl:
+    Type: String
+    Default: ""
+    NoEcho: true
+    Description: Redis connection URL (redis://host:port or rediss:// for TLS)
+  RedisTimeout:
+    Type: String
+    Default: "5000"
+    Description: Redis operation timeout in milliseconds
+
+  # ── CORD Network ──────────────────────────────────────────────────────────
+  NetworkAddress:
+    Type: String
+    Default: "wss://networkdemo.devnets.dhiway.com"
+    Description: CORD network WebSocket URL
+
+  # ── Agent identity (sensitive) ───────────────────────────────────────────
+  AgentMnemonic:
+    Type: String
+    NoEcho: true
+    Description: Agent mnemonic for signing (sensitive)
+  StashAccMnemonic:
+    Type: String
+    NoEcho: true
+    Default: ""
+    Description: Stash account mnemonic (sensitive)
+  RequestUrlToken:
+    Type: String
+    NoEcho: true
+    Default: ""
+    Description: Auth token for request URL (sensitive)
+
+  # ── VPC ───────────────────────────────────────────────────────────────────
+  VpcSubnetIds:
+    Type: CommaDelimitedList
+    Default: ""
+    Description: Comma-separated subnet IDs for Lambda VPC config (required for ElastiCache)
+  VpcSecurityGroupIds:
+    Type: CommaDelimitedList
+    Default: ""
+    Description: Comma-separated security group IDs for Lambda VPC config
+
+  # ── Custom domain (optional) ─────────────────────────────────────────────
+  CustomDomain:
+    Type: String
+    Default: ""
+    Description: Custom domain name (e.g. issuer-agent.dhiway.net). Leave empty to skip CloudFront/Route53.
+  HostedZoneId:
+    Type: String
+    Default: ""
+    Description: Route53 Hosted Zone ID (required when CustomDomain is set)
+  CloudFrontCertificateArn:
+    Type: String
+    Default: ""
+    Description: ACM certificate ARN for CustomDomain — must be in us-east-1 (CloudFront requirement)
+
+Conditions:
+  HasCustomDomain: !And
+    - !Not [!Equals [!Ref CustomDomain, ""]]
+    - !Not [!Equals [!Ref HostedZoneId, ""]]
+    - !Not [!Equals [!Ref CloudFrontCertificateArn, ""]]
+  HasVpc: !And
+    - !Not [!Equals [!Select [0, !Ref VpcSubnetIds], ""]]
+    - !Not [!Equals [!Select [0, !Ref VpcSecurityGroupIds], ""]]
+
+Resources:
+
+  # ── HTTP API Gateway ──────────────────────────────────────────────────────
+  IssuerAgentApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: $default
+      CorsConfiguration:
+        AllowOrigins:
+          - "*"
+        AllowMethods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
+          - HEAD
+          - PATCH
+        AllowHeaders:
+          - Content-Type
+          - Authorization
+          - X-UserId
+          - Accept
+          - user-agent
+          - X-Forwarded-For
+        MaxAge: 3600
+
+  # ── Lambda Function ───────────────────────────────────────────────────────
+  IssuerAgentFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+    Properties:
+      FunctionName: !Sub "issuer-agent-${StudioEnv}"
+      CodeUri: .
+      Handler: dist/lambda.handler
+      Description: Issuer Agent — credential issuance and registry service
+      Environment:
+        Variables:
+          STUDIO_ENV:               !Ref StudioEnv
+          TYPEORM_HOST:             !Ref TypeormHost
+          TYPEORM_PORT:             !Ref TypeormPort
+          TYPEORM_USERNAME:         !Ref TypeormUsername
+          TYPEORM_PASSWORD:         !Ref TypeormPassword
+          TYPEORM_DATABASE:         !Ref TypeormDatabase
+          TYPEORM_AUTO_SCHEMA_SYNC: !Ref TypeormAutoSchemaSync
+          TYPEORM_LOGGING:          !Ref TypeormLogging
+          TYPEORM_ENTITIES:         !Ref TypeormEntities
+          TYPEORM_MIGRATIONS:       !Ref TypeormMigrations
+          TYPEORM_SUBSCRIBERS:      !Ref TypeormSubscribers
+          TYPEORM_ENTITIES_DIR:     !Ref TypeormEntitiesDir
+          TYPEORM_MIGRATIONS_DIR:   !Ref TypeormMigrationsDir
+          TYPEORM_SUBSCRIBERS_DIR:  !Ref TypeormSubscribersDir
+          USE_REDIS:                !Ref UseRedis
+          REDIS_URL:                !Ref RedisUrl
+          REDIS_TIMEOUT:            !Ref RedisTimeout
+          NETWORK_ADDRESS:          !Ref NetworkAddress
+          AGENT_MNEMONIC:           !Ref AgentMnemonic
+          STASH_ACC_MNEMONIC:       !Ref StashAccMnemonic
+          REQUEST_URL_TOKEN:        !Ref RequestUrlToken
+      VpcConfig: !If
+        - HasVpc
+        - SubnetIds:        !Ref VpcSubnetIds
+          SecurityGroupIds: !Ref VpcSecurityGroupIds
+        - !Ref AWS::NoValue
+      Events:
+        RootPath:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref IssuerAgentApi
+            Path: /
+            Method: ANY
+        ProxyPath:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref IssuerAgentApi
+            Path: /{proxy+}
+            Method: ANY
+
+  # ── CloudFront Distribution (optional — only when CustomDomain is set) ────
+  IssuerAgentCloudFront:
+    Type: AWS::CloudFront::Distribution
+    Condition: HasCustomDomain
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Aliases:
+          - !Ref CustomDomain
+        ViewerCertificate:
+          AcmCertificateArn: !Ref CloudFrontCertificateArn
+          SslSupportMethod: sni-only
+          MinimumProtocolVersion: TLSv1.2_2021
+        Origins:
+          - Id: ApiGateway
+            DomainName: !Sub "${IssuerAgentApi}.execute-api.${AWS::Region}.amazonaws.com"
+            CustomOriginConfig:
+              HTTPSPort: 443
+              OriginProtocolPolicy: https-only
+              OriginSSLProtocols:
+                - TLSv1.2
+        DefaultCacheBehavior:
+          TargetOriginId: ApiGateway
+          ViewerProtocolPolicy: redirect-to-https
+          CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad          # CachingDisabled
+          OriginRequestPolicyId: b689b0a8-53d0-40ab-baf2-68738e2966ac  # AllViewerExceptHostHeader
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+            - PUT
+            - POST
+            - PATCH
+            - DELETE
+          Compress: true
+        HttpVersion: http2
+        PriceClass: PriceClass_200   # Asia, US, Europe
+
+  # ── Route53 A-alias record (optional) ────────────────────────────────────
+  IssuerAgentDnsRecord:
+    Type: AWS::Route53::RecordSet
+    Condition: HasCustomDomain
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name: !Ref CustomDomain
+      Type: A
+      AliasTarget:
+        HostedZoneId: Z2FDTNDATAQYW2   # Fixed hosted zone ID for all CloudFront distributions
+        DNSName: !GetAtt IssuerAgentCloudFront.DomainName
+        EvaluateTargetHealth: false
+
+Outputs:
+  ApiUrl:
+    Description: API Gateway endpoint URL
+    Value: !Sub "https://${IssuerAgentApi}.execute-api.${AWS::Region}.amazonaws.com/"
+  FunctionArn:
+    Description: Lambda Function ARN
+    Value: !GetAtt IssuerAgentFunction.Arn
+  FunctionName:
+    Description: Lambda Function Name
+    Value: !Ref IssuerAgentFunction
+  CustomDomainUrl:
+    Condition: HasCustomDomain
+    Description: Custom domain URL
+    Value: !Sub "https://${CustomDomain}"
