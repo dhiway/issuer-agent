@@ -13,6 +13,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@codegenie/serverless-express": "^5.0.0",
     "@cord.network/vc-export": "0.9.6-6",
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
