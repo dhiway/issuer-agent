@@ -15,12 +15,15 @@ import { getAccount } from '../helper';
 import { Profile } from '../entity/Profile';
 import { createRegistryForIssuer } from './registry_controller';
 
+
 export async function issueVC(req: Request, res: Response) {
   try {
     const api = Cord.ConfigService.get('api');
     const data = req.body;
 
+
     const validationError = validateCredential(data);
+
     if (validationError) {
       return res.status(400).json({ error: validationError });
     }
@@ -31,22 +34,30 @@ export async function issueVC(req: Request, res: Response) {
     const { account: issuerAccount, profileId } = await getAccount(
       processedData.address
     );
+
     if (!issuerAccount) {
       return res.status(400).json({ error: 'Invalid issuerAccount' });
     }
 
+
     const registry = await dataSource.getRepository(Registry).findOne({
-      where: {registryId:data.registryId},
-      select: ['registryId']
+      where: {
+        registryId: data.registryId,
+        address: issuerAccount.address, // IMPORTANT: registry must belong to issuer
+      },
+      select: ['registryId', 'address'],
     });
+
+
     if (!registry) {
       return res.status(400).json({
-        error: 'Registry not found for the provided address',
+        error:
+          'Registry not found or issuer does not have access to this registry',
       });
     }
 
-    const issuerDid = 'did:web:did.myn.social:' + profileId;
-    const holderDid = processedData.holder ?? issuerDid; // Assuming holder is the same as issuer for this example
+    const issuerDid = `did:web:did.myn.social:${profileId}`;
+    const holderDid = processedData.holder ?? issuerDid;
 
     const newCredContent = await Vc.buildVcFromContent(
       processedData.schema as any,
@@ -59,13 +70,12 @@ export async function issueVC(req: Request, res: Response) {
       }
     );
 
-    // let proofId = 'PAN-1234';
     const vc = await Vc.addProof(
       newCredContent,
-      async (data) => ({
-        signature: issuerAccount.sign(data),
+      async (signData) => ({
+        signature: issuerAccount.sign(signData),
         keyType: issuerAccount.type,
-        keyUri: issuerDid + '#' + issuerAccount.address,
+        keyUri: `${issuerDid}#${issuerAccount.address}`,
       }),
       registry.registryId as string,
       issuerAccount.address,
@@ -74,85 +84,84 @@ export async function issueVC(req: Request, res: Response) {
         needSDR: true,
         needEntryProof: true,
       }
-      // proofId /* Optional proof-id, example PAN ID */
     );
 
-    console.dir(vc, {
-      depth: null,
-      colors: true,
-    });
+    console.dir(vc, { depth: null, colors: true });
 
-    // Dispatch the VC to the chain
-    const proof = Array.isArray(vc.proof) ? vc.proof[1] : vc.proof || {};
+    type CordEntryProof = {
+  type: 'CordProof2025' | 'CordProof2024';
+  registryId: string;
+  issuerAddress: string;
+  tx_hash: string;
+  genesisHash?: string;
+};
 
-    await Cord.Entry.dispatchCreateEntryToChain(
-      proof as unknown as Cord.IRegistryEntry,
-      issuerAccount
-    );
+const proofs = Array.isArray(vc.proof) ? vc.proof : [vc.proof];
 
-    const entry = await computeEntryDokenId(
-      api,
-      (proof as any).tx_hash,
-      registry.registryId as string,
-      issuerAccount.address
-    );
+const proof = proofs.find(
+  (p: any) => p?.type === 'CordProof2025' || p?.type === 'CordProof2024'
+) as CordEntryProof | undefined;
 
-    if (entry) {
-      // Save to DB
-      const cred = await dataSource.getRepository(Cred).create({
-        credId: entry,
-        address: issuerAccount.address,
-        profileId,
-        registryId: registry.registryId,
-        issuerDid,
-        holderDid,
-        vc,
-      });
+if (!proof) {
+  return res.status(500).json({
+    error: 'Cord entry proof not found in VC',
+  });
+}
 
-      await dataSource.manager.save(cred);
+if (proof.issuerAddress !== issuerAccount.address) {
+  return res.status(400).json({
+    error: 'Proof issuerAddress does not match issuer account address',
+  });
+}
 
-      return res.status(200).json({
-        result: 'success',
-        credId: cred.credId,
-        vc,
+if (proof.registryId !== registry.registryId) {
+  return res.status(400).json({
+    error: 'Proof registryId does not match selected registry',
+  });
+}
+
+await Cord.Entry.dispatchCreateEntryToChain(
+  proof as unknown as Cord.IRegistryEntry,
+  issuerAccount
+);
+
+const entry = await computeEntryDokenId(
+  api,
+  proof.tx_hash,
+  registry.registryId as string,
+  issuerAccount.address
+); 
+    if (!entry) {
+      return res.status(500).json({
+        error: 'Failed to compute entry id',
       });
     }
+
+    const cred = dataSource.getRepository(Cred).create({
+      credId: entry,
+      address: issuerAccount.address,
+      profileId,
+      registryId: registry.registryId,
+      issuerDid,
+      holderDid,
+      vc,
+    });
+
+    await dataSource.manager.save(cred);
+
+    return res.status(200).json({
+      result: 'success',
+      credId: cred.credId,
+      vc,
+    });
   } catch (err: any) {
     console.error('Error issuing VC:', err);
+
     return res.status(500).json({
       error: err.message || 'Fields do not match schema',
     });
   }
-
-  // TODO: If holder id is set vc will be sent to wallet
-
-  // const url: any = WALLET_URL;
-
-  // if (url && data.type) {
-  //   await fetch(`${url}/message/${holderDidUri}`, {
-  //     body: JSON.stringify({
-  //       id: data.id,
-  //       type: data.type,
-  //       fromDid: issuerDid.uri,
-  //       toDid: holderDidUri,
-  //       message: documents,
-  //     }),
-  //     method: 'POST',
-  //     headers: {
-  //       'Content-Type': 'application/json',
-  //     },
-  //   })
-  //     .then((resp) => resp.json())
-  //     .then(() => console.log('Saved to db'))
-  //     .catch((error) => {
-  //       console.error(error);
-  //       return res.json({ result: 'VC not issued' });
-  //     });
-  // }
-
-  // return res.status(200).json({ result: 'SUCCESS' });
 }
-
 export async function getCredById(req: Request, res: Response) {
   try {
     if (!req.params.id) {
@@ -350,22 +359,7 @@ export async function createPresentation(req: Request, res: Response) {
   }
 }
 
-// export async function getHashFromFile(req: Request, res: Response) {
-//   try {
-//     if (!req.file || !req.file.buffer) {
-//       return res.status(400).json({ error: 'No file uploaded' });
-//     }
-//     // const hashHex = await Cord.Utils.Crypto.hashStr(req.file.buffer);
-//     let digest: Cord.HexString = Cord.blake2AsHex(req.file.buffer);
-//     return res.status(200).json({ hash: digest });
-//   } catch (error) {
-//     console.error('Error hashing file:', error);
-//     return res.status(500).json({ error: 'Error hashing file' });
-//   }
-// }
-
 export async function documentHashOnChain(req: Request, res: Response) {
-  console.log("Entered Doc Hashing")
   try {
     const api = Cord.ConfigService.get('api');
 
@@ -395,7 +389,7 @@ export async function documentHashOnChain(req: Request, res: Response) {
       });
     }
 
-    let digest: Cord.HexString = await Cord.blake2AsHex(fileHash);
+    let digest: Cord.HexString = fileHash as Cord.HexString; //await Cord.blake2AsHex(fileHash);
     console.log(`\n❄️  Document hash to be registered on chain - ${digest} `);
 
     let docProof: any = await Vc.constructCordProof2025(
