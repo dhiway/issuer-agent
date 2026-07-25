@@ -57,7 +57,6 @@ export async function createRegistry(req: Request, res: Response) {
   try {
     const { schema, address } = req.body;
     let schemaRead = typeof schema === 'string' ? JSON.parse(schema) : schema;
-
     if (!schemaRead || typeof schemaRead !== 'object') {
       return res.status(400).json({ error: 'Schema must be a valid JSON object' });
     }
@@ -118,10 +117,13 @@ export async function listRegistriesByAddress(req: Request, res: Response) {
 
     const registryRepository = dataSource.getRepository(Registry);
 
-    const registries = await registryRepository.find({
-      where: { address },
-      order: { createdAt: 'DESC' },
-    });
+  const registries = await registryRepository.find({
+  where: { 
+    address,
+    active: true 
+  },
+  order: { createdAt: 'DESC' },
+});
 
     return res.status(200).json({
       count: registries.length,

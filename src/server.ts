@@ -34,6 +34,8 @@ const allowedOrigins = [
   'https://markdemo.dhiway.com',
   'https://studiodemo.dhiway.com',
   'https://issuer-agent-api.demo.dhiway.net',
+  'https://playground.dhiway.net',
+  'https://studio-lite.dhiway.net'
 ];
 
 const allowedDomains = [
@@ -42,6 +44,7 @@ const allowedDomains = [
   'dway.io',
   'cord.network',
   'amplifyapp.com',
+  'dhiway.net'
 ];
 
 app.use(

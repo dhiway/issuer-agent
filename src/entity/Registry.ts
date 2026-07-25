@@ -25,6 +25,9 @@ export class Registry {
   @Column()
   registryId?: string;
 
+  @Column({ default: true })
+    active?: boolean;
+
   @Column()
   address?: string;
 
